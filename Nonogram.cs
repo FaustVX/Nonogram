@@ -19,68 +19,73 @@ namespace NonogramRow
         public (T color, int qty)[][] ColHints { get; }
         public (T color, int qty)[][] RowHints { get; }
         public T[] PossibleValue { get; }
+        public T IgnoredValue { get; }
 
         public Nonogram(T[,] pattern, T ignoredValue)
         {
             _pattern = pattern;
             Width = _pattern.GetLength(0);
             Height = _pattern.GetLength(1);
+            IgnoredValue = ignoredValue;
             Grid = new T[Width, Height];
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                    Grid[x, y] = IgnoredValue;
             ColHints = new (T color, int qty)[Height][];
             RowHints = new (T color, int qty)[Width][];
-            PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !(c?.Equals(ignoredValue) ?? true)).ToArray();
+            PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !(c?.Equals(IgnoredValue) ?? true)).ToArray();
 
             for (int x = 0; x < Width; x++)
-                RowHints[x] = CalculateHints(GetCol(_pattern, x), Height).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                RowHints[x] = CalculateHints(GetCol(_pattern, x)).Where(g => PossibleValue.Contains(g.color)).ToArray();
 
             for (int y = 0; y < Height; y++)
-                ColHints[y] = CalculateHints(GetRow(_pattern, y), Width).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                ColHints[y] = CalculateHints(GetRow(_pattern, y)).Where(g => PossibleValue.Contains(g.color)).ToArray();
         }
 
-        public static IEnumerable<(T color, int qty)> CalculateHints(T[] row)
-            => CalculateHints(row, null);
-
-        private static IEnumerable<(T color, int qty)> CalculateHints(T[] row, int? length)
+        public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
-            if ((length ?? row.Length) == 0)
+            using var enumerator = row.GetEnumerator();
+            if (!enumerator.MoveNext())
                 yield break;
 
-            var last = 0;
+            var color = enumerator.Current;
+            var count = 1;
 
             while (true)
             {
-                var color = row[last];
-                var lastIndex = row.FirstIndexOfDifferent(color, last);
-                if (!lastIndex.HasValue)
+                if (!enumerator.MoveNext())
                 {
-                    yield return (color, (length ?? row.Length) - last);
-                    if (length is not null)
-                        _arrayPool.Return(row);
-                    break;
+                    yield return (color, count);
+                    yield break;
                 }
-                yield return (color, lastIndex.GetValueOrDefault() - last);
-                last = lastIndex.GetValueOrDefault();
+                if (!(enumerator.Current?.Equals(color) ?? false))
+                {
+                    yield return (color, count);
+                    color = enumerator.Current;
+                    count = 1;
+                    continue;
+                }
+                count++;
             }
         }
 
-        public static T[] GetCol(T[,] array, int col)
+        public static IEnumerable<T> GetCol(T[,] array, int col)
             => GetRowCol(array, 1, i => array[col, i]);
 
-        public static T[] GetRow(T[,] array, int row)
+        public static IEnumerable<T> GetRow(T[,] array, int row)
             => GetRowCol(array, 0, i => array[i, row]);
 
-        private static readonly ArrayPool<T> _arrayPool = ArrayPool<T>.Create();
-        private static T[] GetRowCol(T[,] array, int dimension, System.Func<int, T> get)
+        private static IEnumerable<T> GetRowCol(T[,] array, int dimension, System.Func<int, T> get)
         {
-            var length = array.GetLength(dimension);
-            if (length == 0)
-                return System.Array.Empty<T>();
+            return array.GetLength(dimension) is not 0 and var length
+                ? Execute(length, get)
+                : Enumerable.Empty<T>();
 
-            var result = _arrayPool.Rent(length);
-            for (int i = 0; i < length; i++)
-                result[i] = get(i);
-
-            return result;
+            static IEnumerable<T> Execute(int length, System.Func<int, T> get)
+            {
+                for (int i = 0; i < length; i++)
+                    yield return get(i);
+            }
         }
     }
 }
