@@ -75,10 +75,13 @@ namespace NonogramRow
         [TestMethod]
         public void EmptyGroup()
         {
-            var groups = Array.Empty<bool>();
-            var row = Enumerable.Repeat(false, GetRng()).ToArray();
-            var generated = CalculateGroups(row);
-            CollectionAssert.AreEqual(groups, generated);
+            for (int i = GetRng() - 1; i >= 0 ; i--)
+            {
+                var groups = Array.Empty<bool>();
+                var row = Enumerable.Repeat(false, GetRng()).ToArray();
+                var generated = CalculateGroups(row);
+                CollectionAssert.AreEqual(groups, generated);
+            }
         }
 
         [TestMethod]
@@ -93,10 +96,13 @@ namespace NonogramRow
         [TestMethod]
         public void SingleGroupTrimmed()
         {
-            var groups = new[] { GetRng() };
-            var row = Enumerable.Repeat(true, groups[0]).ToArray();
-            var generated = CalculateGroups(row);
-            CollectionAssert.AreEqual(groups, generated);
+            for (int i = GetRng() - 1; i >= 0 ; i--)
+            {
+                var groups = new[] { GetRng() };
+                var row = Enumerable.Repeat(true, groups[0]).ToArray();
+                var generated = CalculateGroups(row);
+                CollectionAssert.AreEqual(groups, generated);
+            }
         }
 
         [TestMethod]
