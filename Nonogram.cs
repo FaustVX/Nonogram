@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,15 +31,18 @@ namespace NonogramRow
             PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !(c?.Equals(ignoredValue) ?? true)).ToArray();
 
             for (int x = 0; x < Width; x++)
-                RowHints[x] = CalculateHints(GetCol(_pattern, x)).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                RowHints[x] = CalculateHints(GetCol(_pattern, x), Height).Where(g => PossibleValue.Contains(g.color)).ToArray();
 
             for (int y = 0; y < Height; y++)
-                ColHints[y] = CalculateHints(GetRow(_pattern, y)).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                ColHints[y] = CalculateHints(GetRow(_pattern, y), Width).Where(g => PossibleValue.Contains(g.color)).ToArray();
         }
 
         public static IEnumerable<(T color, int qty)> CalculateHints(T[] row)
+            => CalculateHints(row, null);
+
+        private static IEnumerable<(T color, int qty)> CalculateHints(T[] row, int? length)
         {
-            if (row.Length == 0)
+            if ((length ?? row.Length) == 0)
                 yield break;
 
             var last = 0;
@@ -49,7 +53,9 @@ namespace NonogramRow
                 var lastIndex = row.FirstIndexOfDifferent(color, last);
                 if (!lastIndex.HasValue)
                 {
-                    yield return (color, row.Length - last);
+                    yield return (color, (length ?? row.Length) - last);
+                    if (length is not null)
+                        _arrayPool.Return(row);
                     break;
                 }
                 yield return (color, lastIndex.GetValueOrDefault() - last);
@@ -63,13 +69,14 @@ namespace NonogramRow
         public static T[] GetRow(T[,] array, int row)
             => GetRowCol(array, 0, i => array[i, row]);
 
+        private static readonly ArrayPool<T> _arrayPool = ArrayPool<T>.Create();
         private static T[] GetRowCol(T[,] array, int dimension, System.Func<int, T> get)
         {
             var length = array.GetLength(dimension);
             if (length == 0)
                 return System.Array.Empty<T>();
 
-            var result = new T[length];
+            var result = _arrayPool.Rent(length);
             for (int i = 0; i < length; i++)
                 result[i] = get(i);
 
