@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static NonogramRow.Extensions;
 
 namespace NonogramRow
 {
@@ -106,10 +107,5 @@ namespace NonogramRow
             var generated = CalculateGroups(row);
             CollectionAssert.AreNotEqual(groups, generated);
         }
-        public static int[] CalculateGroups(params bool[] row)
-            => Nonogram<bool>.CalculateHints(row).Where(g => g.color).Select(g => g.qty).ToArray();
-
-        public static (T color, int qty)[] CalculateGroups<T>(T ignored, params T[] row)
-            => Nonogram<T>.CalculateHints(row).Where(g => !(g.color?.Equals(ignored) ?? true)).ToArray();
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using static NonogramRow.Extensions;
 
 namespace NonogramRow
 {
@@ -22,11 +22,5 @@ namespace NonogramRow
                 {1, 1, 2, 1, 1},
             });
         }
-
-        public static int[] CalculateGroups(params bool[] row)
-            => Nonogram<bool>.CalculateHints(row).Where(g => g.color).Select(g => g.qty).ToArray();
-
-        public static (T color, int qty)[] CalculateGroups<T>(T ignored, params T[] row)
-            => Nonogram<T>.CalculateHints(row).Where(g => !(g.color?.Equals(ignored) ?? true)).ToArray();
     }
 }
