@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace NonogramRow
@@ -83,6 +82,24 @@ namespace NonogramRow
         }
 
         [TestMethod]
+        public void EmptyRow()
+        {
+            var groups = Array.Empty<bool>();
+            var row = Array.Empty<bool>();
+            var generated = CalculateGroups(row);
+            CollectionAssert.AreEqual(groups, generated);
+        }
+
+        [TestMethod]
+        public void SingleGroupTrimmed()
+        {
+            var groups = new[] { GetRng() };
+            var row = Enumerable.Repeat(true, groups[0]).ToArray();
+            var generated = CalculateGroups(row);
+            CollectionAssert.AreEqual(groups, generated);
+        }
+
+        [TestMethod]
         public void FailWithStuckGroups()
         {
             var groups = new[] { 1, 1 };
@@ -97,50 +114,24 @@ namespace NonogramRow
         {
             Console.WriteLine("Hello World!");
             var groups0 = CalculateGroups(false, true, true, false);
+                groups0 = CalculateGroups(true);
+                groups0 = CalculateGroups(false);
+                groups0 = CalculateGroups();
             var groups1 = CalculateGroups(0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 5, 0, 2, 1);
+            var nonogram = Nonogram.Create(new[,]
+            {
+                {0, 0, 1, 0, 0},
+                {0, 1, 1, 1, 0},
+                {1, 1, 1, 1, 1},
+                {1, 1, 2, 1, 1},
+                {1, 1, 2, 1, 1},
+            });
         }
 #endif
         public static int[] CalculateGroups(params bool[] row)
-            => Calculate(row).Where(g => g.color).Select(g => g.qty).ToArray();
+            => Nonogram<bool>.CalculateHints(row).Where(g => g.color).Select(g => g.qty).ToArray();
 
         public static (T color, int qty)[] CalculateGroups<T>(T ignored, params T[] row)
-            => Calculate(row).Where(g => !(g.color?.Equals(ignored) ?? true)).ToArray();
-
-        public static IEnumerable<(T color, int qty)> Calculate<T>(T[] row)
-        {
-            var last = 0;
-
-            while (true)
-            {
-                var color = row[last];
-                var lastIndex = row.FirstIndexOfDifferent(color, last);
-                if (!lastIndex.HasValue)
-                {
-                    yield return (color, row.Length - last);
-                    break;
-                }
-                yield return (color, lastIndex.GetValueOrDefault() - last);
-                last = lastIndex.GetValueOrDefault();
-            }
-        }
-    }
-
-    public static class Extensions
-    {
-        public static int? FirstIndexOf<T>(this T[] source, T value, int searchAfter)
-        {
-            for (var i = searchAfter; i < source.Length; i++)
-                if (source[i]?.Equals(value) ?? false)
-                    return i;
-            return null;
-        }
-
-        public static int? FirstIndexOfDifferent<T>(this T[] source, T value, int searchAfter)
-        {
-            for (var i = searchAfter; i < source.Length; i++)
-                if (!(source[i]?.Equals(value) ?? true))
-                    return i;
-            return null;
-        }
+            => Nonogram<T>.CalculateHints(row).Where(g => !(g.color?.Equals(ignored) ?? true)).ToArray();
     }
 }
