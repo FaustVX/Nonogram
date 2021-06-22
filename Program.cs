@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,7 +39,7 @@ namespace NonogramRow
 
         [TestMethod]
         public void GeneratedRowsTrimmedStart()
-            {
+        {
             for (int i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Enumerable.Range(0, GetRng()).Select(_ => GetRng()).ToArray();
@@ -47,7 +47,7 @@ namespace NonogramRow
                 var generated = CalculateGroups(row);
                 CollectionAssert.AreEqual(groups, generated, $"Iteration {i}");
             }
-            }
+        }
 
         [TestMethod]
         public void GeneratedRowsTrimmedEnd()
@@ -96,25 +96,31 @@ namespace NonogramRow
         private static void Main()
         {
             Console.WriteLine("Hello World!");
-            var groups = CalculateGroups(false, true, true, false);
+            var groups0 = CalculateGroups(false, true, true, false);
+            var groups1 = CalculateGroups(0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 5, 0, 2, 1);
         }
 #endif
-        private static int[] CalculateGroups(params bool[] row)
+        public static int[] CalculateGroups(params bool[] row)
+            => Calculate(row).Where(g => g.color).Select(g => g.qty).ToArray();
+
+        public static (T color, int qty)[] CalculateGroups<T>(T ignored, params T[] row)
+            => Calculate(row).Where(g => !(g.color?.Equals(ignored) ?? true)).ToArray();
+
+        public static IEnumerable<(T color, int qty)> Calculate<T>(T[] row)
         {
-            return Calculate(row).ToArray();
+            var last = 0;
 
-            static IEnumerable<int> Calculate(bool[] row)
+            while (true)
             {
-                var last = -1;
-
-                while (true)
+                var color = row[last];
+                var lastIndex = row.FirstIndexOfDifferent(color, last);
+                if (!lastIndex.HasValue)
                 {
-                    var first = row.FirstIndexOf(true, last);
-                    if (!first.HasValue)
-                        break;
-                    last = row.FirstIndexOf(false, first.Value) ?? 0;
-                    yield return last - first.Value;
+                    yield return (color, row.Length - last);
+                    break;
                 }
+                yield return (color, lastIndex.GetValueOrDefault() - last);
+                last = lastIndex.GetValueOrDefault();
             }
         }
     }
@@ -123,8 +129,16 @@ namespace NonogramRow
     {
         public static int? FirstIndexOf<T>(this T[] source, T value, int searchAfter)
         {
-            for (var i = searchAfter + 1; i < source.Length; i++)
+            for (var i = searchAfter; i < source.Length; i++)
                 if (source[i]?.Equals(value) ?? false)
+                    return i;
+            return null;
+        }
+
+        public static int? FirstIndexOfDifferent<T>(this T[] source, T value, int searchAfter)
+        {
+            for (var i = searchAfter; i < source.Length; i++)
+                if (!(source[i]?.Equals(value) ?? true))
                     return i;
             return null;
         }
