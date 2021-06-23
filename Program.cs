@@ -26,6 +26,11 @@ namespace NonogramRow
                 {1, 1, 2, 1, 1},
                 {1, 1, 2, 1, 1},
             });
+            nonogram.ValidateHints(2, 0, 1);
+            nonogram.ValidateHints(2, 1, 1);
+            nonogram.ValidateHints(2, 2, 1);
+            nonogram.ValidateHints(2, 3, 2);
+            nonogram.ValidateHints(2, 4, 2);
             foreach (var group in Nonogram<char>.CalculateHints(GetCharFromConsole()))
                 System.Console.WriteLine($"\b\n'{group.color}': {group.qty:00}");
         }

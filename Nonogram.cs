@@ -16,8 +16,8 @@ namespace NonogramRow
         public T[,] Grid { get; }
         public int Width { get; }
         public int Height { get; }
-        public (T color, int qty)[][] ColHints { get; }
-        public (T color, int qty)[][] RowHints { get; }
+        public (T color, int qty, bool validated)[][] ColHints { get; }
+        public (T color, int qty, bool validated)[][] RowHints { get; }
         public T[] PossibleValue { get; }
         public T IgnoredValue { get; }
 
@@ -31,15 +31,62 @@ namespace NonogramRow
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                     Grid[x, y] = IgnoredValue;
-            ColHints = new (T color, int qty)[Height][];
-            RowHints = new (T color, int qty)[Width][];
+            ColHints = new (T, int, bool)[Height][];
+            RowHints = new (T, int, bool)[Width][];
             PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !(c?.Equals(IgnoredValue) ?? true)).ToArray();
 
             for (int x = 0; x < Width; x++)
-                RowHints[x] = CalculateHints(GetCol(_pattern, x)).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                RowHints[x] = CalculateHints(GetCol(_pattern, x))
+                    .Where(g => PossibleValue.Contains(g.color))
+                    .Select(g => (g.color, g.qty, validated: false))
+                    .ToArray();
 
             for (int y = 0; y < Height; y++)
-                ColHints[y] = CalculateHints(GetRow(_pattern, y)).Where(g => PossibleValue.Contains(g.color)).ToArray();
+                ColHints[y] = CalculateHints(GetRow(_pattern, y))
+                    .Where(g => PossibleValue.Contains(g.color))
+                    .Select(g => (g.color, g.qty, validated: false))
+                    .ToArray();
+        }
+
+        public void ValidateHints(int x, int y, T color)
+        {
+            if (!PossibleValue.Contains(color) || (IgnoredValue?.Equals(color) ?? true))
+                return;
+            Grid[x, y] = color;
+            ValidateHints(x, y);
+        }
+
+        public void ValidateHints(int x, int y)
+        {
+            Validate(CalculateHints(GetCol(Grid, x).Select(g => g)), ColHints[x], PossibleValue);
+            Validate(CalculateHints(GetRow(Grid, y).Select(g => g)), RowHints[y], PossibleValue);
+
+            static void Validate(IEnumerable<(T color, int qty)> gridLine, (T color, int qty, bool validated)[] hints, T[] possibleColors)
+            {
+                var lineArray = gridLine
+                    .Where(g => possibleColors.Contains(g.color))
+                    .ToArray();
+
+                for (int i = 0; i < hints.Length; i++)
+                    hints[i].validated = false;
+
+                for (int i = 0; i < System.Math.Min(lineArray.Length, hints.Length); i++)
+                    if (!ValidateCell(lineArray, hints, i))
+                        break;
+                for (int i = System.Math.Min(lineArray.Length, hints.Length) - 1; i >= 0 ; i--)
+                    if (!ValidateCell(lineArray, hints, i))
+                        break;
+
+                static bool ValidateCell((T color, int qty)[] lineArray, (T color, int qty, bool validated)[] hints, int i)
+                {
+                    ref var hint = ref hints[i];
+                    var c = lineArray[i];
+                    if (hint.qty != c.qty || !(hint.color?.Equals(c.color) ?? true))
+                        return false;
+                    hint.validated = true;
+                    return true;
+                }
+            }
         }
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
