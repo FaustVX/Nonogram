@@ -62,23 +62,29 @@
                 "--configuration",
                 "Test"
             ],
-            "problemMatcher": []
-        },
-        {
-            "label": "run tests for debug",
-            "type": "shell",
-            "command": "dotnet",
-            "args": [
-                "test",
-                "--configuration",
-                "Test"
-            ],
             "options": {
                 "env": {
-                    "VSTEST_HOST_DEBUG": "1"
+                    "VSTEST_HOST_DEBUG": "${input:debugTest}"
                 }
             },
             "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "debugTest",
+            "type": "pickString",
+            "options": [
+                {
+                    "label": "Wait",
+                    "value": "1"
+                },
+                {
+                    "label": "Don't",
+                    "value": "0"
+                }
+            ],
+            "description": "Wait for debugger ?"
         }
     ]
 }
