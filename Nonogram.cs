@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace NonogramRow
 {
@@ -57,6 +58,30 @@ namespace NonogramRow
                 return;
             Grid[x, y] = color;
             ValidateHints(x, y);
+        }
+
+        public Nonogram<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
+        where TOther : notnull
+        {
+            var pattern = new TOther[Width, Height];
+            var grid = new TOther[Width, Height];
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                {
+                    pattern[x, y] = _pattern[x, y].ConvertTo(PossibleValue, possibleValue, ignoredValue);
+                    grid[x, y] = Grid[x, y].ConvertTo(PossibleValue, possibleValue, ignoredValue);
+                }
+            var result = new Nonogram<TOther>(pattern, ignoredValue);
+            result.GetType()
+                .GetField($"<{nameof(Grid)}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(result, grid);
+            for (var i = 0; i < RowHints.Length; i++)
+                for (var j = 0; j < RowHints[i].Length; j++)
+                    result.RowHints[i][j].validated = RowHints[i][j].validated;
+            for (var i = 0; i < ColHints.Length; i++)
+                for (var j = 0; j < ColHints[i].Length; j++)
+                    result.ColHints[i][j].validated = ColHints[i][j].validated;
+            return result;
         }
 
         public void ValidateHints(int x, int y)
