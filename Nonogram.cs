@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,14 +73,11 @@ namespace NonogramRow
                 for (int i = 0; i < hints.Length; i++)
                     hints[i].validated = false;
 
-                for (int i = 0; i < System.Math.Min(lineArray.Length, hints.Length); i++)
-                    if (!ValidateCell(lineArray, hints, i))
-                        break;
-                for (int i = System.Math.Min(lineArray.Length, hints.Length) - 1; i >= 0 ; i--)
-                    if (!ValidateCell(lineArray, hints, i))
+                for (int i = 0; i < Math.Min(lineArray.Length, hints.Length); i++)
+                    if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
-                static bool ValidateCell((T color, int qty)[] lineArray, (T color, int qty, bool validated)[] hints, int i)
+                static bool ValidateCell((T color, int qty)[] lineArray, (T color, int qty, bool validated)[] hints, Index i)
                 {
                     ref var hint = ref hints[i];
                     var c = lineArray[i];
@@ -124,13 +122,13 @@ namespace NonogramRow
         public static IEnumerable<T> GetRow(T[,] array, int row)
             => GetRowCol(array, 0, i => array[i, row]);
 
-        private static IEnumerable<T> GetRowCol(T[,] array, int dimension, System.Func<int, T> get)
+        private static IEnumerable<T> GetRowCol(T[,] array, int dimension, Func<int, T> get)
         {
             return array.GetLength(dimension) is not 0 and var length
                 ? Execute(length, get)
                 : Enumerable.Empty<T>();
 
-            static IEnumerable<T> Execute(int length, System.Func<int, T> get)
+            static IEnumerable<T> Execute(int length, Func<int, T> get)
             {
                 for (int i = 0; i < length; i++)
                     yield return get(i);
