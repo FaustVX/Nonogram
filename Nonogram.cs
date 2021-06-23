@@ -7,10 +7,12 @@ namespace NonogramRow
     public static class Nonogram
     {
         public static Nonogram<T> Create<T>(T[,] pattern, T ignoredValue = default!)
+        where T : notnull
             => new (pattern, ignoredValue);
     }
 
     public class Nonogram<T>
+    where T : notnull
     {
         private readonly T[,] _pattern;
         public T[,] Grid { get; }
@@ -33,7 +35,7 @@ namespace NonogramRow
                     Grid[x, y] = IgnoredValue;
             ColHints = new (T, int, bool)[Height][];
             RowHints = new (T, int, bool)[Width][];
-            PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !(c?.Equals(IgnoredValue) ?? true)).ToArray();
+            PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !c.Equals(IgnoredValue)).ToArray();
 
             for (int x = 0; x < Width; x++)
                 RowHints[x] = CalculateHints(GetCol(_pattern, x))
@@ -50,7 +52,7 @@ namespace NonogramRow
 
         public void ValidateHints(int x, int y, T color)
         {
-            if (!PossibleValue.Contains(color) || (IgnoredValue?.Equals(color) ?? true))
+            if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
                 return;
             Grid[x, y] = color;
             ValidateHints(x, y);
@@ -81,7 +83,7 @@ namespace NonogramRow
                 {
                     ref var hint = ref hints[i];
                     var c = lineArray[i];
-                    if (hint.qty != c.qty || !(hint.color?.Equals(c.color) ?? true))
+                    if (hint.qty != c.qty || !hint.color.Equals(c.color))
                         return false;
                     hint.validated = true;
                     return true;
@@ -105,7 +107,7 @@ namespace NonogramRow
                     yield return (color, count);
                     yield break;
                 }
-                if (!(enumerator.Current?.Equals(color) ?? false))
+                if (!enumerator.Current.Equals(color))
                 {
                     yield return (color, count);
                     color = enumerator.Current;
