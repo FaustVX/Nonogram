@@ -113,5 +113,84 @@ namespace NonogramRow
             var generated = CalculateGroups(row);
             CollectionAssert.AreNotEqual(groups, generated);
         }
+
+        [TestMethod]
+        public void CreationHints()
+        {
+            var groupsEmpty = Array.Empty<(int color, int qty, bool validated)>();
+            var groups1 = new[] { (1, 1, false) };
+            var groups1_1 = new[] { (1, 1, false), (1, 1, false) };
+
+            var nonogram = Nonogram.Create(new[,]
+            {
+                {0, 0, 1},
+                {0, 0, 0},
+                {0, 0, 1},
+            });
+
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1_1, nonogram.ColHints[2]);
+        }
+
+        [TestMethod]
+        public void ValidationHints()
+        {
+            var groupsEmpty = Array.Empty<(int color, int qty, bool validated)>();
+            var groups1 = new[] { (1, 1, false) };
+            var groups1Validated = new[] { (1, 1, true) };
+            var groups1_1 = new[] { (1, 1, false), (1, 1, false) };
+            var groups1Validated_1 = new[] { (1, 1, true), (1, 1, false) };
+            var groups1Validated_1Validated = new[] { (1, 1, true), (1, 1, true) };
+
+            var nonogram = Nonogram.Create(new[,]
+            {
+                {0, 0, 1},
+                {0, 0, 0},
+                {0, 0, 1},
+            });
+
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1_1, nonogram.ColHints[2]);
+
+            nonogram.ValidateHints(2, 0, 1);
+            CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1Validated_1, nonogram.ColHints[2]);
+
+            nonogram.ValidateHints(2, 0, 0);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1_1, nonogram.ColHints[2]);
+
+            nonogram.ValidateHints(2, 2, 1);
+            CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1Validated_1, nonogram.ColHints[2]);
+
+            nonogram.ValidateHints(2, 0, 1);
+            CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
+            CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[2]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[0]);
+            CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
+            CollectionAssert.AreEqual(groups1Validated_1Validated, nonogram.ColHints[2]);
+        }
     }
 }
