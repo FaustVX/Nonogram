@@ -52,14 +52,6 @@ namespace NonogramRow
                     .ToArray();
         }
 
-        public void ValidateHints(int x, int y, T color)
-        {
-            if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
-                return;
-            Grid[x, y] = color;
-            ValidateHints(x, y);
-        }
-
         public Nonogram<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
         where TOther : notnull
         {
@@ -82,6 +74,14 @@ namespace NonogramRow
                 for (var j = 0; j < ColHints[i].Length; j++)
                     result.ColHints[i][j].validated = ColHints[i][j].validated;
             return result;
+        }
+
+        public void ValidateHints(int x, int y, T color)
+        {
+            if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
+                return;
+            Grid[x, y] = color;
+            ValidateHints(x, y);
         }
 
         public void ValidateHints(int x, int y)
