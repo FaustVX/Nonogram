@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NonogramRow
+namespace Nonogram
 {
     public static class Extensions
     {
@@ -10,7 +10,7 @@ namespace NonogramRow
             => CalculateGroups(row.AsEnumerable());
 
         public static int[] CalculateGroups(IEnumerable<bool> row)
-            => Nonogram<bool>.CalculateHints(row).Where(g => g.color).Select(g => g.qty).ToArray();
+            => Game<bool>.CalculateHints(row).Where(g => g.color).Select(g => g.qty).ToArray();
 
         public static (T color, int qty)[] CalculateGroups<T>(T ignored, params T[] row)
             where T : notnull
@@ -18,7 +18,7 @@ namespace NonogramRow
 
         public static (T color, int qty)[] CalculateGroups<T>(T ignored, IEnumerable<T> row)
             where T : notnull
-            => Nonogram<T>.CalculateHints(row).Where(g => !g.color.Equals(ignored)).ToArray();
+            => Game<T>.CalculateHints(row).Where(g => !g.color.Equals(ignored)).ToArray();
 
         public static TOut ConvertTo<TIn, TOut>(this TIn value, TIn[] array, TOut[] possibleValues, TOut ignoredValue)
         {

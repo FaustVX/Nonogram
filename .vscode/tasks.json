@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/NonogramRow.csproj",
+                "${workspaceFolder}/Nonogram.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -22,7 +22,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/NonogramRow.csproj",
+                "${workspaceFolder}/Nonogram.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -38,7 +38,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/NonogramRow.csproj",
+                "${workspaceFolder}/Nonogram.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -80,7 +80,7 @@
                     "value": "1"
                 },
                 {
-                    "label": "Don't",
+                    "label": "Don't wait",
                     "value": "0"
                 }
             ],

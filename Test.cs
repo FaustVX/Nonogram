@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using static NonogramRow.Extensions;
+using static Nonogram.Extensions;
 
-namespace NonogramRow
+namespace Nonogram
 {
     [TestClass]
     public class Test
@@ -121,7 +121,7 @@ namespace NonogramRow
             var groups1 = new[] { (1, 1, false) };
             var groups1_1 = new[] { (1, 1, false), (1, 1, false) };
 
-            var nonogram = Nonogram.Create(new[,]
+            var nonogram = Game.Create(new[,]
             {
                 {0, 0, 1},
                 {0, 0, 0},
@@ -146,7 +146,7 @@ namespace NonogramRow
             var groups1Validated_1 = new[] { (1, 1, true), (1, 1, false) };
             var groups1Validated_1Validated = new[] { (1, 1, true), (1, 1, true) };
 
-            var nonogram = Nonogram.Create(new[,]
+            var nonogram = Game.Create(new[,]
             {
                 {0, 0, 1},
                 {0, 0, 0},
@@ -196,7 +196,7 @@ namespace NonogramRow
         [TestMethod]
         public void CheckXYCoord()
         {
-            var nonogram = Nonogram.Create( new[,]
+            var nonogram = Game.Create( new[,]
             {
                 { 0, 1, 2 },
                 { 3, 4, 5 }
@@ -209,7 +209,7 @@ namespace NonogramRow
 
         public void CheckIsComplete()
         {
-            var nonogram = Nonogram.Create(new[,]
+            var nonogram = Game.Create(new[,]
             {
                 {0, 1},
                 {0, 1},

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static NonogramRow.Extensions;
+using static Nonogram.Extensions;
 
-namespace NonogramRow
+namespace Nonogram
 {
     public static class Program
     {
@@ -18,7 +18,7 @@ namespace NonogramRow
                 groups0 = CalculateGroups(false, false, false, false, true, true, false, false, true, false, true, true, true);
                 groups0 = CalculateGroups(true, false, true, false, true, false, true, false, true, false, true, false, true, false, true);
             var groups1 = CalculateGroups(0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 5, 0, 2, 1);
-            var nonogram = Nonogram.Create(new[,]
+            var nonogram = Game.Create(new[,]
             {
                 {0, 0, 1, 0, 0},
                 {0, 1, 1, 1, 0},
@@ -27,7 +27,7 @@ namespace NonogramRow
                 {1, 1, 2, 1, 1},
             }).ConvertTo(Console.BackgroundColor, ConsoleColor.White, ConsoleColor.Red);
             Play(nonogram, ConsoleColor.DarkGray);
-            foreach (var group in Nonogram<char>.CalculateHints(GetCharFromConsole()))
+            foreach (var group in Game<char>.CalculateHints(GetCharFromConsole()))
                 System.Console.WriteLine($"\b\n'{group.color}': {group.qty:00}");
         }
 
@@ -37,7 +37,7 @@ namespace NonogramRow
                 yield return key;
         }
 
-        private static void Play(Nonogram<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor)
+        private static void Play(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor)
         {
             var selectedColor = 0;
             do
@@ -84,7 +84,7 @@ namespace NonogramRow
             }
         }
 
-        private static void Print(Nonogram<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor, ConsoleColor selectedColor)
+        private static void Print(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor, ConsoleColor selectedColor)
         {
             //█▓▒░┌┐└┘─│
             var maxRow = nonogram.ColHints.Max(h => h.Length) + 1;

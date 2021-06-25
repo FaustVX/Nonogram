@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace NonogramRow
+namespace Nonogram
 {
-    public static class Nonogram
+    public static class Game
     {
-        public static Nonogram<T> Create<T>(T[,] pattern, T ignoredValue = default!)
+        public static Game<T> Create<T>(T[,] pattern, T ignoredValue = default!)
         where T : notnull
             => new (pattern, ignoredValue);
     }
 
-    public class Nonogram<T>
+    public class Game<T>
     where T : notnull
     {
         private readonly T[,] _pattern;
@@ -32,7 +32,7 @@ namespace NonogramRow
             set => _grid[y, x] = value;
         }
 
-        public Nonogram(T[,] pattern, T ignoredValue)
+        public Game(T[,] pattern, T ignoredValue)
         {
             _pattern = pattern;
             Width = _pattern.GetLength(1);
@@ -59,7 +59,7 @@ namespace NonogramRow
                     .ToArray();
         }
 
-        public Nonogram<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
+        public Game<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
         where TOther : notnull
         {
             var pattern = new TOther[Height, Width];
@@ -70,7 +70,7 @@ namespace NonogramRow
                     pattern[y, x] = _pattern[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
                     grid[y, x] = _grid[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
                 }
-            var result = new Nonogram<TOther>(pattern, ignoredValue);
+            var result = new Game<TOther>(pattern, ignoredValue);
             result.GetType()
                 .GetField(nameof(_grid), BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(result, grid);
