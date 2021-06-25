@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,6 +26,17 @@ namespace NonogramRow
                 if(object.Equals(value, array[i]))
                     return possibleValues[i];
             return ignoredValue;
+        }
+
+        public delegate bool TryConvert<T>(string input, out T output);
+        public static T Ask<T>(string prompt, TryConvert<T> converter)
+        {
+            T output = default!;
+            do
+            {
+                Console.Write(prompt + ":");
+            } while (!(Console.ReadLine() is string read && converter(read, out output)));
+            return output;
         }
     }
 }
