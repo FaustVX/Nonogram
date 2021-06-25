@@ -17,7 +17,7 @@ namespace Nonogram
                 groups0 = CalculateGroups(true, true, false, true, false, false, true, true, true, false, false);
                 groups0 = CalculateGroups(false, false, false, false, true, true, false, false, true, false, true, true, true);
                 groups0 = CalculateGroups(true, false, true, false, true, false, true, false, true, false, true, false, true, false, true);
-            var groups1 = CalculateGroups(0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 5, 0, 2, 1);
+            var groups1 = CalculateGroups(ignored: 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 5, 0, 2, 1);
             var nonogram = Game.Create(new[,]
             {
                 {0, 0, 1, 0, 0},
@@ -42,24 +42,24 @@ namespace Nonogram
             var selectedColor = 0;
             do
             {
-                Print(nonogram, validatedBackgroundColor, nonogram.PossibleValue[selectedColor]);
+                Print(nonogram, validatedBackgroundColor, nonogram.PossibleColors[selectedColor]);
 
-                Console.BackgroundColor = nonogram.IgnoredValue;
+                Console.BackgroundColor = nonogram.IgnoredColor;
                 Console.Write($"  {0}  ");
-                for (int i = 0; i < nonogram.PossibleValue.Length; i++)
+                for (var i = 0; i < nonogram.PossibleColors.Length; i++)
                 {
-                    Console.BackgroundColor = nonogram.PossibleValue[i];
-                    Console.ForegroundColor = nonogram.IgnoredValue;
+                    Console.BackgroundColor = nonogram.PossibleColors[i];
+                    Console.ForegroundColor = nonogram.IgnoredColor;
                     Console.Write($"  {i+1}  ");
                 }
                 Console.ResetColor();
                 Console.WriteLine();
-                var selected = Ask<int?>("Chose Color", SelectColor);
+                var selected = Ask<int?>("Chose Color :", SelectColor);
                 selectedColor = selected is int s ? s : selectedColor;
-                Print(nonogram, validatedBackgroundColor, nonogram.PossibleValue[selectedColor]);
-                var x = Ask("X", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Width) - 1;
-                var y = Ask("Y", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Height) - 1;
-                nonogram.ValidateHints(x, y, selected is null ? nonogram.IgnoredValue : nonogram.PossibleValue[selectedColor]);
+                Print(nonogram, validatedBackgroundColor, nonogram.PossibleColors[selectedColor]);
+                var x = Ask("X :", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Width) - 1;
+                var y = Ask("Y :", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Height) - 1;
+                nonogram.ValidateHints(x, y, selected is null ? nonogram.IgnoredColor : nonogram.PossibleColors[selectedColor]);
             } while (!nonogram.IsCorrect);
 
             bool SelectColor(string input, out int? output)
@@ -74,7 +74,7 @@ namespace Nonogram
                     output = null;
                     return true;
                 }
-                if (o >= 1 && o <= nonogram.PossibleValue.Length)
+                if (o >= 1 && o <= nonogram.PossibleColors.Length)
                 {
                     output = o - 1;
                     return true;
@@ -127,8 +127,8 @@ namespace Nonogram
                 Console.Write('│');
             }
 
-            for (int x = 0; x < nonogram.Width; x++)
-                for (int y = 0; y < nonogram.Height; y++)
+            for (var x = 0; x < nonogram.Width; x++)
+                for (var y = 0; y < nonogram.Height; y++)
                 {
                     Console.SetCursorPosition(x + maxCol + 1, y + maxRow + 1);
                     Console.ForegroundColor = nonogram[x, y];

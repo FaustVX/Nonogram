@@ -20,23 +20,46 @@ namespace Nonogram
             where T : notnull
             => Game<T>.CalculateHints(row).Where(g => !g.color.Equals(ignored)).ToArray();
 
-        public static TOut ConvertTo<TIn, TOut>(this TIn value, TIn[] array, TOut[] possibleValues, TOut ignoredValue)
+        public static TOut ConvertTo<TIn, TOut>(this TIn color, TIn[] oldPossibleColors, TOut[] newPossibleColors, TOut ignoredColor)
+        where TIn : notnull
+        where TOut : notnull
         {
-            for (int i = 0; i < array.Length; i++)
-                if(object.Equals(value, array[i]))
-                    return possibleValues[i];
-            return ignoredValue;
+            for (var i = 0; i < oldPossibleColors.Length; i++)
+                if (color.Equals(oldPossibleColors[i]))
+                    return newPossibleColors[i];
+            return ignoredColor;
         }
 
         public delegate bool TryConvert<T>(string input, out T output);
         public static T Ask<T>(string prompt, TryConvert<T> converter)
         {
-            T output = default!;
+            T output;
             do
             {
-                Console.Write(prompt + ":");
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write(prompt);
+                Console.ResetColor();
             } while (!(Console.ReadLine() is string read && converter(read, out output)));
             return output;
+        }
+
+        public static IEnumerable<T> GetCol<T>(this T[,] array, int col)
+            => GetRowCol(array, 0, i => array[i, col]);
+
+        public static IEnumerable<T> GetRow<T>(this T[,] array, int row)
+            => GetRowCol(array, 1, i => array[row, i]);
+
+        private static IEnumerable<T> GetRowCol<T>(T[,] array, int dimension, Func<int, T> get)
+        {
+            return array.GetLength(dimension) is not 0 and var length
+                ? Execute(length, get)
+                : Enumerable.Empty<T>();
+
+            static IEnumerable<T> Execute(int length, Func<int, T> get)
+            {
+                for (var i = 0; i < length; i++)
+                    yield return get(i);
+            }
         }
     }
 }

@@ -13,10 +13,13 @@ namespace Nonogram
         private bool[] GenerateRow(int[] groups, bool trimmStart, bool trimmEnd)
         {
             var row = trimmStart ? Enumerable.Empty<bool>() : Enumerable.Repeat(false, GetRng());
+
             foreach (var group in groups[trimmEnd ? ..^1 : ..^0])
                 row = row.Concat(Enumerable.Repeat(true, group)).Concat(Enumerable.Repeat(false, GetRng()));
+
             if (trimmEnd)
                 row = row.Concat(Enumerable.Repeat(true, groups[^1]));
+
             return row.ToArray();
         }
 
@@ -26,8 +29,7 @@ namespace Nonogram
         [TestMethod]
         public void GeneratedRows()
         {
-
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Enumerable.Range(0, GetRng()).Select(_ => GetRng()).ToArray();
                 var row = GenerateRow(groups, false, false);
@@ -39,7 +41,7 @@ namespace Nonogram
         [TestMethod]
         public void GeneratedRowsTrimmedStart()
         {
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Enumerable.Range(0, GetRng()).Select(_ => GetRng()).ToArray();
                 var row = GenerateRow(groups, true, false);
@@ -51,7 +53,7 @@ namespace Nonogram
         [TestMethod]
         public void GeneratedRowsTrimmedEnd()
         {
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Enumerable.Range(0, GetRng()).Select(_ => GetRng()).ToArray();
                 var row = GenerateRow(groups, false, true);
@@ -63,7 +65,7 @@ namespace Nonogram
         [TestMethod]
         public void GeneratedRowsTrimmed()
         {
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Enumerable.Range(0, GetRng()).Select(_ => GetRng()).ToArray();
                 var row = GenerateRow(groups, true, true);
@@ -75,12 +77,12 @@ namespace Nonogram
         [TestMethod]
         public void EmptyGroup()
         {
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = Array.Empty<bool>();
                 var row = Enumerable.Repeat(false, GetRng()).ToArray();
                 var generated = CalculateGroups(row);
-                CollectionAssert.AreEqual(groups, generated);
+                CollectionAssert.AreEqual(groups, generated, $"Iteration {i}");
             }
         }
 
@@ -96,12 +98,12 @@ namespace Nonogram
         [TestMethod]
         public void SingleGroupTrimmed()
         {
-            for (int i = GetRng() - 1; i >= 0 ; i--)
+            for (var i = GetRng() - 1; i >= 0 ; i--)
             {
                 var groups = new[] { GetRng() };
                 var row = Enumerable.Repeat(true, groups[0]).ToArray();
                 var generated = CalculateGroups(row);
-                CollectionAssert.AreEqual(groups, generated);
+                CollectionAssert.AreEqual(groups, generated, $"Iteration {i}");
             }
         }
 

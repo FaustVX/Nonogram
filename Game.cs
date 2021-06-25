@@ -8,9 +8,9 @@ namespace Nonogram
 {
     public static class Game
     {
-        public static Game<T> Create<T>(T[,] pattern, T ignoredValue = default!)
+        public static Game<T> Create<T>(T[,] pattern, T ignoredColor = default!)
         where T : notnull
-            => new (pattern, ignoredValue);
+            => new (pattern, ignoredColor);
     }
 
     public class Game<T>
@@ -22,8 +22,8 @@ namespace Nonogram
         public int Height { get; }
         public (T color, int qty, bool validated)[][] ColHints { get; }
         public (T color, int qty, bool validated)[][] RowHints { get; }
-        public T[] PossibleValue { get; }
-        public T IgnoredValue { get; }
+        public T[] PossibleColors { get; }
+        public T IgnoredColor { get; }
         public bool IsComplete { get; private set; }
         public bool IsCorrect { get; private set; }
         public T this[int x, int y]
@@ -32,73 +32,89 @@ namespace Nonogram
             set => _grid[y, x] = value;
         }
 
-        public Game(T[,] pattern, T ignoredValue)
+        public Game(T[,] pattern, T ignoredColor)
         {
             _pattern = pattern;
             Width = _pattern.GetLength(1);
             Height = _pattern.GetLength(0);
-            IgnoredValue = ignoredValue;
+            IgnoredColor = ignoredColor;
+
             _grid = new T[Height, Width];
-            for (int x = 0; x < Width; x++)
-                for (int y = 0; y < Height; y++)
-                    _grid[y, x] = IgnoredValue;
+            for (var x = 0; x < Width; x++)
+                for (var y = 0; y < Height; y++)
+                    _grid[y, x] = IgnoredColor;
+
             ColHints = new (T, int, bool)[Width][];
             RowHints = new (T, int, bool)[Height][];
-            PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !c.Equals(IgnoredValue)).ToArray();
 
-            for (int y = 0; y < RowHints.Length; y++)
-                RowHints[y] = CalculateHints(GetRow(_pattern, y))
-                    .Where(g => PossibleValue.Contains(g.color))
+            PossibleColors = pattern.Cast<T>()
+                .ToHashSet()
+                .Where(c => !c.Equals(IgnoredColor))
+                .ToArray();
+
+            for (var y = 0; y < RowHints.Length; y++)
+                RowHints[y] = CalculateHints(_pattern.GetRow(y))
+                    .Where(g => PossibleColors.Contains(g.color))
                     .Select(g => (g.color, g.qty, validated: false))
                     .ToArray();
 
-            for (int x = 0; x < ColHints.Length; x++)
-                ColHints[x] = CalculateHints(GetCol(_pattern, x))
-                    .Where(g => PossibleValue.Contains(g.color))
+            for (var x = 0; x < ColHints.Length; x++)
+                ColHints[x] = CalculateHints(_pattern.GetCol(x))
+                    .Where(g => PossibleColors.Contains(g.color))
                     .Select(g => (g.color, g.qty, validated: false))
                     .ToArray();
         }
 
-        public Game<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
+        public Game<TOther> ConvertTo<TOther>(TOther ignoredColor, params TOther[] possibleColors)
         where TOther : notnull
         {
             var pattern = new TOther[Height, Width];
             var grid = new TOther[Height, Width];
-            for (int x = 0; x < Width; x++)
-                for (int y = 0; y < Height; y++)
+
+            for (var x = 0; x < Width; x++)
+                for (var y = 0; y < Height; y++)
                 {
-                    pattern[y, x] = _pattern[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
-                    grid[y, x] = _grid[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
+                    pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
+                    grid[y, x] = _grid[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
                 }
-            var result = new Game<TOther>(pattern, ignoredValue);
+
+            var result = new Game<TOther>(pattern, ignoredColor);
+
             result.GetType()
                 .GetField(nameof(_grid), BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(result, grid);
+
             for (var i = 0; i < RowHints.Length; i++)
                 for (var j = 0; j < RowHints[i].Length; j++)
                     result.RowHints[i][j].validated = RowHints[i][j].validated;
+
             for (var i = 0; i < ColHints.Length; i++)
                 for (var j = 0; j < ColHints[i].Length; j++)
                     result.ColHints[i][j].validated = ColHints[i][j].validated;
+
             return result;
         }
 
         public void ValidateHints(int x, int y, T color)
         {
-            if (IsCorrect && !color.Equals(IgnoredValue))
+            if (IsCorrect && !color.Equals(IgnoredColor))
                 return;
-            if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
+            if (!PossibleColors.Contains(color) && !(IgnoredColor.Equals(color)))
                 return;
+
             _grid[y, x] = color;
+
             ValidateHints(x, y);
         }
 
         public void ValidateHints(int x, int y)
         {
-            Validate(CalculateHints(GetCol(_grid, x).Select(g => g)), ColHints[x], PossibleValue);
-            Validate(CalculateHints(GetRow(_grid, y).Select(g => g)), RowHints[y], PossibleValue);
+            Validate(CalculateHints(_grid.GetCol(x).Select(g => g)), ColHints[x], PossibleColors);
+            Validate(CalculateHints(_grid.GetRow(y).Select(g => g)), RowHints[y], PossibleColors);
+
             IsComplete = (Array.TrueForAll(ColHints, ch => Array.TrueForAll(ch, h => h.validated))
                 && Array.TrueForAll(RowHints, rh => Array.TrueForAll(rh, h => h.validated)));
+
             if (IsComplete)
             {
                 for (var i = 0; i < Width; i++)
@@ -108,23 +124,23 @@ namespace Nonogram
                 IsCorrect = true;
             }
 
-            static void Validate(IEnumerable<(T color, int qty)> gridLine, (T color, int qty, bool validated)[] hints, T[] possibleColors)
+            static void Validate(IEnumerable<(T color, int qty)> line, (T color, int qty, bool validated)[] hints, T[] possibleColors)
             {
-                var lineArray = gridLine
+                var lineArray = line
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
-                for (int i = 0; i < hints.Length; i++)
+                for (var i = 0; i < hints.Length; i++)
                     hints[i].validated = false;
 
-                for (int i = 0; i < Math.Min(lineArray.Length, hints.Length); i++)
+                for (var i = 0; i < Math.Min(lineArray.Length, hints.Length); i++)
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
-                static bool ValidateCell((T color, int qty)[] lineArray, (T color, int qty, bool validated)[] hints, Index i)
+                static bool ValidateCell((T color, int qty)[] line, (T color, int qty, bool validated)[] hints, Index i)
                 {
                     ref var hint = ref hints[i];
-                    var c = lineArray[i];
+                    var c = line[i];
                     if (hint.qty != c.qty || !hint.color.Equals(c.color))
                         return false;
                     hint.validated = true;
@@ -157,25 +173,6 @@ namespace Nonogram
                     continue;
                 }
                 count++;
-            }
-        }
-
-        public static IEnumerable<T> GetCol(T[,] array, int col)
-            => GetRowCol(array, 0, i => array[i, col]);
-
-        public static IEnumerable<T> GetRow(T[,] array, int row)
-            => GetRowCol(array, 1, i => array[row, i]);
-
-        private static IEnumerable<T> GetRowCol(T[,] array, int dimension, Func<int, T> get)
-        {
-            return array.GetLength(dimension) is not 0 and var length
-                ? Execute(length, get)
-                : Enumerable.Empty<T>();
-
-            static IEnumerable<T> Execute(int length, Func<int, T> get)
-            {
-                for (int i = 0; i < length; i++)
-                    yield return get(i);
             }
         }
     }
