@@ -24,6 +24,8 @@ namespace NonogramRow
         public (T color, int qty, bool validated)[][] RowHints { get; }
         public T[] PossibleValue { get; }
         public T IgnoredValue { get; }
+        public bool IsComplete { get; private set; }
+        public bool IsCorrect { get; private set; }
         public T this[int x, int y]
         {
             get => _grid[y, x];
@@ -83,6 +85,8 @@ namespace NonogramRow
 
         public void ValidateHints(int x, int y, T color)
         {
+            if (IsCorrect && !color.Equals(IgnoredValue))
+                return;
             if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
                 return;
             _grid[y, x] = color;
@@ -93,6 +97,16 @@ namespace NonogramRow
         {
             Validate(CalculateHints(GetCol(_grid, x).Select(g => g)), ColHints[x], PossibleValue);
             Validate(CalculateHints(GetRow(_grid, y).Select(g => g)), RowHints[y], PossibleValue);
+            IsComplete = (Array.TrueForAll(ColHints, ch => Array.TrueForAll(ch, h => h.validated))
+                && Array.TrueForAll(RowHints, rh => Array.TrueForAll(rh, h => h.validated)));
+            if (IsComplete)
+            {
+                for (var i = 0; i < Width; i++)
+                    for (var j = 0; j < Height; j++)
+                        if (!_grid[i, j].Equals(_pattern[i, j]))
+                            return;
+                IsCorrect = true;
+            }
 
             static void Validate(IEnumerable<(T color, int qty)> gridLine, (T color, int qty, bool validated)[] hints, T[] possibleColors)
             {

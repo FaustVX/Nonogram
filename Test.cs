@@ -206,5 +206,24 @@ namespace NonogramRow
             Assert.AreEqual(2, nonogram.Height);
             nonogram.ValidateHints(2, 1, 1);
         }
+
+        public void CheckIsComplete()
+        {
+            var nonogram = Nonogram.Create(new[,]
+            {
+                {0, 1},
+                {0, 1},
+            });
+
+            nonogram.ValidateHints(0, 0, 0);
+            Assert.AreEqual(false, nonogram.IsComplete);
+            Assert.AreEqual(false, nonogram.IsCorrect);
+            nonogram.ValidateHints(1, 0, 1);
+            Assert.AreEqual(false, nonogram.IsComplete);
+            Assert.AreEqual(false, nonogram.IsCorrect);
+            nonogram.ValidateHints(1, 1, 1);
+            Assert.AreEqual(true, nonogram.IsComplete);
+            Assert.AreEqual(true, nonogram.IsCorrect);
+        }
     }
 }
