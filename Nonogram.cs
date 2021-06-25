@@ -17,36 +17,41 @@ namespace NonogramRow
     where T : notnull
     {
         private readonly T[,] _pattern;
-        public T[,] Grid { get; }
+        private readonly T[,] _grid;
         public int Width { get; }
         public int Height { get; }
         public (T color, int qty, bool validated)[][] ColHints { get; }
         public (T color, int qty, bool validated)[][] RowHints { get; }
         public T[] PossibleValue { get; }
         public T IgnoredValue { get; }
+        public T this[int x, int y]
+        {
+            get => _grid[y, x];
+            set => _grid[y, x] = value;
+        }
 
         public Nonogram(T[,] pattern, T ignoredValue)
         {
             _pattern = pattern;
-            Width = _pattern.GetLength(0);
-            Height = _pattern.GetLength(1);
+            Width = _pattern.GetLength(1);
+            Height = _pattern.GetLength(0);
             IgnoredValue = ignoredValue;
-            Grid = new T[Width, Height];
+            _grid = new T[Height, Width];
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
-                    Grid[x, y] = IgnoredValue;
-            ColHints = new (T, int, bool)[Height][];
-            RowHints = new (T, int, bool)[Width][];
+                    _grid[y, x] = IgnoredValue;
+            ColHints = new (T, int, bool)[Width][];
+            RowHints = new (T, int, bool)[Height][];
             PossibleValue = pattern.Cast<T>().ToHashSet().Where(c => !c.Equals(IgnoredValue)).ToArray();
 
-            for (int x = 0; x < Width; x++)
-                RowHints[x] = CalculateHints(GetCol(_pattern, x))
+            for (int y = 0; y < RowHints.Length; y++)
+                RowHints[y] = CalculateHints(GetRow(_pattern, y))
                     .Where(g => PossibleValue.Contains(g.color))
                     .Select(g => (g.color, g.qty, validated: false))
                     .ToArray();
 
-            for (int y = 0; y < Height; y++)
-                ColHints[y] = CalculateHints(GetRow(_pattern, y))
+            for (int x = 0; x < ColHints.Length; x++)
+                ColHints[x] = CalculateHints(GetCol(_pattern, x))
                     .Where(g => PossibleValue.Contains(g.color))
                     .Select(g => (g.color, g.qty, validated: false))
                     .ToArray();
@@ -55,17 +60,17 @@ namespace NonogramRow
         public Nonogram<TOther> ConvertTo<TOther>(TOther ignoredValue, params TOther[] possibleValue)
         where TOther : notnull
         {
-            var pattern = new TOther[Width, Height];
-            var grid = new TOther[Width, Height];
+            var pattern = new TOther[Height, Width];
+            var grid = new TOther[Height, Width];
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                 {
-                    pattern[x, y] = _pattern[x, y].ConvertTo(PossibleValue, possibleValue, ignoredValue);
-                    grid[x, y] = Grid[x, y].ConvertTo(PossibleValue, possibleValue, ignoredValue);
+                    pattern[y, x] = _pattern[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
+                    grid[y, x] = _grid[y, x].ConvertTo(PossibleValue, possibleValue, ignoredValue);
                 }
             var result = new Nonogram<TOther>(pattern, ignoredValue);
             result.GetType()
-                .GetField($"<{nameof(Grid)}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .GetField(nameof(_grid), BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(result, grid);
             for (var i = 0; i < RowHints.Length; i++)
                 for (var j = 0; j < RowHints[i].Length; j++)
@@ -80,14 +85,14 @@ namespace NonogramRow
         {
             if (!PossibleValue.Contains(color) && !(IgnoredValue.Equals(color)))
                 return;
-            Grid[x, y] = color;
+            _grid[y, x] = color;
             ValidateHints(x, y);
         }
 
         public void ValidateHints(int x, int y)
         {
-            Validate(CalculateHints(GetCol(Grid, x).Select(g => g)), ColHints[x], PossibleValue);
-            Validate(CalculateHints(GetRow(Grid, y).Select(g => g)), RowHints[y], PossibleValue);
+            Validate(CalculateHints(GetCol(_grid, x).Select(g => g)), ColHints[x], PossibleValue);
+            Validate(CalculateHints(GetRow(_grid, y).Select(g => g)), RowHints[y], PossibleValue);
 
             static void Validate(IEnumerable<(T color, int qty)> gridLine, (T color, int qty, bool validated)[] hints, T[] possibleColors)
             {
@@ -142,10 +147,10 @@ namespace NonogramRow
         }
 
         public static IEnumerable<T> GetCol(T[,] array, int col)
-            => GetRowCol(array, 1, i => array[col, i]);
+            => GetRowCol(array, 0, i => array[i, col]);
 
         public static IEnumerable<T> GetRow(T[,] array, int row)
-            => GetRowCol(array, 0, i => array[i, row]);
+            => GetRowCol(array, 1, i => array[row, i]);
 
         private static IEnumerable<T> GetRowCol(T[,] array, int dimension, Func<int, T> get)
         {

@@ -192,5 +192,19 @@ namespace NonogramRow
             CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
             CollectionAssert.AreEqual(groups1Validated_1Validated, nonogram.ColHints[2]);
         }
+
+        [TestMethod]
+        public void CheckXYCoord()
+        {
+            var nonogram = Nonogram.Create( new[,]
+            {
+                { 0, 1, 2 },
+                { 3, 4, 5 }
+            });
+
+            Assert.AreEqual(3, nonogram.Width);
+            Assert.AreEqual(2, nonogram.Height);
+            nonogram.ValidateHints(2, 1, 1);
+        }
     }
 }
