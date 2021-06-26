@@ -26,13 +26,16 @@ namespace Nonogram
         public T IgnoredColor { get; }
         public bool IsComplete { get; private set; }
         public bool IsCorrect { get; private set; }
+        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new (), _nexts = new ();
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
             set
             {
-                if (value.Equals(this[x, y]))
+                if (value.Equals(_grid[y, x]))
                     return;
+                _previous.AddLast((x, y, _grid[y, x]));
+                _nexts.Clear();
                 _grid[y, x] = value ?? new EmptyCell();
             }
         }
@@ -113,7 +116,7 @@ namespace Nonogram
             if (!PossibleColors.Contains(color) && !(IgnoredColor.Equals(color)))
                 return;
 
-            _grid[y, x] = (color, seal, _grid[y, x]) switch
+            this[x, y] = (color, seal, _grid[y, x]) switch
             {
                 (var c, true, _) when c.Equals(IgnoredColor) => new AllColoredSealCell(),
                 (var c, false, AllColoredSealCell) => AllColoredSealCell.Without(c, PossibleColors),
@@ -168,6 +171,30 @@ namespace Nonogram
                     hint.validated = true;
                     return true;
                 }
+            }
+        }
+
+        public void Undo()
+        {
+            var last = _previous.Last;
+            if (last is { Value: var (x, y, cell) })
+            {
+                _previous.RemoveLast();
+                _nexts.AddLast((x, y, _grid[y, x]));
+                _grid[y, x] = cell;
+                ValidateHints(x, y);
+            }
+        }
+
+        public void Redo()
+        {
+            var last = _nexts.Last;
+            if (last is { Value: var (x, y, cell) })
+            {
+                _nexts.RemoveLast();
+                _previous.AddLast((x, y, _grid[y, x]));
+                _grid[y, x] = cell;
+                ValidateHints(x, y);
             }
         }
 

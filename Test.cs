@@ -277,5 +277,32 @@ namespace Nonogram
             nonogram.ValidateHints(x, y, 1, false);
             Assert.IsInstanceOfType(nonogram[x, y], typeof(ColoredCell<int>));
         }
+
+        [TestMethod]
+        public void CheckUndoRedo()
+        {
+            var nonogram = Game.Create(new[,]
+            {
+                { 0, 1 },
+                { 2, 3 },
+            });
+
+            var x = 1;
+            var y = 0;
+            var currentCell = nonogram[x, y];
+            nonogram.ValidateHints(x, y, 1, seal: false);
+            var nextCell = nonogram[x, y];
+
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(ColoredCell<int>));
+            CollectionAssert.AreEqual(nonogram.ColHints[x], new[] { (1, 1, true), (3, 1, false) });
+
+            nonogram.Undo();
+            Assert.IsTrue(object.ReferenceEquals(currentCell, nonogram[x, y]));
+            CollectionAssert.AreEqual(nonogram.ColHints[x], new[] { (1, 1, false), (3, 1, false) });
+
+            nonogram.Redo();
+            Assert.IsTrue(object.ReferenceEquals(nextCell, nonogram[x, y]));
+            CollectionAssert.AreEqual(nonogram.ColHints[x], new[] { (1, 1, true), (3, 1, false) });
+        }
     }
 }
