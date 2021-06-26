@@ -30,30 +30,6 @@ namespace Nonogram
             return ignoredColor;
         }
 
-        public delegate bool TryConvert<T>(string input, out T output);
-        public static T Ask<T>(string prompt, TryConvert<T> converter)
-        {
-            T output;
-            do
-            {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write(prompt);
-                Console.ResetColor();
-            } while (!(Console.ReadLine() is string read && converter(read, out output)));
-            return output;
-        }
-        public static bool Switch(string @true, string @false)
-        {
-            //←→
-            Console.WriteLine($"{@true} < Press arrow > {@false}");
-            while (Console.ReadKey(intercept: true) is { Key: var key })
-                if (key is ConsoleKey.LeftArrow)
-                    return true;
-                else if (key is ConsoleKey.RightArrow)
-                    return false;
-            throw null;
-        }
-
         public static IEnumerable<T> GetCol<T>(this T[,] array, int col)
             => GetRowCol(array, 0, i => array[i, col]);
 
