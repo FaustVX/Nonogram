@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Reflection;
 using static Nonogram.Extensions;
 
 namespace Nonogram
@@ -8,6 +9,16 @@ namespace Nonogram
     [TestClass]
     public class Test
     {
+        public Test()
+        {
+            var methods = string.Join(", ", GetType()
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(m => m.GetCustomAttributes(typeof(TestMethodAttribute), false) is not { Length: > 0 })
+                .Select(m => m.Name));
+            if (!string.IsNullOrEmpty(methods))
+                Assert.Fail($"'{methods}' won't be unit tested");
+        }
+
         private readonly Random rng = new();
 
         private bool[] GenerateRow(int[] groups, bool trimmStart, bool trimmEnd)
