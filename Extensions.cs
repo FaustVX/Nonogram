@@ -78,5 +78,22 @@ namespace Nonogram
             Console.SetCursorPosition(x, y);
             Console.Write(c);
         }
+
+        public static TOut[,] ReduceArray<TIn, TOut>(this TIn[,] arrayIn, int width, int height, Func<ROSpan2D<TIn>, TOut> converter)
+        where TOut : notnull
+        {
+            var (inWidth, inHeight) = (arrayIn.GetLength(1), arrayIn.GetLength(0));
+            var arrayOut = new TOut[height, width];
+            var stepSizeX = inWidth / width;
+            var stepSizeY = inHeight / height;
+            var lengthX = inWidth - (stepSizeX * (width - 1));
+            var lengthY = inHeight - (stepSizeY * (height - 1));
+
+            var temp = new ROSpan2D<TIn>(arrayIn, 0, 0, lengthX, lengthY);
+            for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                    arrayOut[y, x] = converter(temp.Offset(stepSizeX * x, stepSizeY * y));
+            return arrayOut;
+        }
     }
 }

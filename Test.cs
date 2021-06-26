@@ -322,5 +322,40 @@ namespace Nonogram
             Assert.IsTrue(object.ReferenceEquals(nextCell, nonogram[x, y]));
             CollectionAssert.AreEqual(nonogram.ColHints[x], new[] { (1, 1, true), (3, 1, false) });
         }
+
+        [TestMethod]
+        public void CheckResizeArray()
+        {
+            var array0 = new[,]
+            {
+                { 1,1,2,2 },
+                { 1,1,2,2 },
+                { 3,3,4,4 },
+                { 3,3,4,4 },
+            }.ReduceArray(2, 2, s => s[0, 0]);
+            Assert.AreEqual(2, array0.GetLength(0));
+            Assert.AreEqual(2, array0.GetLength(1));
+            Assert.AreEqual(1, array0[0, 0]);
+            Assert.AreEqual(2, array0[0, 1]);
+            Assert.AreEqual(3, array0[1, 0]);
+            Assert.AreEqual(4, array0[1, 1]);
+
+            var i = 0;
+            var array1 = new[,]
+            {
+                { i++, i++, i++, i++, i++ },
+                { i++, i++, i++, i++, i++ },
+                { i++, i++, i++, i++, i++ },
+                { i++, i++, i++, i++, i++ },
+                { i++, i++, i++, i++, i++ },
+            }.ReduceArray(2, 2, s => ((int)s.Average()));
+            Assert.AreEqual(2, array1.GetLength(0));
+            Assert.AreEqual(2, array1.GetLength(1));
+
+            var array2 = array0.ReduceArray(1, 1, s => (s.Average()));
+            Assert.AreEqual(1, array2.GetLength(0));
+            Assert.AreEqual(1, array2.GetLength(1));
+            Assert.AreEqual(2.5, array2[0, 0], 0);
+        }
     }
 }
