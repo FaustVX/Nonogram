@@ -42,6 +42,17 @@ namespace Nonogram
             } while (!(Console.ReadLine() is string read && converter(read, out output)));
             return output;
         }
+        public static bool Switch(string @true, string @false)
+        {
+            //←→
+            Console.WriteLine($"{@true} < Press arrow > {@false}");
+            while (Console.ReadKey(intercept: true) is { Key: var key })
+                if (key is ConsoleKey.LeftArrow)
+                    return true;
+                else if (key is ConsoleKey.RightArrow)
+                    return false;
+            throw null;
+        }
 
         public static IEnumerable<T> GetCol<T>(this T[,] array, int col)
             => GetRowCol(array, 0, i => array[i, col]);

@@ -57,9 +57,10 @@ namespace Nonogram
                 var selected = Ask<int?>("Chose Color :", SelectColor);
                 selectedColor = selected is int s ? s : selectedColor;
                 Print(nonogram, validatedBackgroundColor, nonogram.PossibleColors[selectedColor]);
+                var seal = Switch("Seal", "Don't seal");
                 var x = Ask("X :", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Width) - 1;
                 var y = Ask("Y :", (string i, out int o) => int.TryParse(i, out o) && o >= 1 && o <= nonogram.Height) - 1;
-                nonogram.ValidateHints(x, y, selected is null ? nonogram.IgnoredColor : nonogram.PossibleColors[selectedColor]);
+                nonogram.ValidateHints(x, y, selected is null ? nonogram.IgnoredColor : nonogram.PossibleColors[selectedColor], seal);
             } while (!nonogram.IsCorrect);
 
             bool SelectColor(string input, out int? output)
@@ -86,7 +87,6 @@ namespace Nonogram
 
         private static void Print(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor, ConsoleColor selectedColor)
         {
-            //█▓▒░┌┐└┘─│
             var maxRow = nonogram.ColHints.Max(h => h.Length) + 1;
             var maxCol = nonogram.RowHints.Max(h => h.Length) + 1;
             Console.Clear();
@@ -131,9 +131,19 @@ namespace Nonogram
                 for (var y = 0; y < nonogram.Height; y++)
                 {
                     Console.SetCursorPosition(x + maxCol + 1, y + maxRow + 1);
-                    Console.ForegroundColor = nonogram[x, y];
-                    Console.Write(nonogram[x, y] == selectedColor ? '█' : '▒');
+                    var (fore, @char) = nonogram[x, y] switch
+                    {
+                        ColoredCell<ConsoleColor> { Color: var color } when color == selectedColor => (color, '█'),
+                        ColoredCell<ConsoleColor> { Color: var color } => (color, '▒'),
+                        EmptyCell => (nonogram.IgnoredColor, '█'),
+                        AllColoredSealCell => (selectedColor, 'X'),
+                        SealedCell<ConsoleColor> { Seals: var seals } when seals.Contains(selectedColor) => (selectedColor, 'X'),
+                        SealedCell<ConsoleColor> => (nonogram.IgnoredColor, 'x'),
+                    };
+                    Console.ForegroundColor = fore;
+                    Console.Write(@char);
                 }
+            //█▓▒░┌┐└┘─│
             Console.ResetColor();
             Console.SetCursorPosition(0, Console.CursorTop + 2);
         }

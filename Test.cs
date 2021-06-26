@@ -162,7 +162,7 @@ namespace Nonogram
             CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
             CollectionAssert.AreEqual(groups1_1, nonogram.ColHints[2]);
 
-            nonogram.ValidateHints(2, 0, 1);
+            nonogram.ValidateHints(2, 0, 1, false);
             CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[0]);
             CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
             CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
@@ -170,7 +170,7 @@ namespace Nonogram
             CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
             CollectionAssert.AreEqual(groups1Validated_1, nonogram.ColHints[2]);
 
-            nonogram.ValidateHints(2, 0, 0);
+            nonogram.ValidateHints(2, 0, 0, false);
             CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
             CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
             CollectionAssert.AreEqual(groups1, nonogram.RowHints[2]);
@@ -178,7 +178,7 @@ namespace Nonogram
             CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
             CollectionAssert.AreEqual(groups1_1, nonogram.ColHints[2]);
 
-            nonogram.ValidateHints(2, 2, 1);
+            nonogram.ValidateHints(2, 2, 1, false);
             CollectionAssert.AreEqual(groups1, nonogram.RowHints[0]);
             CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
             CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[2]);
@@ -186,7 +186,7 @@ namespace Nonogram
             CollectionAssert.AreEqual(groupsEmpty, nonogram.ColHints[1]);
             CollectionAssert.AreEqual(groups1Validated_1, nonogram.ColHints[2]);
 
-            nonogram.ValidateHints(2, 0, 1);
+            nonogram.ValidateHints(2, 0, 1, false);
             CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[0]);
             CollectionAssert.AreEqual(groupsEmpty, nonogram.RowHints[1]);
             CollectionAssert.AreEqual(groups1Validated, nonogram.RowHints[2]);
@@ -206,7 +206,7 @@ namespace Nonogram
 
             Assert.AreEqual(3, nonogram.Width);
             Assert.AreEqual(2, nonogram.Height);
-            nonogram.ValidateHints(2, 1, 1);
+            nonogram.ValidateHints(2, 1, 1, false);
         }
 
         public void CheckIsComplete()
@@ -217,15 +217,65 @@ namespace Nonogram
                 {0, 1},
             });
 
-            nonogram.ValidateHints(0, 0, 0);
+            nonogram.ValidateHints(0, 0, 0, false);
             Assert.AreEqual(false, nonogram.IsComplete);
             Assert.AreEqual(false, nonogram.IsCorrect);
-            nonogram.ValidateHints(1, 0, 1);
+            nonogram.ValidateHints(1, 0, 1, false);
             Assert.AreEqual(false, nonogram.IsComplete);
             Assert.AreEqual(false, nonogram.IsCorrect);
-            nonogram.ValidateHints(1, 1, 1);
+            nonogram.ValidateHints(1, 1, 1, false);
             Assert.AreEqual(true, nonogram.IsComplete);
             Assert.AreEqual(true, nonogram.IsCorrect);
+        }
+
+        [TestMethod]
+        public void TestSeals()
+        {
+            var nonogram = Game.Create( new[,]
+            {
+                { 0, 1, 2 },
+                { 3, 4, 5 }
+            });
+
+            var x = 0;
+            var y = 0;
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(EmptyCell));
+            nonogram.ValidateHints(x, y, 1, false);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(ColoredCell<int>));
+            Assert.AreEqual(1, ((ColoredCell<int>)nonogram[x, y]).Color);
+            nonogram.ValidateHints(x, y, 1, true);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(EmptyCell));
+            nonogram.ValidateHints(x, y, 1, true);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(SealedCell<int>));
+            Assert.AreEqual(1, ((SealedCell<int>)nonogram[x, y]).Seals[0]);
+
+            y = 1;
+            nonogram.ValidateHints(x, y, 1, true);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(SealedCell<int>));
+            Assert.AreEqual(1, ((SealedCell<int>)nonogram[x, y]).Seals[0]);
+            nonogram.ValidateHints(x, y, 2, true);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(SealedCell<int>));
+            Assert.AreEqual(1, ((SealedCell<int>)nonogram[x, y]).Seals[0]);
+            Assert.AreEqual(2, ((SealedCell<int>)nonogram[x, y]).Seals[1]);
+            nonogram.ValidateHints(x, y, 3, true);
+            nonogram.ValidateHints(x, y, 4, true);
+            nonogram.ValidateHints(x, y, 5, true);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(AllColoredSealCell));
+
+            nonogram.ValidateHints(x, y, 5, false);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(SealedCell<int>));
+            Assert.AreEqual(1, ((SealedCell<int>)nonogram[x, y]).Seals[0]);
+            Assert.AreEqual(2, ((SealedCell<int>)nonogram[x, y]).Seals[1]);
+            Assert.AreEqual(3, ((SealedCell<int>)nonogram[x, y]).Seals[2]);
+            Assert.AreEqual(4, ((SealedCell<int>)nonogram[x, y]).Seals[3]);
+            nonogram.ValidateHints(x, y, 4, false);
+            nonogram.ValidateHints(x, y, 3, false);
+            nonogram.ValidateHints(x, y, 2, false);
+            nonogram.ValidateHints(x, y, 1, false);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(EmptyCell));
+
+            nonogram.ValidateHints(x, y, 1, false);
+            Assert.IsInstanceOfType(nonogram[x, y], typeof(ColoredCell<int>));
         }
     }
 }

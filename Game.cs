@@ -17,7 +17,7 @@ namespace Nonogram
     where T : notnull
     {
         private readonly T[,] _pattern;
-        private readonly T[,] _grid;
+        private readonly ICell[,] _grid;
         public int Width { get; }
         public int Height { get; }
         public (T color, int qty, bool validated)[][] ColHints { get; }
@@ -26,10 +26,10 @@ namespace Nonogram
         public T IgnoredColor { get; }
         public bool IsComplete { get; private set; }
         public bool IsCorrect { get; private set; }
-        public T this[int x, int y]
+        public ICell this[int x, int y]
         {
             get => _grid[y, x];
-            set => _grid[y, x] = value;
+            set => _grid[y, x] = value ?? new EmptyCell();
         }
 
         public Game(T[,] pattern, T ignoredColor)
@@ -39,10 +39,10 @@ namespace Nonogram
             Height = _pattern.GetLength(0);
             IgnoredColor = ignoredColor;
 
-            _grid = new T[Height, Width];
+            _grid = new ICell[Height, Width];
             for (var x = 0; x < Width; x++)
                 for (var y = 0; y < Height; y++)
-                    _grid[y, x] = IgnoredColor;
+                    _grid[y, x] = new EmptyCell();
 
             ColHints = new (T, int, bool)[Width][];
             RowHints = new (T, int, bool)[Height][];
@@ -69,13 +69,19 @@ namespace Nonogram
         where TOther : notnull
         {
             var pattern = new TOther[Height, Width];
-            var grid = new TOther[Height, Width];
+            var grid = new ICell[Height, Width];
 
             for (var x = 0; x < Width; x++)
                 for (var y = 0; y < Height; y++)
                 {
                     pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
-                    grid[y, x] = _grid[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
+                    grid[y, x] = _grid[x, y] switch
+                    {
+                        ColoredCell<T> { Color: var color } => new ColoredCell<TOther>(color.ConvertTo(PossibleColors, possibleColors, ignoredColor)),
+                        AllColoredSealCell => new AllColoredSealCell(),
+                        SealedCell<T> seals => seals.ConvertTo(PossibleColors, possibleColors),
+                        _ => new EmptyCell()
+                    };
                 }
 
             var result = new Game<TOther>(pattern, ignoredColor);
@@ -95,22 +101,33 @@ namespace Nonogram
             return result;
         }
 
-        public void ValidateHints(int x, int y, T color)
+        public void ValidateHints(int x, int y, T color, bool seal)
         {
             if (IsCorrect && !color.Equals(IgnoredColor))
                 return;
             if (!PossibleColors.Contains(color) && !(IgnoredColor.Equals(color)))
                 return;
 
-            _grid[y, x] = color;
+            _grid[y, x] = (color, seal, _grid[y, x]) switch
+            {
+                (var c, true, _) when c.Equals(IgnoredColor) => new AllColoredSealCell(),
+                (var c, false, AllColoredSealCell) => AllColoredSealCell.Without(c, PossibleColors),
+                (var c, false, _) when c.Equals(IgnoredColor) => new EmptyCell(),
+                (var c, true, SealedCell<T> { Seals: { Count: var count } }) when count == PossibleColors.Length - 1 => new AllColoredSealCell(),
+                (var c, true, SealedCell<T> current) => new SealedCell<T>(current, c),
+                (var c, true, ColoredCell<T> { Color: var oldColor }) when oldColor.Equals(c) => new EmptyCell(),
+                (var c, true, _) => new SealedCell<T>(c),
+                (var c, false, SealedCell<T> seals) when seals.Seals.Contains(c) => seals.Remove(c),
+                (var c, false, _) => new ColoredCell<T>(c),
+            };
 
             ValidateHints(x, y);
         }
 
         public void ValidateHints(int x, int y)
         {
-            Validate(CalculateHints(_grid.GetCol(x).Select(g => g)), ColHints[x], PossibleColors);
-            Validate(CalculateHints(_grid.GetRow(y).Select(g => g)), RowHints[y], PossibleColors);
+            Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors);
+            Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors);
 
             IsComplete = (Array.TrueForAll(ColHints, ch => Array.TrueForAll(ch, h => h.validated))
                 && Array.TrueForAll(RowHints, rh => Array.TrueForAll(rh, h => h.validated)));
