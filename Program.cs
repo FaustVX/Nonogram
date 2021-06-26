@@ -103,10 +103,8 @@ namespace Nonogram
                     Console.Write(hint.qty);
                     Console.ResetColor();
                 }
-                Console.SetCursorPosition(maxCol + x + 1, maxRow);
-                Console.Write('─');
-                Console.SetCursorPosition(maxCol + x + 1, maxRow + 1 + nonogram.Height);
-                Console.Write('─');
+                WriteAt('─', maxCol + x + 1, maxRow);
+                WriteAt('─', maxCol + x + 1, maxRow + 1 + nonogram.Height);
             }
 
             for (var y = 0; y < nonogram.RowHints.Length; y++)
@@ -121,11 +119,17 @@ namespace Nonogram
                     Console.Write(hint.qty);
                     Console.ResetColor();
                 }
-                Console.SetCursorPosition(maxCol, maxRow + y + 1);
-                Console.Write('│');
-                Console.SetCursorPosition(maxCol + 1 + nonogram.Width, maxRow + y + 1);
-                Console.Write('│');
+                WriteAt('│', maxCol, maxRow + y + 1);
+                WriteAt('│', maxCol + 1 + nonogram.Width, maxRow + y + 1);
             }
+
+            WriteAt('┌', maxCol, maxRow);
+
+            WriteAt('┐', maxCol + nonogram.Width + 1, maxRow);
+
+            WriteAt('└', maxCol, maxRow + nonogram.Height + 1);
+
+            WriteAt('┘', maxCol + nonogram.Width + 1, maxRow + nonogram.Height + 1);
 
             for (var x = 0; x < nonogram.Width; x++)
                 for (var y = 0; y < nonogram.Height; y++)

@@ -72,5 +72,11 @@ namespace Nonogram
                     yield return get(i);
             }
         }
+
+        public static void WriteAt(char c, int x, int y)
+        {
+            Console.SetCursorPosition(x, y);
+            Console.Write(c);
+        }
     }
 }
