@@ -144,8 +144,15 @@ namespace Nonogram
             {
                 for (var i = 0; i < Width; i++)
                     for (var j = 0; j < Height; j++)
-                        if (!_grid[i, j].Equals(_pattern[i, j]))
-                            return;
+                        switch ((_grid[j, i], _pattern[j, i]))
+                        {
+                            case (not ColoredCell<T>, var pattern) when pattern.Equals(IgnoredColor):
+                                continue;
+                            case (ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern):
+                                continue;
+                            default:
+                                return;
+                        }
                 IsCorrect = true;
             }
 

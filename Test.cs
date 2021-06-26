@@ -209,6 +209,7 @@ namespace Nonogram
             nonogram.ValidateHints(2, 1, 1, false);
         }
 
+        [TestMethod]
         public void CheckIsComplete()
         {
             var nonogram = Game.Create(new[,]
@@ -221,6 +222,12 @@ namespace Nonogram
             Assert.AreEqual(false, nonogram.IsComplete);
             Assert.AreEqual(false, nonogram.IsCorrect);
             nonogram.ValidateHints(1, 0, 1, false);
+            Assert.AreEqual(false, nonogram.IsComplete);
+            Assert.AreEqual(false, nonogram.IsCorrect);
+            nonogram.ValidateHints(0, 1, 1, true);
+            Assert.AreEqual(false, nonogram.IsComplete);
+            Assert.AreEqual(false, nonogram.IsCorrect);
+            nonogram.ValidateHints(0, 0, 0, true);
             Assert.AreEqual(false, nonogram.IsComplete);
             Assert.AreEqual(false, nonogram.IsCorrect);
             nonogram.ValidateHints(1, 1, 1, false);
