@@ -29,7 +29,12 @@ namespace Nonogram
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
-            set => _grid[y, x] = value ?? new EmptyCell();
+            set
+            {
+                if (value.Equals(this[x, y]))
+                    return;
+                _grid[y, x] = value ?? new EmptyCell();
+            }
         }
 
         public Game(T[,] pattern, T ignoredColor)

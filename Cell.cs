@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Nonogram
 {
-    public interface ICell
+    public interface ICell : IEquatable<ICell>
     {
         public sealed T? GetColor<T>()
             where T : notnull
@@ -25,13 +26,19 @@ namespace Nonogram
     }
 
     public sealed class EmptyCell : ICell
-    { }
+    {
+        public bool Equals(ICell? other)
+            => other is EmptyCell;
+    }
 
     public sealed class AllColoredSealCell : ICell
     {
         public static SealedCell<T> Without<T>(T seal, T[] possibleColors)
             where T : notnull
             => new SealedCell<T>(possibleColors.Where(s => !s.Equals(seal)));
+
+        public bool Equals(ICell? other)
+            => other is AllColoredSealCell;
     }
 
     public sealed class ColoredCell<T> : ICell
@@ -41,6 +48,9 @@ namespace Nonogram
 
         public ColoredCell(T color)
             => Color = color;
+
+        public bool Equals(ICell? other)
+            => other is ColoredCell<T> { Color: var c } && c.Equals(Color);
     }
 
     public sealed class SealedCell<T> : ICell
@@ -81,5 +91,8 @@ namespace Nonogram
         public SealedCell<TOther> ConvertTo<TOther>(T[] oldPossibleColors, TOther[] possibleColors)
             where TOther : notnull
             => new (Seals.Select(s => s.ConvertTo(oldPossibleColors, possibleColors, default!)));
+
+        public bool Equals(ICell? other)
+            => other is SealedCell<T> { Seals: var seals } && Seals.Count == seals.Count && Seals.Intersect(seals).Count() == Seals.Count;
     }
 }
