@@ -205,6 +205,26 @@ namespace Nonogram
             }
         }
 
+        public void Restart()
+        {
+            for (var x = 0; x < Width; x++)
+                for (var y = 0; y < Height; y++)
+                    _grid[y, x] = new EmptyCell();
+
+            for (var i = 0; i < RowHints.Length; i++)
+                for (var j = 0; j < RowHints[i].Length; j++)
+                    RowHints[i][j].validated = false;
+
+            for (var i = 0; i < ColHints.Length; i++)
+                for (var j = 0; j < ColHints[i].Length; j++)
+                    ColHints[i][j].validated = false;
+
+            _previous.Clear();
+            _nexts.Clear();
+
+            IsComplete = IsCorrect = false;
+        }
+
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
             using var enumerator = row.GetEnumerator();

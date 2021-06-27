@@ -8,14 +8,16 @@ namespace Nonogram
     {
         private static void Main(string[] args)
         {
-            var nonogram = Services.WebPbn.Get<ConsoleColor>(int.Parse(args[0]), (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
+            var id = int.Parse(args[0]);
+            System.Console.WriteLine($"Download pattern#{id} from webpbn.com");
+            var nonogram = Services.WebPbn.Get<ConsoleColor>(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
             Play(nonogram, ConsoleColor.DarkGray);
         }
 
         private static void Play(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor)
         {
             Console.Clear();
-            var (color, x, y) = (new Nullable<int>(), 1, 1);
+            var (color, x, y) = (new Nullable<int>(0), 1, 1);
             do
             {
                 var (seal, undo, redo, ok) = (false, false, false, true);
@@ -27,7 +29,7 @@ namespace Nonogram
                     System.Console.WriteLine($"X:{x}, Y:{y}");
                     Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
                     Console.ResetColor();
-                    ok = false;
+                    ok = seal = false;
                     switch (ReadKey(nonogram, (color, x, y)))
                     {
                         case Color ctrl:
@@ -44,6 +46,9 @@ namespace Nonogram
                             break;
                         case Redo:
                             nonogram.Redo();
+                            break;
+                        case Restart:
+                            nonogram.Restart();
                             break;
                         case Ok ctrl:
                             ok = true;
@@ -85,6 +90,8 @@ namespace Nonogram
                         => new Undo(),
                     ({ Key: ConsoleKey.Y, Modifiers: ConsoleModifiers.Control },    _)
                         => new Redo(),
+                    ({ Key: ConsoleKey.R, Modifiers: ConsoleModifiers.Control },    _)
+                        => new Restart(),
                     ({ Key: ConsoleKey.X },                                         _)
                         => new Ok(isSealed: true),
                     ({ Key: ConsoleKey.Spacebar or ConsoleKey.Enter },              _)

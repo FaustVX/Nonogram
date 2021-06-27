@@ -40,4 +40,7 @@ namespace Nonogram
 
     public class Redo : IControl
     {}
+
+    public class Restart : IControl
+    {}
 }
