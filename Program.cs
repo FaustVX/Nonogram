@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using static Nonogram.Extensions;
 
@@ -6,16 +6,9 @@ namespace Nonogram
 {
     public static class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
-            var nonogram = Game.Create(new[,]
-            {
-                {0, 0, 1, 0, 0},
-                {0, 1, 1, 1, 0},
-                {1, 1, 1, 1, 1},
-                {1, 1, 2, 1, 1},
-                {1, 1, 2, 1, 1},
-            }).ConvertTo(Console.BackgroundColor, ConsoleColor.White, ConsoleColor.Red);
+            var nonogram = Services.WebPbn.Get<ConsoleColor>(int.Parse(args[0]), (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
             Play(nonogram, ConsoleColor.DarkGray);
         }
 

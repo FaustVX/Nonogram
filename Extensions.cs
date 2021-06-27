@@ -71,5 +71,16 @@ namespace Nonogram
                     arrayOut[y, x] = converter(temp.Offset(stepSizeX * x, stepSizeY * y));
             return arrayOut;
         }
+
+        public static TOut[,] To2DArray<TIn, TOut>(this TIn[][] array, Func<TIn, TOut> converter)
+        {
+            var height = array.Length;
+            var width = array[0].Length;
+            var result = new TOut[height, width];
+            for (var y = 0; y < height; y++)
+                for (var x = 0; x < width; x++)
+                    result[y, x] = converter(array[y][x]);
+            return result;
+        }
     }
 }

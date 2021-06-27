@@ -53,7 +53,8 @@
             "type": "shell",
             "command": "dotnet",
             "args": [
-                "run"
+                "run",
+                "${input:id}"
             ],
             "problemMatcher": []
         },
@@ -93,6 +94,11 @@
                 }
             ],
             "description": "Wait for debugger ?"
+        },
+        {
+            "id": "id",
+            "type": "promptString",
+            "description": "WebPbn id"
         }
     ]
 }
