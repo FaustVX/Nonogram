@@ -9,7 +9,7 @@ namespace Nonogram
     public static class Game
     {
         public static Game<T> Create<T>(T[,] pattern, T ignoredColor = default!)
-        where T : notnull
+            where T : notnull
             => new (pattern, ignoredColor);
     }
 

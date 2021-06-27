@@ -15,22 +15,23 @@ namespace Nonogram
         private static void Play(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor)
         {
             Console.Clear();
-            var (seal, color, x, y, undo, redo, ok) = (false, new Nullable<int>(), 1, 1, false, false, true);
+            var (color, x, y) = (new Nullable<int>(), 1, 1);
             do
             {
+                var (seal, undo, redo, ok) = (false, false, false, true);
                 do
                 {
+                    Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor);
+                    if (color is not null)
+                        Console.ForegroundColor = nonogram.IgnoredColor;
+                    System.Console.WriteLine($"X:{x}, Y:{y}");
+                    Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
+                    Console.ResetColor();
+                    (seal, color, x, y, undo, redo, ok) = ReadKey(nonogram, (color, x, y));
                     if (undo)
                         nonogram.Undo();
                     else if (redo)
                         nonogram.Redo();
-                    Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor);
-                    if (color is not null)
-                        Console.ForegroundColor = nonogram.IgnoredColor;
-                    System.Console.WriteLine($"X:{x}, Y:{y}, Seal:{(seal ? 'X' : '█')}");
-                    Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
-                    Console.ResetColor();
-                    (seal, color, x, y, undo, redo, ok) = ReadKey(nonogram, (seal, color, x, y));
                     Console.Clear();
                 } while (!ok);
 
@@ -43,34 +44,34 @@ namespace Nonogram
             static T GetAtOrDefault<T>(int? index, T[] values, T @default)
                 => index is int i ? values[i] : @default;
 
-            static (bool, int?, int, int, bool undo, bool redo, bool ok) ReadKey(Game<ConsoleColor> nonogram, (bool seal, int? color, int x, int y) state)
+            static (bool, int?, int, int, bool undo, bool redo, bool ok) ReadKey(Game<ConsoleColor> nonogram, (int? color, int x, int y) state)
                 => ((Console.ReadKey(intercept: true), state)) switch
                 {
-                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (_, color: > 0, _, _))
-                        => (state.seal, state.color - 1, state.x, state.y, false, false, false),
-                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (_, color: 0, _, _))
-                        => (state.seal, null, state.x, state.y, false, false, false),
-                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(_, color: null, _, _))
-                        => (state.seal, 0, state.x, state.y, false, false, false),
-                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(_, color: var c, _, _))    when c < nonogram.PossibleColors.Length - 1
-                        => (state.seal, state.color + 1, state.x, state.y, false, false, false),
-                    ({ Key: ConsoleKey.LeftArrow },                                 (_, _, x: > 1, _))
-                        => (state.seal, state.color, state.x - 1, state.y, false, false, false),
-                    ({ Key: ConsoleKey.RightArrow },                                (_, _, x: var x, _))        when x < nonogram.Width
-                        => (state.seal, state.color, state.x + 1, state.y, false, false, false),
-                    ({ Key: ConsoleKey.UpArrow },                                   (_, _, _, y: > 1))
-                        => (state.seal, state.color, state.x, state.y - 1, false, false, false),
-                    ({ Key: ConsoleKey.DownArrow },                                 (_, _, _, y: var y))        when y < nonogram.Height
-                        => (state.seal, state.color, state.x, state.y + 1, false, false, false),
+                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (color: > 0, _, _))
+                        => (false, state.color - 1, state.x, state.y, false, false, false),
+                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (color: 0, _, _))
+                        => (false, null, state.x, state.y, false, false, false),
+                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(color: null, _, _))
+                        => (false, 0, state.x, state.y, false, false, false),
+                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(color: var c, _, _))    when c < nonogram.PossibleColors.Length - 1
+                        => (false, state.color + 1, state.x, state.y, false, false, false),
+                    ({ Key: ConsoleKey.LeftArrow },                                 (_, x: > 1, _))
+                        => (false, state.color, state.x - 1, state.y, false, false, false),
+                    ({ Key: ConsoleKey.RightArrow },                                (_, x: var x, _))        when x < nonogram.Width
+                        => (false, state.color, state.x + 1, state.y, false, false, false),
+                    ({ Key: ConsoleKey.UpArrow },                                   (_, _, y: > 1))
+                        => (false, state.color, state.x, state.y - 1, false, false, false),
+                    ({ Key: ConsoleKey.DownArrow },                                 (_, _, y: var y))        when y < nonogram.Height
+                        => (false, state.color, state.x, state.y + 1, false, false, false),
                     ({ Key: ConsoleKey.Z, Modifiers: ConsoleModifiers.Control }, _)
-                        => (state.seal, state.color, state.x, state.y, true, false, false),
+                        => (false, state.color, state.x, state.y, true, false, false),
                     ({ Key: ConsoleKey.Y, Modifiers: ConsoleModifiers.Control }, _)
-                        => (state.seal, state.color, state.x, state.y, false, true, false),
+                        => (false, state.color, state.x, state.y, false, true, false),
                     ({ Key: ConsoleKey.X },                                         _)
-                        => (!state.seal, state.color, state.x, state.y, false, false, false),
+                        => (true, state.color, state.x, state.y, false, false, true),
                     ({ Key: ConsoleKey.Spacebar or ConsoleKey.Enter },              _)
-                        => (state.seal, state.color, state.x, state.y, false, false, true),
-                    _   => (state.seal, state.color, state.x, state.y, false, false, false),
+                        => (false, state.color, state.x, state.y, false, false, true),
+                    _   => (false, state.color, state.x, state.y, false, false, false),
                 };
         }
 

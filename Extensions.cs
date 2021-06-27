@@ -66,8 +66,8 @@ namespace Nonogram
             var lengthY = inHeight - (stepSizeY * (height - 1));
 
             var temp = new ROSpan2D<TIn>(arrayIn, 0, 0, lengthX, lengthY);
-            for (int x = 0; x < width; x++)
-                for (int y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+                for (var y = 0; y < height; y++)
                     arrayOut[y, x] = converter(temp.Offset(stepSizeX * x, stepSizeY * y));
             return arrayOut;
         }
