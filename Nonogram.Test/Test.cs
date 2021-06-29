@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using static Nonogram.Extensions;
 
-namespace Nonogram
+namespace Nonogram.Test
 {
     [TestClass]
     public class Test

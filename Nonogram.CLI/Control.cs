@@ -1,4 +1,4 @@
-namespace Nonogram
+namespace Nonogram.CLI
 {
     public interface IControl
     {}

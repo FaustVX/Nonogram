@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using static Nonogram.Extensions;
+using static Nonogram.CLI.Extensions;
 
-namespace Nonogram
+namespace Nonogram.CLI
 {
     public static class Program
     {

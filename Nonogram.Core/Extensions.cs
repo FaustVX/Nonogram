@@ -49,12 +49,6 @@ namespace Nonogram
             }
         }
 
-        public static void WriteAt(char c, int x, int y)
-        {
-            Console.SetCursorPosition(x, y);
-            Console.Write(c);
-        }
-
         public static TOut[,] ReduceArray<TIn, TOut>(this TIn[,] arrayIn, int width, int height, Func<ROSpan2D<TIn>, TOut> converter)
         where TOut : notnull
         {

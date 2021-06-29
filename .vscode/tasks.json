@@ -7,7 +7,6 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Nonogram.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -26,7 +25,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Nonogram.csproj",
+                "${workspaceFolder}/Nonogram.CLI/Nonogram.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -42,7 +41,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/Nonogram.csproj",
+                "${workspaceFolder}/Nonogram.CLI/Nonogram.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -54,6 +53,8 @@
             "command": "dotnet",
             "args": [
                 "run",
+                "--project",
+                "${workspaceFolder}/Nonogram.CLI/Nonogram.CLI.csproj",
                 "${input:id}"
             ],
             "problemMatcher": []
@@ -63,9 +64,7 @@
             "type": "shell",
             "command": "dotnet",
             "args": [
-                "test",
-                "--configuration",
-                "Test"
+                "test"
             ],
             "options": {
                 "env": {
