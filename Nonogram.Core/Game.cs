@@ -162,6 +162,13 @@ namespace Nonogram
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
+                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Length)
+                {
+                    for (var i = 0; i < hints.Length; i++)
+                        hints[i].validated = true;
+                    return;
+                }
+
                 for (var i = 0; i < hints.Length; i++)
                     hints[i].validated = false;
 

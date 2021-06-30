@@ -48,7 +48,7 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "run",
+            "label": "run console",
             "type": "shell",
             "command": "dotnet",
             "args": [
@@ -56,6 +56,17 @@
                 "--project",
                 "${workspaceFolder}/Nonogram.CLI/Nonogram.CLI.csproj",
                 "${input:id}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "run WPF",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/Nonogram.WPF/Nonogram.WPF.csproj"
             ],
             "problemMatcher": []
         },
