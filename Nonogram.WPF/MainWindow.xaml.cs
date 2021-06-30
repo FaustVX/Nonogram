@@ -20,8 +20,15 @@ namespace Nonogram.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        public Game<SolidColorBrush> Nonogram { get; }
         public MainWindow()
         {
+            Nonogram = new(new[,]
+            {
+                {Brushes.AliceBlue, Brushes.Beige},
+                {Brushes.Beige, Brushes.AliceBlue},
+            }, Brushes.AliceBlue);
+            Nonogram.ValidateHints(0, 0, Brushes.AliceBlue, seal: false);
             InitializeComponent();
         }
     }
