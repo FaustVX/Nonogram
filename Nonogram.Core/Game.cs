@@ -121,7 +121,7 @@ namespace Nonogram
                 (var c, true, _) when c.Equals(IgnoredColor) => new AllColoredSealCell(),
                 (var c, false, AllColoredSealCell) => AllColoredSealCell.Without(c, PossibleColors),
                 (var c, false, _) when c.Equals(IgnoredColor) => new EmptyCell(),
-                (var c, true, SealedCell<T> { Seals: { Count: var count } }) when count == PossibleColors.Length - 1 => new AllColoredSealCell(),
+                (    _, true, SealedCell<T> { Seals: { Count: var count } }) when count == PossibleColors.Length - 1 => new AllColoredSealCell(),
                 (var c, true, SealedCell<T> current) => new SealedCell<T>(current, c),
                 (var c, true, ColoredCell<T> { Color: var oldColor }) when oldColor.Equals(c) => new EmptyCell(),
                 (var c, true, _) => new SealedCell<T>(c),
@@ -172,8 +172,8 @@ namespace Nonogram
                 static bool ValidateCell((T color, int qty)[] line, (T color, int qty, bool validated)[] hints, Index i)
                 {
                     ref var hint = ref hints[i];
-                    var c = line[i];
-                    if (hint.qty != c.qty || !hint.color.Equals(c.color))
+                    var (color, qty) = line[i];
+                    if (hint.qty != qty || !hint.color.Equals(color))
                         return false;
                     hint.validated = true;
                     return true;
