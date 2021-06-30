@@ -1,13 +1,18 @@
-﻿<Window x:Class="Nonogram.WPF.MainWindow"
+<Window x:Class="Nonogram.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nonogram.WPF"
+        xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
         x:Name="This"
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
+        DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         Title="Nonogram">
+    <Window.Resources>
+        <conv:DebugConverter x:Key="DebugConverter"/>
+    </Window.Resources>
     <Grid Grid.IsSharedSizeScope="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
