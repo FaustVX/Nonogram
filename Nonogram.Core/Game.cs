@@ -13,7 +13,7 @@ namespace Nonogram
             => new (pattern, ignoredColor);
     }
 
-    public class Game<T>
+    public class Game<T> : IEnumerable<ICell>
     where T : notnull
     {
         private readonly T[,] _pattern;
@@ -231,6 +231,16 @@ namespace Nonogram
 
             IsComplete = IsCorrect = false;
         }
+
+        public IEnumerator<ICell> GetEnumerator()
+        {
+            for (var x = 0; x < Width; x++)
+                for (var y = 0; y < Height; y++)
+                    yield return this[x, y];
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+           => GetEnumerator();
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
