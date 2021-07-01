@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Nonogram.WPF
 {
@@ -20,16 +11,46 @@ namespace Nonogram.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        public Game<SolidColorBrush> Nonogram { get; }
+        public Game<Brush> Nonogram { get; }
+        public Brush CurrentColor { get; set; }
+
         public MainWindow()
         {
             Nonogram = new(new[,]
             {
-                {Brushes.AliceBlue, Brushes.Beige},
-                {Brushes.Beige, Brushes.AliceBlue},
-            }, Brushes.AliceBlue);
-            Nonogram.ValidateHints(0, 0, Brushes.AliceBlue, seal: false);
+                {Brushes.Red, Brushes.Black},
+                {Brushes.Green, Brushes.Yellow},
+            }, Brushes.Black);
+            CurrentColor = Nonogram.PossibleColors[0];
+            Nonogram.ValidateHints(0, 0, CurrentColor, seal: false);
             InitializeComponent();
+        }
+
+        private int _btnIndex;
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var button = (Button)sender;
+            var tag = (int)button.Tag;
+            var x = tag % Nonogram.Width;
+            var y = tag / Nonogram.Height;
+
+            Nonogram.ValidateHints(x, y, CurrentColor, seal: false);
+
+            //Ugly but works
+            var binding = button.GetBindingExpression(Button.BackgroundProperty);
+            button.SetBinding(binding.TargetProperty, new Binding()
+            {
+                Source = Nonogram[x, y],
+                Converter = binding.ParentBinding.Converter,
+                ConverterParameter = binding.ParentBinding.ConverterParameter,
+                Mode = binding.ParentBinding.Mode,
+            });
+        }
+
+        private void Button_Initialized(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            button.Tag = _btnIndex++;
         }
     }
 }

@@ -14,6 +14,7 @@
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
+        <conv:ICellToBackgroundConverter x:Key="ICellToBackgroundConverter"/>
     </Window.Resources>
     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
@@ -36,7 +37,7 @@
                     <ItemsControl VerticalAlignment="Stretch" ItemsSource="{Binding}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical" />
+                                <StackPanel Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -60,7 +61,7 @@
                     <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
+                                <StackPanel Orientation="Vertical" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -81,7 +82,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type core:ICell}">
-                    <Button Background="{Binding}"/>
+                    <Button Background="{Binding Converter={StaticResource ICellToBackgroundConverter}, ConverterParameter={x:Reference This}, Mode=OneTime}" Click="Button_Click" Initialized="Button_Initialized"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
