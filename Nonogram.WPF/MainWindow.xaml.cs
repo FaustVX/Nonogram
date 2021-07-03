@@ -136,14 +136,23 @@ namespace Nonogram.WPF
             }
         }
 
+        private ICell? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
-                Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
+            {
+                var (x, y) = GetXYFromTag((FrameworkElement)sender);
+                if (_selectedColor?.Equals(Nonogram[x, y]) ?? false)
+                    Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
+            }
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
-            => Change((Border)sender, e.ChangedButton is MouseButton.Right);
+        {
+            var (x, y) = GetXYFromTag((FrameworkElement)sender);
+            _selectedColor = Nonogram[x, y];
+            Change((Border)sender, e.ChangedButton is MouseButton.Right);
+        }
 
         private void Change(Border border, bool isSealed)
         {

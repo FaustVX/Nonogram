@@ -109,6 +109,25 @@ namespace Nonogram
             return result;
         }
 
+        public void SetColor(int x, int y, T color)
+        {
+            if (this[x, y].IsEmpty)
+                ValidateHints(x, y, color, seal: false);
+        }
+
+        public void Clear(int x, int y)
+        {
+            var cell = this[x, y];
+            if (!cell.IsEmpty)
+                ValidateHints(x, y, IgnoredColor, cell.IsColored);
+        }
+
+        public void Seal(int x, int y, T color)
+        {
+            if (this[x, y].IsEmpty)
+                ValidateHints(x, y, color, seal: true);
+        }
+
         public void ValidateHints(int x, int y, T color, bool seal)
         {
             if (IsCorrect && !color.Equals(IgnoredColor))
