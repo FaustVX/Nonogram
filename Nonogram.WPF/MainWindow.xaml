@@ -1,4 +1,4 @@
-﻿<Window x:Class="Nonogram.WPF.MainWindow"
+<Window x:Class="Nonogram.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -14,9 +14,9 @@
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
-        <conv:ICellToBackgroundConverter x:Key="ICellToBackgroundConverter"/>
     </Window.Resources>
-    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
@@ -26,55 +26,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ItemsControl VerticalAlignment="Stretch" Grid.Column="0" Grid.Row="1" ItemsSource="{Binding Nonogram.ColHints}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Vertical" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <ItemsControl VerticalAlignment="Stretch" ItemsSource="{Binding}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}" Content="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Grid x:Name="rowHints" Grid.Column="0" Grid.Row="1" />
 
-        <ItemsControl HorizontalAlignment="Stretch" Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Nonogram.RowHints}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}" Content="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Grid x:Name="colHints" Grid.Column="1" Grid.Row="0" />
 
-        <ItemsControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Nonogram}">
+        <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Nonogram}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="{Binding Nonogram.Width}" Rows="{Binding Nonogram.Height}" />
@@ -82,7 +38,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type core:ICell}">
-                    <Button Background="{Binding Converter={StaticResource ICellToBackgroundConverter}, ConverterParameter={x:Reference This}, Mode=OneTime}" Click="Button_Click" Initialized="Button_Initialized"/>
+                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="0" MouseEnter="CellMouseEnter" MouseDown="CellMouseDown" Initialized="CellInitialize" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
