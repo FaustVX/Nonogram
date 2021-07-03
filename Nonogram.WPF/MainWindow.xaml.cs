@@ -19,7 +19,7 @@ namespace Nonogram.WPF
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(6, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Height, Nonogram.Width];
 
             InitializeComponent();
@@ -205,6 +205,9 @@ namespace Nonogram.WPF
                         }
                         break;
                     }
+                case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < colors.Children.Count:
+                    ((RadioButton)colors.Children[key - Key.D1]).IsChecked = true;
+                    break;
             }
         }
     }
