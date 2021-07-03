@@ -10,12 +10,17 @@
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="Nonogram"
         KeyUp="This_KeyUp">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
     </Window.Resources>
+    <Window.Title>
+        <MultiBinding StringFormat="Nonogram {0} * {1}" Mode="OneTime">
+            <Binding Path="Nonogram.Width" Mode="OneTime"/>
+            <Binding Path="Nonogram.Height" Mode="OneTime"/>
+        </MultiBinding>
+    </Window.Title>
 
     <Grid>
         <Grid.RowDefinitions>
