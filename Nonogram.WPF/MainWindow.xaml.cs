@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -79,6 +79,7 @@ namespace Nonogram.WPF
                             Width = size,
                             Height = size,
                             TextAlignment = TextAlignment.Center,
+                            ToolTip = qty.ToString(),
                         };
                         if (validated)
                             text.Foreground = validatedBrush;
