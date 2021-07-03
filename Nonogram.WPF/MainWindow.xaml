@@ -10,7 +10,8 @@
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="Nonogram">
+        Title="Nonogram"
+        KeyUp="This_KeyUp">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>

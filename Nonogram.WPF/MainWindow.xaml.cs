@@ -15,13 +15,13 @@ namespace Nonogram.WPF
         public Game<Brush> Nonogram { get; }
         public Brush CurrentColor { get; set; }
         private readonly double _size = 15;
-        private readonly List<Border> _borders;
+        private readonly Border[,] _borders;
 
         public MainWindow()
         {
             Nonogram = Services.WebPbn.Get<Brush>(3, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             CurrentColor = Nonogram.PossibleColors[0];
-            _borders = new(Nonogram.Width * Nonogram.Height);
+            _borders = new Border[Nonogram.Height, Nonogram.Width];
 
             InitializeComponent();
 
@@ -107,12 +107,13 @@ namespace Nonogram.WPF
             }
         }
 
+        private int _cellIndex = 0;
         private void CellInitialize(object sender, EventArgs e)
         {
             var element = (Border)sender;
-            element.Tag = _borders.Count; // element index
-            _borders.Add(element);
+            element.Tag = _cellIndex++;
             var (x, y) = GetXYFromTag(element);
+            _borders[y, x] = element;
             element.Background = Convert(x, y);
             element.Width = element.Height = _size;
         }
@@ -135,5 +136,30 @@ namespace Nonogram.WPF
                //SealedCell<Brush> seal when seal.Seals.Contains(window.CurrentColor) => CurrentColor,
                _ => Brushes.LightGray,
            };
+
+        private void This_KeyUp(object sender, KeyEventArgs e)
+        {
+            switch((e.KeyboardDevice.Modifiers, e.Key))
+            {
+                case (ModifierKeys.Control, Key.Z) when !Nonogram.IsCorrect:
+                    {
+                        if (Nonogram.Undo() is (var x, var y))
+                        {
+                            _borders[y, x].Background = Convert(x, y);
+                            ResetHints();
+                        }
+                        break;
+                    }
+                case (ModifierKeys.Control, Key.Y):
+                    {
+                        if (Nonogram.Redo() is (var x, var y))
+                        {
+                            _borders[y, x].Background = Convert(x, y);
+                            ResetHints();
+                        }
+                        break;
+                    }
+            }
+        }
     }
 }

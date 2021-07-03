@@ -188,7 +188,7 @@ namespace Nonogram
             }
         }
 
-        public void Undo()
+        public (int x, int y)? Undo()
         {
             var last = _previous.Last;
             if (last is { Value: var (x, y, cell) })
@@ -197,10 +197,12 @@ namespace Nonogram
                 _nexts.AddLast((x, y, _grid[y, x]));
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
+                return (x, y);
             }
+            return null;
         }
 
-        public void Redo()
+        public (int x, int y)? Redo()
         {
             var last = _nexts.Last;
             if (last is { Value: var (x, y, cell) })
@@ -209,7 +211,9 @@ namespace Nonogram
                 _previous.AddLast((x, y, _grid[y, x]));
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
+                return (x, y);
             }
+            return null;
         }
 
         public void Restart()
