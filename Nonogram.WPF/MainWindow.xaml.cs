@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,9 +25,38 @@ namespace Nonogram.WPF
             InitializeComponent();
 
             for (var x = 0; x < Nonogram.RowHints.Length; x++)
+            {
                 rowHints.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
+                cells.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
+            }
             foreach (var col in Nonogram.ColHints)
+            {
                 colHints.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
+                cells.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
+            }
+
+            Create(Nonogram.RowHints, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
+            Create(Nonogram.ColHints, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
+
+            for (var x = 0; x < Nonogram.Width; x++)
+                for (var y = 0; y < Nonogram.Height; y++)
+                {
+                    var border = _borders[y, x] = new()
+                    {
+                        BorderThickness = new(1),
+                        BorderBrush = Brushes.Gray,
+                        CornerRadius = new(0),
+                        Background = Convert(x, y),
+                        Width = _size,
+                        Height = _size,
+                        Tag = (x, y),
+                    };
+                    border.MouseDown += CellMouseDown;
+                    border.MouseEnter += CellMouseEnter;
+                    Grid.SetRow(border, y);
+                    Grid.SetColumn(border, x);
+                    cells.Children.Add(border);
+                }
 
             foreach (var c in Nonogram.PossibleColors)
             {
@@ -41,17 +70,6 @@ namespace Nonogram.WPF
                 colors.Children.Add(radio);
             }
             ((RadioButton)colors.Children[0]).IsChecked = true;
-
-            ResetHints();
-
-            void RadioSelected(object sender, RoutedEventArgs e)
-                => CurrentColor = ((Control)sender).Background;
-        }
-
-        private void ResetHints()
-        {
-            Create(Nonogram.RowHints, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
-            Create(Nonogram.ColHints, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
 
             static void Create((Brush color, int qty, bool validated)[][] hints, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
             {
@@ -87,6 +105,35 @@ namespace Nonogram.WPF
                     }
                 }
             }
+
+            void RadioSelected(object sender, RoutedEventArgs e)
+                => CurrentColor = ((Control)sender).Background;
+        }
+
+        private void ResetHints(int x, int y)
+        {
+            Create(Nonogram.RowHints, y, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
+            Create(Nonogram.ColHints, x, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
+
+            static void Create((Brush color, int qty, bool validated)[][] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
+            {
+                var sp = (StackPanel)grid.Children[i];
+                sp.Children.Clear();
+                foreach (var (color, qty, validated) in hints[i])
+                {
+                    var text = new TextBlock()
+                    {
+                        Text = qty.ToString(),
+                        Background = color,
+                        Width = size,
+                        Height = size,
+                        TextAlignment = TextAlignment.Center,
+                        ToolTip = qty.ToString(),
+                    };
+                    text.Foreground = (validated ? validatedBrush : (Brush)TextBlock.ForegroundProperty.DefaultMetadata.DefaultValue);
+                    sp.Children.Add(text);
+                }
+            }
         }
 
         private void CellMouseEnter(object sender, MouseEventArgs e)
@@ -109,7 +156,7 @@ namespace Nonogram.WPF
 
             border.Background = Convert(x, y);
 
-            ResetHints();
+            ResetHints(x, y);
 
             if (Nonogram.IsCorrect)
             {
@@ -123,25 +170,8 @@ namespace Nonogram.WPF
             }
         }
 
-        private int _cellIndex = 0;
-        private void CellInitialize(object sender, EventArgs e)
-        {
-            var element = (Border)sender;
-            element.Tag = _cellIndex++;
-            var (x, y) = GetXYFromTag(element);
-            _borders[y, x] = element;
-            element.Background = Convert(x, y);
-            element.Width = element.Height = _size;
-        }
-
-        private (int x, int y) GetXYFromTag(FrameworkElement element)
-        {
-            var tag = (int)element.Tag;
-            var x = tag % Nonogram.Width;
-            var y = tag / Nonogram.Height;
-
-            return (x, y);
-        }
+        private static (int x, int y) GetXYFromTag(FrameworkElement element)
+            => ((int, int))element.Tag;
 
         private Brush Convert(int x, int y)
            => Nonogram[x, y] switch
@@ -162,7 +192,7 @@ namespace Nonogram.WPF
                         if (Nonogram.Undo() is (var x, var y))
                         {
                             _borders[y, x].Background = Convert(x, y);
-                            ResetHints();
+                            ResetHints(x, y);
                         }
                         break;
                     }
@@ -171,7 +201,7 @@ namespace Nonogram.WPF
                         if (Nonogram.Redo() is (var x, var y))
                         {
                             _borders[y, x].Background = Convert(x, y);
-                            ResetHints();
+                            ResetHints(x, y);
                         }
                         break;
                     }
