@@ -18,30 +18,39 @@
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid x:Name="rowHints" Grid.Column="0" Grid.Row="1" />
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" x:Name="colors"/>
 
-        <Grid x:Name="colHints" Grid.Column="1" Grid.Row="0" />
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Nonogram}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding Nonogram.Width}" Rows="{Binding Nonogram.Height}" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type core:ICell}">
-                    <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="0" MouseEnter="CellMouseEnter" MouseDown="CellMouseDown" Initialized="CellInitialize" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            <Grid x:Name="rowHints" Grid.Column="0" Grid.Row="1" />
+
+            <Grid x:Name="colHints" Grid.Column="1" Grid.Row="0" />
+
+            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Nonogram}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding Nonogram.Width}" Rows="{Binding Nonogram.Height}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type core:ICell}">
+                        <Border BorderThickness="1" BorderBrush="Gray" CornerRadius="0" MouseEnter="CellMouseEnter" MouseDown="CellMouseDown" Initialized="CellInitialize" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
     </Grid>
 </Window>

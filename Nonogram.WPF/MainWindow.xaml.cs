@@ -13,14 +13,13 @@ namespace Nonogram.WPF
     public partial class MainWindow : Window
     {
         public Game<Brush> Nonogram { get; }
-        public Brush CurrentColor { get; set; }
+        public Brush CurrentColor { get; set; } = default!;
         private readonly double _size = 15;
         private readonly Border[,] _borders;
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(3, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
-            CurrentColor = Nonogram.PossibleColors[0];
+            Nonogram = Services.WebPbn.Get<Brush>(6, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Height, Nonogram.Width];
 
             InitializeComponent();
@@ -30,7 +29,23 @@ namespace Nonogram.WPF
             foreach (var col in Nonogram.ColHints)
                 colHints.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
 
+            foreach (var c in Nonogram.PossibleColors)
+            {
+                var radio = new RadioButton()
+                {
+                    GroupName = "Color",
+                    Background = c,
+                    Width = _size,
+                };
+                radio.Checked += RadioSelected;
+                colors.Children.Add(radio);
+            }
+            ((RadioButton)colors.Children[0]).IsChecked = true;
+
             ResetHints();
+
+            void RadioSelected(object sender, RoutedEventArgs e)
+                => CurrentColor = ((Control)sender).Background;
         }
 
         private void ResetHints()
@@ -134,7 +149,7 @@ namespace Nonogram.WPF
                ColoredCell<Brush> c => c.Color,
                AllColoredSealCell => CurrentColor,
                //SealedCell<Brush> seal when seal.Seals.Contains(window.CurrentColor) => CurrentColor,
-               _ => Brushes.LightGray,
+               _ => Brushes.Gray,
            };
 
         private void This_KeyUp(object sender, KeyEventArgs e)
