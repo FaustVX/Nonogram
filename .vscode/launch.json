@@ -37,8 +37,13 @@
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
+        },
+        {
+            "name": ".NET Core Attach (test)",
+            "type": "coreclr",
+            "request": "attach",
             "processName": "testhost"
-        }
+        },
     ],
     "inputs": [
         {
