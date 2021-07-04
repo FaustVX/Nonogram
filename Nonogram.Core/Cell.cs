@@ -6,23 +6,22 @@ namespace Nonogram
 {
     public interface ICell : IEquatable<ICell>
     {
-        public sealed T? GetColor<T>()
+        public T? GetColor<T>()
             where T : notnull
-            => this is ColoredCell<T> color ? color.Color : default;
-        public sealed T[]? GetSeals<T>()
-            where T : notnull
-            => this is SealedCell<T> seal
-                ? seal.Seals.ToArray()
-                : this is AllColoredSealCell
-                    ? System.Array.Empty<T>()
-                    : null;
+            => default;
 
-        public sealed bool IsColored
-            => this.GetType().GetGenericTypeDefinition() == typeof(ColoredCell<>);
-        public sealed bool IsEmpty
+        public T[]? GetSeals<T>()
+            where T : notnull
+            => null;
+
+        public bool IsColored
+            => false;
+
+        public bool IsEmpty
             => this is EmptyCell;
-        public sealed bool IsSealed
-            => this is AllColoredSealCell || this.GetType().GetGenericTypeDefinition() == typeof(SealedCell<>);
+
+        public bool IsSealed
+            => this is AllColoredSealCell;
     }
 
     public sealed class EmptyCell : ICell
@@ -39,12 +38,20 @@ namespace Nonogram
 
         public bool Equals(ICell? other)
             => other is AllColoredSealCell;
+
+        public T[]? GetSeals<T>()
+            where T : notnull
+            => System.Array.Empty<T>();
     }
 
     public sealed class ColoredCell<T> : ICell
     where T : notnull
     {
         public T Color { get; }
+        public bool IsColored => true;
+
+        public T? GetColor()
+            => Color;
 
         public ColoredCell(T color)
             => Color = color;
@@ -57,33 +64,28 @@ namespace Nonogram
     where T : notnull
     {
         public List<T> Seals { get; }
+        public bool IsSealed => true;
 
-        public ICell Remove(T seal)
-        {
-            if (Seals.Contains(seal))
-                if (Seals.Count <= 1)
-                    return new EmptyCell();
-                else
-                    return new SealedCell<T>(Seals.Where(s => !s.Equals(seal)));
-            else
-                return this;
-        }
+        public T[]? GetSeals()
+            => Seals.ToArray();
+
+        public SealedCell<T> Remove(T seal)
+            => new SealedCell<T>(Seals.Where(s => !s.Equals(seal)));
+
+        public SealedCell<T> Add(T color)
+            => new(this, color);
 
         public SealedCell(T seal)
-        {
-            Seals = new()
+            => Seals = new()
             {
                 seal
             };
-        }
 
-        public SealedCell(SealedCell<T> old, T seal)
-        {
-            Seals = new(old.Seals)
+        private SealedCell(SealedCell<T> old, T seal)
+            => Seals = new(old.Seals)
             {
                 seal
             };
-        }
 
         public SealedCell(IEnumerable<T> seals)
             => Seals = seals.ToList();

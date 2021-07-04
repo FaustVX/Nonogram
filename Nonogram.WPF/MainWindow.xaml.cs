@@ -165,7 +165,7 @@ namespace Nonogram.WPF
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
             {
                 var (x, y) = GetXYFromTag((FrameworkElement)sender);
-                if (_selectedColor?.Equals(Nonogram[x, y]) ?? false)
+                if ((_selectedColor?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
                     Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
             }
         }
@@ -184,7 +184,7 @@ namespace Nonogram.WPF
 
             var (x, y) = GetXYFromTag(border);
 
-            Nonogram.ValidateHints(x, y, CurrentColor, seal: isSealed);
+            Nonogram.ValidateHints(x, y, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? Nonogram.IgnoredColor : CurrentColor, seal: isSealed);
 
             var text = (TextBlock)border.Child;
 

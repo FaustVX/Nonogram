@@ -36,7 +36,17 @@ namespace Nonogram
                     return;
                 _previous.AddLast((x, y, _grid[y, x]));
                 _nexts.Clear();
-                _grid[y, x] = value ?? new EmptyCell();
+                _grid[y, x] = value switch
+                {
+                    ColoredCell<T> { Color: var color } when color.Equals(IgnoredColor)
+                        => new EmptyCell(),
+                    SealedCell<T> { Seals: { Count: 0 } }
+                        => new EmptyCell(),
+                    SealedCell<T> { Seals: { Count: var count } seals } when count >= PossibleColors.Length
+                        => new AllColoredSealCell(),
+                    null=> new EmptyCell(),
+                    _   => value,
+                };
             }
         }
 
@@ -135,17 +145,29 @@ namespace Nonogram
             if (!PossibleColors.Contains(color) && !(IgnoredColor.Equals(color)))
                 return;
 
-            this[x, y] = (color, seal, _grid[y, x]) switch
+            this[x, y] = (seal, cell: this[x, y], isIgnored: color.Equals(IgnoredColor)) switch
             {
-                (var c, true, _) when c.Equals(IgnoredColor) => new AllColoredSealCell(),
-                (var c, false, AllColoredSealCell) => AllColoredSealCell.Without(c, PossibleColors),
-                (var c, false, _) when c.Equals(IgnoredColor) => new EmptyCell(),
-                (    _, true, SealedCell<T> { Seals: { Count: var count } }) when count == PossibleColors.Length - 1 => new AllColoredSealCell(),
-                (var c, true, SealedCell<T> current) => new SealedCell<T>(current, c),
-                (var c, true, ColoredCell<T> { Color: var oldColor }) when oldColor.Equals(c) => new EmptyCell(),
-                (var c, true, _) => new SealedCell<T>(c),
-                (var c, false, SealedCell<T> seals) when seals.Seals.Contains(c) => seals.Remove(c),
-                (var c, false, _) => new ColoredCell<T>(c),
+                (true, { IsEmpty: true }, false) when PossibleColors.Length is 1
+                    => new AllColoredSealCell(),
+                (true, { IsEmpty: true }, false)
+                    => new SealedCell<T>(color),
+                (true, { IsEmpty: true }, true)
+                    => new AllColoredSealCell(),
+                (true, { IsSealed: true }, true)
+                    => new AllColoredSealCell(),
+                (true, SealedCell<T> seals, _) when !seals.Seals.Contains(color)
+                    => seals.Add(color),
+                (false, SealedCell<T> seals, _) when seals.Seals.Contains(color)
+                    => seals.Remove(color),
+                (false, AllColoredSealCell, false)
+                    => AllColoredSealCell.Without(color, PossibleColors),
+                (false, { IsEmpty: true }, false)
+                    => new ColoredCell<T>(color),
+                (false, { IsSealed: true }, true)
+                    => new EmptyCell(),
+                (true, { IsColored: true }, _)
+                    => new EmptyCell(),
+                _   => this[x, y],
             };
 
             ValidateHints(x, y);
