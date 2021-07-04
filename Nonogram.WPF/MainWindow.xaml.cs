@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +20,7 @@ namespace Nonogram.WPF
         public MainWindow()
         {
             Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
-            _borders = new Border[Nonogram.Height, Nonogram.Width];
+            _borders = new Border[Nonogram.Width, Nonogram.Height];
 
             InitializeComponent();
 
@@ -41,7 +41,7 @@ namespace Nonogram.WPF
             for (var x = 0; x < Nonogram.Width; x++)
                 for (var y = 0; y < Nonogram.Height; y++)
                 {
-                    var border = _borders[y, x] = new()
+                var border = _borders[x, y] = new()
                     {
                         BorderThickness = new(1),
                         BorderBrush = Brushes.Gray,
@@ -200,7 +200,7 @@ namespace Nonogram.WPF
                     {
                         if (Nonogram.Undo() is (var x, var y))
                         {
-                            _borders[y, x].Background = Convert(x, y);
+                            _borders[x, y].Background = Convert(x, y);
                             ResetHints(x, y);
                         }
                         break;
@@ -209,7 +209,7 @@ namespace Nonogram.WPF
                     {
                         if (Nonogram.Redo() is (var x, var y))
                         {
-                            _borders[y, x].Background = Convert(x, y);
+                            _borders[x, y].Background = Convert(x, y);
                             ResetHints(x, y);
                         }
                         break;
