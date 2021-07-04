@@ -1,0 +1,12 @@
+{
+    "activitusbar.views": [
+        {
+            "name": "task.run console",
+            "codicon": "terminal-cmd",
+        },
+        {
+            "name": "task.run WPF",
+            "codicon": "browser",
+        },
+    ],
+}
