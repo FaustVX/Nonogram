@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -38,25 +39,32 @@ namespace Nonogram.WPF
             Create(Nonogram.RowHints, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
             Create(Nonogram.ColHints, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
 
-            for (var x = 0; x < Nonogram.Width; x++)
-                for (var y = 0; y < Nonogram.Height; y++)
+            foreach (var (x, y) in GenerateCoord())
+            {
+                var text = new TextBlock()
                 {
+                    Text = "X",
+                    TextAlignment = TextAlignment.Center,
+                    Foreground = Brushes.Transparent,
+                    Background = Brushes.Transparent,
+                };
                 var border = _borders[x, y] = new()
-                    {
-                        BorderThickness = new(1),
-                        BorderBrush = Brushes.Gray,
-                        CornerRadius = new(0),
-                        Background = Convert(x, y),
-                        Width = _size,
-                        Height = _size,
-                        Tag = (x, y),
-                    };
-                    border.MouseDown += CellMouseDown;
-                    border.MouseEnter += CellMouseEnter;
-                    Grid.SetRow(border, y);
-                    Grid.SetColumn(border, x);
-                    cells.Children.Add(border);
-                }
+                {
+                    BorderThickness = new(1),
+                    BorderBrush = Brushes.Gray,
+                    CornerRadius = new(0),
+                    Background = Convert(x, y),
+                    Width = _size,
+                    Height = _size,
+                    Tag = (x, y),
+                    Child = text,
+                };
+                border.MouseDown += CellMouseDown;
+                border.MouseEnter += CellMouseEnter;
+                Grid.SetRow(border, y);
+                Grid.SetColumn(border, x);
+                cells.Children.Add(border);
+            }
 
             foreach (var c in Nonogram.PossibleColors)
             {
@@ -107,13 +115,18 @@ namespace Nonogram.WPF
             }
 
             void RadioSelected(object sender, RoutedEventArgs e)
-                => CurrentColor = ((Control)sender).Background;
+            {
+                CurrentColor = ((Control)sender).Background;
+                foreach (var (x, y) in GenerateCoord())
+                    ResetSeals(x, y);
+            }
         }
 
         private void ResetHints(int x, int y)
         {
             Create(Nonogram.RowHints, y, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
             Create(Nonogram.ColHints, x, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
+            ResetSeals(x, y);
 
             static void Create((Brush color, int qty, bool validated)[][] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
             {
@@ -134,6 +147,16 @@ namespace Nonogram.WPF
                     sp.Children.Add(text);
                 }
             }
+        }
+
+        private void ResetSeals(int x, int y)
+        {
+            ((TextBlock)_borders[x, y].Child).Foreground = Nonogram[x, y] switch
+            {
+                SealedCell<Brush> { Seals: var seals } when seals.Contains(CurrentColor) => CurrentColor,
+                AllColoredSealCell => Nonogram.IgnoredColor,
+                _ => Brushes.Transparent
+            };
         }
 
         private ICell? _selectedColor;
@@ -163,6 +186,8 @@ namespace Nonogram.WPF
 
             Nonogram.ValidateHints(x, y, CurrentColor, seal: isSealed);
 
+            var text = (TextBlock)border.Child;
+
             border.Background = Convert(x, y);
 
             ResetHints(x, y);
@@ -187,8 +212,6 @@ namespace Nonogram.WPF
            {
                EmptyCell => Nonogram.IgnoredColor,
                ColoredCell<Brush> c => c.Color,
-               AllColoredSealCell => CurrentColor,
-               //SealedCell<Brush> seal when seal.Seals.Contains(window.CurrentColor) => CurrentColor,
                _ => Brushes.Gray,
            };
 
@@ -219,5 +242,10 @@ namespace Nonogram.WPF
                     break;
             }
         }
+
+        private IEnumerable<(int x, int y)> GenerateCoord()
+            => Enumerable.Range(0, Nonogram.Width)
+                .SelectMany(x => Enumerable.Range(0, Nonogram.Height)
+                    .Select(y => (x, y)));
     }
 }
