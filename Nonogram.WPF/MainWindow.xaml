@@ -1,0 +1,50 @@
+<Window x:Class="Nonogram.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Nonogram.WPF"
+        xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
+        xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
+        x:Name="This"
+        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
+        DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
+        mc:Ignorable="d"
+        KeyUp="This_KeyUp">
+    <Window.Resources>
+        <conv:DebugConverter x:Key="DebugConverter"/>
+        <conv:TupleConverter x:Key="TupleConverter"/>
+    </Window.Resources>
+    <Window.Title>
+        <MultiBinding StringFormat="Nonogram {0} * {1}" Mode="OneTime">
+            <Binding Path="Nonogram.Width" Mode="OneTime"/>
+            <Binding Path="Nonogram.Height" Mode="OneTime"/>
+        </MultiBinding>
+    </Window.Title>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" x:Name="colors"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="rowHints" Grid.Column="0" Grid.Row="1" />
+
+            <Grid x:Name="colHints" Grid.Column="1" Grid.Row="0" />
+
+            <Grid Grid.Column="1" Grid.Row="1" x:Name="cells" />
+        </Grid>
+    </Grid>
+</Window>

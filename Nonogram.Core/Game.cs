@@ -13,7 +13,7 @@ namespace Nonogram
             => new (pattern, ignoredColor);
     }
 
-    public class Game<T>
+    public class Game<T> : IEnumerable<ICell>
     where T : notnull
     {
         private readonly T[,] _pattern;
@@ -36,7 +36,17 @@ namespace Nonogram
                     return;
                 _previous.AddLast((x, y, _grid[y, x]));
                 _nexts.Clear();
-                _grid[y, x] = value ?? new EmptyCell();
+                _grid[y, x] = value switch
+                {
+                    ColoredCell<T> { Color: var color } when color.Equals(IgnoredColor)
+                        => new EmptyCell(),
+                    SealedCell<T> { Seals: { Count: 0 } }
+                        => new EmptyCell(),
+                    SealedCell<T> { Seals: { Count: var count } seals } when count >= PossibleColors.Length
+                        => new AllColoredSealCell(),
+                    null=> new EmptyCell(),
+                    _   => value,
+                };
             }
         }
 
@@ -109,6 +119,25 @@ namespace Nonogram
             return result;
         }
 
+        public void SetColor(int x, int y, T color)
+        {
+            if (this[x, y].IsEmpty)
+                ValidateHints(x, y, color, seal: false);
+        }
+
+        public void Clear(int x, int y)
+        {
+            var cell = this[x, y];
+            if (!cell.IsEmpty)
+                ValidateHints(x, y, IgnoredColor, cell.IsColored);
+        }
+
+        public void Seal(int x, int y, T color)
+        {
+            if (this[x, y].IsEmpty)
+                ValidateHints(x, y, color, seal: true);
+        }
+
         public void ValidateHints(int x, int y, T color, bool seal)
         {
             if (IsCorrect && !color.Equals(IgnoredColor))
@@ -116,17 +145,29 @@ namespace Nonogram
             if (!PossibleColors.Contains(color) && !(IgnoredColor.Equals(color)))
                 return;
 
-            this[x, y] = (color, seal, _grid[y, x]) switch
+            this[x, y] = (seal, cell: this[x, y], isIgnored: color.Equals(IgnoredColor)) switch
             {
-                (var c, true, _) when c.Equals(IgnoredColor) => new AllColoredSealCell(),
-                (var c, false, AllColoredSealCell) => AllColoredSealCell.Without(c, PossibleColors),
-                (var c, false, _) when c.Equals(IgnoredColor) => new EmptyCell(),
-                (    _, true, SealedCell<T> { Seals: { Count: var count } }) when count == PossibleColors.Length - 1 => new AllColoredSealCell(),
-                (var c, true, SealedCell<T> current) => new SealedCell<T>(current, c),
-                (var c, true, ColoredCell<T> { Color: var oldColor }) when oldColor.Equals(c) => new EmptyCell(),
-                (var c, true, _) => new SealedCell<T>(c),
-                (var c, false, SealedCell<T> seals) when seals.Seals.Contains(c) => seals.Remove(c),
-                (var c, false, _) => new ColoredCell<T>(c),
+                (true, { IsEmpty: true }, false) when PossibleColors.Length is 1
+                    => new AllColoredSealCell(),
+                (true, { IsEmpty: true }, false)
+                    => new SealedCell<T>(color),
+                (true, { IsEmpty: true }, true)
+                    => new AllColoredSealCell(),
+                (true, { IsSealed: true }, true)
+                    => new AllColoredSealCell(),
+                (true, SealedCell<T> seals, _) when !seals.Seals.Contains(color)
+                    => seals.Add(color),
+                (false, SealedCell<T> seals, _) when seals.Seals.Contains(color)
+                    => seals.Remove(color),
+                (false, AllColoredSealCell, false)
+                    => AllColoredSealCell.Without(color, PossibleColors),
+                (false, { IsEmpty: true }, false)
+                    => new ColoredCell<T>(color),
+                (false, { IsSealed: true }, true)
+                    => new EmptyCell(),
+                (true, { IsColored: true }, _)
+                    => new EmptyCell(),
+                _   => this[x, y],
             };
 
             ValidateHints(x, y);
@@ -162,6 +203,13 @@ namespace Nonogram
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
+                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Length)
+                {
+                    for (var i = 0; i < hints.Length; i++)
+                        hints[i].validated = true;
+                    return;
+                }
+
                 for (var i = 0; i < hints.Length; i++)
                     hints[i].validated = false;
 
@@ -181,7 +229,7 @@ namespace Nonogram
             }
         }
 
-        public void Undo()
+        public (int x, int y)? Undo()
         {
             var last = _previous.Last;
             if (last is { Value: var (x, y, cell) })
@@ -190,10 +238,12 @@ namespace Nonogram
                 _nexts.AddLast((x, y, _grid[y, x]));
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
+                return (x, y);
             }
+            return null;
         }
 
-        public void Redo()
+        public (int x, int y)? Redo()
         {
             var last = _nexts.Last;
             if (last is { Value: var (x, y, cell) })
@@ -202,7 +252,9 @@ namespace Nonogram
                 _previous.AddLast((x, y, _grid[y, x]));
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
+                return (x, y);
             }
+            return null;
         }
 
         public void Restart()
@@ -224,6 +276,16 @@ namespace Nonogram
 
             IsComplete = IsCorrect = false;
         }
+
+        public IEnumerator<ICell> GetEnumerator()
+        {
+            for (var x = 0; x < Width; x++)
+                for (var y = 0; y < Height; y++)
+                    yield return this[x, y];
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+           => GetEnumerator();
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
