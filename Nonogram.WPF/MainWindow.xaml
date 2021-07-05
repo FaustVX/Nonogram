@@ -21,6 +21,13 @@
             <conv:BoolToBrushConverter True="LightGray" False="Black"/>
         </conv:ChainConverter>
         <sys:Double x:Key="Size">15</sys:Double>
+        <DataTemplate x:Key="Hints">
+            <TextBlock Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}" 
+                       Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
+                       Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
+                       Width="{StaticResource Size}"
+                       TextAlignment="Center"/>
+        </DataTemplate>
     </Window.Resources>
     <Window.Title>
         <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneWay">
@@ -57,21 +64,12 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}">
+                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}"
-                                               Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
-                                               Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
-                                               Width="{StaticResource Size}"
-                                               TextAlignment="Center"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -85,21 +83,12 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}">
+                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}"
-                                               Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
-                                               Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
-                                               Width="{StaticResource Size}"
-                                               TextAlignment="Center"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
