@@ -18,6 +18,7 @@ namespace Nonogram
     {
         private readonly T[,] _pattern;
         private readonly ICell[,] _grid;
+        private int _coloredCellCount;
         public int Width { get; }
         public int Height { get; }
         public (T color, int qty, bool validated)[][] ColHints { get; }
@@ -26,17 +27,15 @@ namespace Nonogram
         public T IgnoredColor { get; }
         public bool IsComplete { get; private set; }
         public bool IsCorrect { get; private set; }
+        public int TotalColoredCell { get; }
+        public int ColoredCellCount => _coloredCellCount;
         private readonly LinkedList<(int x, int y, ICell cell)> _previous = new (), _nexts = new ();
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
             set
             {
-                if (value.Equals(_grid[y, x]))
-                    return;
-                _previous.AddLast((x, y, _grid[y, x]));
-                _nexts.Clear();
-                _grid[y, x] = value switch
+                value = value switch
                 {
                     ColoredCell<T> { Color: var color } when color.Equals(IgnoredColor)
                         => new EmptyCell(),
@@ -44,10 +43,31 @@ namespace Nonogram
                         => new EmptyCell(),
                     SealedCell<T> { Seals: { Count: var count } seals } when count >= PossibleColors.Length
                         => new AllColoredSealCell(),
-                    null=> new EmptyCell(),
-                    _   => value,
+                    null => new EmptyCell(),
+                    _ => value,
                 };
+
+                if (value.Equals(_grid[y, x]))
+                    return;
+                _previous.AddLast((x, y, _grid[y, x]));
+                _nexts.Clear();
+                CalculateColoredCells(x, y, value);
+
+                _grid[y, x] = value;
             }
+        }
+
+        private void CalculateColoredCells(int x, int y, ICell value)
+        {
+            switch (this[x, y], value)
+            {
+                case ({ IsColored: true }, { IsColored: false }):
+                    _coloredCellCount--;
+                    break;
+                case ({ IsColored: false }, { IsColored: true }):
+                    _coloredCellCount++;
+                    break;
+            };
         }
 
         public Game(T[,] pattern, T ignoredColor)
@@ -68,6 +88,8 @@ namespace Nonogram
                 .ToHashSet()
                 .Where(c => !c.Equals(IgnoredColor))
                 .ToArray();
+
+            TotalColoredCell = this.GenerateCoord().Count(pos => !_pattern[pos.y, pos.x].Equals(ignoredColor));
 
             for (var y = 0; y < RowHints.Length; y++)
                 RowHints[y] = CalculateHints(_pattern.GetRow(y))
@@ -231,6 +253,7 @@ namespace Nonogram
             {
                 _previous.RemoveLast();
                 _nexts.AddLast((x, y, _grid[y, x]));
+                CalculateColoredCells(x, y, cell);
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
                 return (x, y);
@@ -245,6 +268,7 @@ namespace Nonogram
             {
                 _nexts.RemoveLast();
                 _previous.AddLast((x, y, _grid[y, x]));
+                CalculateColoredCells(x, y, cell);
                 _grid[y, x] = cell;
                 ValidateHints(x, y);
                 return (x, y);
@@ -265,6 +289,7 @@ namespace Nonogram
 
             _previous.Clear();
             _nexts.Clear();
+            _coloredCellCount = 0;
 
             IsComplete = IsCorrect = false;
         }

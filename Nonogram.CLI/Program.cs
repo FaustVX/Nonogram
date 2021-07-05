@@ -26,7 +26,7 @@ namespace Nonogram.CLI
                     Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor);
                     if (color is not null)
                         Console.ForegroundColor = nonogram.IgnoredColor;
-                    System.Console.WriteLine($"X:{x}, Y:{y}");
+                    System.Console.WriteLine($"X:{x}, Y:{y} ({nonogram.ColoredCellCount} / {nonogram.TotalColoredCell} cells)");
                     Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
                     Console.ResetColor();
                     ok = seal = false;

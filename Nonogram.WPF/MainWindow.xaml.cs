@@ -127,6 +127,7 @@ namespace Nonogram.WPF
             Create(Nonogram.RowHints, y, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
             Create(Nonogram.ColHints, x, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
             ResetSeals(x, y);
+            SetBinding(TitleProperty, titleBinding);
 
             static void Create((Brush color, int qty, bool validated)[][] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
             {
