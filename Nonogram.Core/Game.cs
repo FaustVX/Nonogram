@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -25,8 +26,8 @@ namespace Nonogram
 
         public int Width { get; }
         public int Height { get; }
-        public (T color, int qty, bool validated)[][] ColHints { get; }
-        public (T color, int qty, bool validated)[][] RowHints { get; }
+        public ObservableCollection<(T color, int qty, bool validated)>[] ColHints { get; }
+        public ObservableCollection<(T color, int qty, bool validated)>[] RowHints { get; }
         public T[] PossibleColors { get; }
         public T IgnoredColor { get; }
         private bool _isComplete;
@@ -111,8 +112,8 @@ namespace Nonogram
             foreach (var (x, y) in this.GenerateCoord())
                 _grid[y, x] = new EmptyCell();
 
-            ColHints = new (T, int, bool)[Width][];
-            RowHints = new (T, int, bool)[Height][];
+            ColHints = new ObservableCollection<(T, int, bool)>[Width];
+            RowHints = new ObservableCollection<(T, int, bool)>[Height];
 
             PossibleColors = pattern.Cast<T>()
                 .ToHashSet()
@@ -122,16 +123,14 @@ namespace Nonogram
             TotalColoredCell = this.GenerateCoord().Count(pos => !_pattern[pos.y, pos.x].Equals(ignoredColor));
 
             for (var y = 0; y < RowHints.Length; y++)
-                RowHints[y] = CalculateHints(_pattern.GetRow(y))
+                RowHints[y] = new(CalculateHints(_pattern.GetRow(y))
                     .Where(g => PossibleColors.Contains(g.color))
-                    .Select(g => (g.color, g.qty, validated: false))
-                    .ToArray();
+                    .Select(g => (g.color, g.qty, validated: false)));
 
             for (var x = 0; x < ColHints.Length; x++)
-                ColHints[x] = CalculateHints(_pattern.GetCol(x))
+                ColHints[x] = new(CalculateHints(_pattern.GetCol(x))
                     .Where(g => PossibleColors.Contains(g.color))
-                    .Select(g => (g.color, g.qty, validated: false))
-                    .ToArray();
+                    .Select(g => (g.color, g.qty, validated: false)));
         }
 
         public Game<TOther> ConvertTo<TOther>(TOther ignoredColor, params TOther[] possibleColors)
@@ -159,10 +158,18 @@ namespace Nonogram
                 .SetValue(result, grid);
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-                result.RowHints[x][y].validated = RowHints[x][y].validated;
+            {
+                var hint = result.RowHints[x][y];
+                hint.validated = RowHints[x][y].validated;
+                result.RowHints[x][y] = hint;
+            }
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-                result.ColHints[x][y].validated = ColHints[x][y].validated;
+            {
+                var hint = result.ColHints[x][y];
+                hint.validated = ColHints[x][y].validated;
+                result.ColHints[x][y] = hint;
+            }
 
             return result;
         }
@@ -226,8 +233,8 @@ namespace Nonogram
             Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors);
             Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors);
 
-            IsComplete = (Array.TrueForAll(ColHints, ch => Array.TrueForAll(ch, h => h.validated))
-                && Array.TrueForAll(RowHints, rh => Array.TrueForAll(rh, h => h.validated)));
+            IsComplete = (Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
+                && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated)));
 
             if (IsComplete)
             {
@@ -244,33 +251,42 @@ namespace Nonogram
                 IsCorrect = true;
             }
 
-            static void Validate(IEnumerable<(T color, int qty)> line, (T color, int qty, bool validated)[] hints, T[] possibleColors)
+            static void Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
             {
                 var lineArray = line
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
-                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Length)
+                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Count)
                 {
-                    for (var i = 0; i < hints.Length; i++)
-                        hints[i].validated = true;
+                    for (var i = 0; i < hints.Count; i++)
+                    {
+                        var hint = hints[i];
+                        hint.validated = true;
+                        hints[i] = hint;
+                    }
                     return;
                 }
 
-                for (var i = 0; i < hints.Length; i++)
-                    hints[i].validated = false;
+                for (var i = 0; i < hints.Count; i++)
+                {
+                    var hint = hints[i];
+                    hint.validated = false;
+                    hints[i] = hint;
+                }
 
-                for (var i = 0; i < Math.Min(lineArray.Length, hints.Length); i++)
+                for (var i = 0; i < Math.Min(lineArray.Length, hints.Count); i++)
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
-                static bool ValidateCell((T color, int qty)[] line, (T color, int qty, bool validated)[] hints, Index i)
+                static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
                 {
-                    ref var hint = ref hints[i];
+                    var hint = hints[i];
                     var (color, qty) = line[i];
                     if (hint.qty != qty || !hint.color.Equals(color))
                         return false;
                     hint.validated = true;
+                    hints[i] = hint;
                     return true;
                 }
             }
@@ -312,10 +328,18 @@ namespace Nonogram
                 _grid[y, x] = new EmptyCell();
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-                RowHints[x][y].validated = false;
+            {
+                var hint = RowHints[x][y];
+                hint.validated = false;
+                RowHints[x][y] = hint;
+            }
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-                ColHints[x][y].validated = false;
+            {
+                var hint = ColHints[x][y];
+                hint.validated = false;
+                ColHints[x][y] = hint;
+            }
 
             _previous.Clear();
             _nexts.Clear();

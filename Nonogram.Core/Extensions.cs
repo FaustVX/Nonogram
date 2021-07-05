@@ -83,10 +83,10 @@ namespace Nonogram
                 .SelectMany(x => Enumerable.Range(0, @this.Height)
                     .Select(y => (x, y)));
 
-        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this T[][] @this)
+        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this ICollection<T>[] @this)
             where T : notnull
             => Enumerable.Range(0, @this.Length)
-                .SelectMany(x => Enumerable.Range(0, @this[x].Length)
+                .SelectMany(x => Enumerable.Range(0, @this[x].Count)
                     .Select(y => (x, y)));
     }
 }

@@ -79,7 +79,7 @@ namespace Nonogram.WPF
             }
             ((RadioButton)colors.Children[0]).IsChecked = true;
 
-            static void Create((Brush color, int qty, bool validated)[][] hints, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
+            static void Create(ICollection<(Brush color, int qty, bool validated)>[] hints, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
             {
                 grid.Children.Clear();
                 for (var x = 0; x < hints.Length; x++)
@@ -128,7 +128,7 @@ namespace Nonogram.WPF
             Create(Nonogram.ColHints, x, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
             ResetSeals(x, y);
 
-            static void Create((Brush color, int qty, bool validated)[][] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
+            static void Create(ICollection<(Brush color, int qty, bool validated)>[] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
             {
                 var sp = (StackPanel)grid.Children[i];
                 sp.Children.Clear();
