@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,29 +12,21 @@ namespace Nonogram.WPF
     {
         public Game<Brush> Nonogram { get; }
         public Brush CurrentColor { get; set; } = default!;
-        private readonly double _size = 15;
+        private double Size
+            => (double)Resources["Size"];
         private readonly Border[,] _borders;
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Width, Nonogram.Height];
 
             InitializeComponent();
 
             for (var x = 0; x < Nonogram.RowHints.Length; x++)
-            {
-                rowHints.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
                 cells.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
-            }
             foreach (var col in Nonogram.ColHints)
-            {
-                colHints.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
                 cells.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
-            }
-
-            Create(Nonogram.RowHints, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
-            Create(Nonogram.ColHints, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
 
             foreach (var (x, y) in Nonogram.GenerateCoord())
             {
@@ -54,8 +43,8 @@ namespace Nonogram.WPF
                     BorderBrush = Brushes.Gray,
                     CornerRadius = new(0),
                     Background = Convert(x, y),
-                    Width = _size,
-                    Height = _size,
+                    Width = Size,
+                    Height = Size,
                     Tag = (x, y),
                     Child = text,
                 };
@@ -72,47 +61,12 @@ namespace Nonogram.WPF
                 {
                     GroupName = "Color",
                     Background = c,
-                    Width = _size,
+                    Width = Size,
                 };
                 radio.Checked += RadioSelected;
                 colors.Children.Add(radio);
             }
             ((RadioButton)colors.Children[0]).IsChecked = true;
-
-            static void Create(ICollection<(Brush color, int qty, bool validated)>[] hints, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
-            {
-                grid.Children.Clear();
-                for (var x = 0; x < hints.Length; x++)
-                {
-                    var sp = new StackPanel()
-                    {
-                        Orientation = orientation,
-                    };
-
-                    if (orientation is Orientation.Vertical)
-                        sp.VerticalAlignment = VerticalAlignment.Bottom;
-                    else
-                        sp.HorizontalAlignment = HorizontalAlignment.Right;
-
-                    grid.Children.Add(sp);
-                    setPos(sp, x);
-                    foreach (var (color, qty, validated) in hints[x])
-                    {
-                        var text = new TextBlock()
-                        {
-                            Text = qty.ToString(),
-                            Background = color,
-                            Width = size,
-                            Height = size,
-                            TextAlignment = TextAlignment.Center,
-                            ToolTip = qty.ToString(),
-                        };
-                        if (validated)
-                            text.Foreground = validatedBrush;
-                        sp.Children.Add(text);
-                    }
-                }
-            }
 
             void RadioSelected(object sender, RoutedEventArgs e)
             {
@@ -123,31 +77,7 @@ namespace Nonogram.WPF
         }
 
         private void ResetHints(int x, int y)
-        {
-            Create(Nonogram.RowHints, y, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
-            Create(Nonogram.ColHints, x, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
-            ResetSeals(x, y);
-
-            static void Create(ICollection<(Brush color, int qty, bool validated)>[] hints, int i, Grid grid, Orientation orientation, Action<UIElement, int> setPos, double size, Brush validatedBrush)
-            {
-                var sp = (StackPanel)grid.Children[i];
-                sp.Children.Clear();
-                foreach (var (color, qty, validated) in hints[i])
-                {
-                    var text = new TextBlock()
-                    {
-                        Text = qty.ToString(),
-                        Background = color,
-                        Width = size,
-                        Height = size,
-                        TextAlignment = TextAlignment.Center,
-                        ToolTip = qty.ToString(),
-                    };
-                    text.Foreground = (validated ? validatedBrush : (Brush)TextBlock.ForegroundProperty.DefaultMetadata.DefaultValue);
-                    sp.Children.Add(text);
-                }
-            }
-        }
+            => ResetSeals(x, y);
 
         private void ResetSeals(int x, int y)
         {
@@ -193,15 +123,11 @@ namespace Nonogram.WPF
             ResetHints(x, y);
 
             if (Nonogram.IsCorrect)
-            {
-                rowHints.Children.Clear();
-                colHints.Children.Clear();
                 foreach (var item in _borders)
                 {
                     item.BorderThickness = new(0);
-                    item.Width = item.Height = _size * 2;
+                    item.Width = item.Height = Size * 2;
                 }
-            }
         }
 
         private static (int x, int y) GetXYFromTag(FrameworkElement element)
