@@ -16,10 +16,10 @@
         <conv:TupleConverter x:Key="TupleConverter"/>
     </Window.Resources>
     <Window.Title>
-        <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneTime" x:Name="titleBinding">
+        <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneWay">
             <Binding Path="Nonogram.Width" Mode="OneTime"/>
             <Binding Path="Nonogram.Height" Mode="OneTime"/>
-            <Binding Path="Nonogram.ColoredCellCount" Mode="OneTime"/>
+            <Binding Path="Nonogram.ColoredCellCount" Mode="OneWay"/>
             <Binding Path="Nonogram.TotalColoredCell" Mode="OneTime"/>
         </MultiBinding>
     </Window.Title>
