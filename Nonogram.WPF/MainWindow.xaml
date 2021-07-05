@@ -8,8 +8,7 @@
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         x:Name="This"
-        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
-        DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
+        DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp">
     <Window.Resources>
@@ -31,10 +30,10 @@
     </Window.Resources>
     <Window.Title>
         <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneWay">
-            <Binding Path="Nonogram.Width" Mode="OneTime"/>
-            <Binding Path="Nonogram.Height" Mode="OneTime"/>
-            <Binding Path="Nonogram.ColoredCellCount" Mode="OneWay"/>
-            <Binding Path="Nonogram.TotalColoredCell" Mode="OneTime"/>
+            <Binding Path="Width" Mode="OneTime"/>
+            <Binding Path="Height" Mode="OneTime"/>
+            <Binding Path="ColoredCellCount" Mode="OneWay"/>
+            <Binding Path="TotalColoredCell" Mode="OneTime"/>
         </MultiBinding>
     </Window.Title>
 
@@ -56,7 +55,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding Nonogram.RowHints}">
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Vertical"/>
@@ -75,7 +74,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Nonogram.ColHints}">
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
