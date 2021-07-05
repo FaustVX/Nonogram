@@ -39,7 +39,7 @@ namespace Nonogram.WPF
             Create(Nonogram.RowHints, rowHints, Orientation.Horizontal, Grid.SetRow, _size, Brushes.LightGray);
             Create(Nonogram.ColHints, colHints, Orientation.Vertical, Grid.SetColumn, _size, Brushes.LightGray);
 
-            foreach (var (x, y) in GenerateCoord())
+            foreach (var (x, y) in Nonogram.GenerateCoord())
             {
                 var text = new TextBlock()
                 {
@@ -117,7 +117,7 @@ namespace Nonogram.WPF
             void RadioSelected(object sender, RoutedEventArgs e)
             {
                 CurrentColor = ((Control)sender).Background;
-                foreach (var (x, y) in GenerateCoord())
+                foreach (var (x, y) in Nonogram.GenerateCoord())
                     ResetSeals(x, y);
             }
         }
@@ -242,10 +242,5 @@ namespace Nonogram.WPF
                     break;
             }
         }
-
-        private IEnumerable<(int x, int y)> GenerateCoord()
-            => Enumerable.Range(0, Nonogram.Width)
-                .SelectMany(x => Enumerable.Range(0, Nonogram.Height)
-                    .Select(y => (x, y)));
     }
 }

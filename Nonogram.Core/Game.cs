@@ -58,9 +58,8 @@ namespace Nonogram
             IgnoredColor = ignoredColor;
 
             _grid = new ICell[Height, Width];
-            for (var x = 0; x < Width; x++)
-                for (var y = 0; y < Height; y++)
-                    _grid[y, x] = new EmptyCell();
+            foreach (var (x, y) in this.GenerateCoord())
+                _grid[y, x] = new EmptyCell();
 
             ColHints = new (T, int, bool)[Width][];
             RowHints = new (T, int, bool)[Height][];
@@ -89,18 +88,17 @@ namespace Nonogram
             var pattern = new TOther[Height, Width];
             var grid = new ICell[Height, Width];
 
-            for (var x = 0; x < Width; x++)
-                for (var y = 0; y < Height; y++)
+            foreach (var (x, y) in this.GenerateCoord())
+            {
+                pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
+                grid[y, x] = _grid[x, y] switch
                 {
-                    pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
-                    grid[y, x] = _grid[x, y] switch
-                    {
-                        ColoredCell<T> { Color: var color } => new ColoredCell<TOther>(color.ConvertTo(PossibleColors, possibleColors, ignoredColor)),
-                        AllColoredSealCell => new AllColoredSealCell(),
-                        SealedCell<T> seals => seals.ConvertTo(PossibleColors, possibleColors),
-                        _ => new EmptyCell()
-                    };
-                }
+                    ColoredCell<T> { Color: var color } => new ColoredCell<TOther>(color.ConvertTo(PossibleColors, possibleColors, ignoredColor)),
+                    AllColoredSealCell => new AllColoredSealCell(),
+                    SealedCell<T> seals => seals.ConvertTo(PossibleColors, possibleColors),
+                    _ => new EmptyCell()
+                };
+            }
 
             var result = new Game<TOther>(pattern, ignoredColor);
 
@@ -108,13 +106,11 @@ namespace Nonogram
                 .GetField(nameof(_grid), BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(result, grid);
 
-            for (var i = 0; i < RowHints.Length; i++)
-                for (var j = 0; j < RowHints[i].Length; j++)
-                    result.RowHints[i][j].validated = RowHints[i][j].validated;
+            foreach (var (x, y) in RowHints.GenerateCoord())
+                result.RowHints[x][y].validated = RowHints[x][y].validated;
 
-            for (var i = 0; i < ColHints.Length; i++)
-                for (var j = 0; j < ColHints[i].Length; j++)
-                    result.ColHints[i][j].validated = ColHints[i][j].validated;
+            foreach (var (x, y) in ColHints.GenerateCoord())
+                result.ColHints[x][y].validated = ColHints[x][y].validated;
 
             return result;
         }
@@ -183,17 +179,16 @@ namespace Nonogram
 
             if (IsComplete)
             {
-                for (var i = 0; i < Width; i++)
-                    for (var j = 0; j < Height; j++)
-                        switch ((_grid[j, i], _pattern[j, i]))
-                        {
-                            case (not ColoredCell<T>, var pattern) when pattern.Equals(IgnoredColor):
-                                continue;
-                            case (ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern):
-                                continue;
-                            default:
-                                return;
-                        }
+                foreach (var (i, j) in this.GenerateCoord())
+                    switch ((_grid[j, i], _pattern[j, i]))
+                    {
+                        case (not ColoredCell<T>, var pattern) when pattern.Equals(IgnoredColor):
+                            continue;
+                        case (ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern):
+                            continue;
+                        default:
+                            return;
+                    }
                 IsCorrect = true;
             }
 
@@ -259,17 +254,14 @@ namespace Nonogram
 
         public void Restart()
         {
-            for (var x = 0; x < Width; x++)
-                for (var y = 0; y < Height; y++)
-                    _grid[y, x] = new EmptyCell();
+            foreach (var (x, y) in this.GenerateCoord())
+                _grid[y, x] = new EmptyCell();
 
-            for (var i = 0; i < RowHints.Length; i++)
-                for (var j = 0; j < RowHints[i].Length; j++)
-                    RowHints[i][j].validated = false;
+            foreach (var (x, y) in RowHints.GenerateCoord())
+                RowHints[x][y].validated = false;
 
-            for (var i = 0; i < ColHints.Length; i++)
-                for (var j = 0; j < ColHints[i].Length; j++)
-                    ColHints[i][j].validated = false;
+            foreach (var (x, y) in ColHints.GenerateCoord())
+                ColHints[x][y].validated = false;
 
             _previous.Clear();
             _nexts.Clear();
@@ -278,11 +270,7 @@ namespace Nonogram
         }
 
         public IEnumerator<ICell> GetEnumerator()
-        {
-            for (var x = 0; x < Width; x++)
-                for (var y = 0; y < Height; y++)
-                    yield return this[x, y];
-        }
+            => this.GenerateCoord().Select(pos => this[pos.x, pos.y]).GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
            => GetEnumerator();

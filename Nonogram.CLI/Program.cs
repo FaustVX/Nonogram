@@ -147,22 +147,21 @@ namespace Nonogram.CLI
 
             WriteAt('┘', maxCol + nonogram.Width + 1, maxRow + nonogram.Height + 1);
 
-            for (var x = 0; x < nonogram.Width; x++)
-                for (var y = 0; y < nonogram.Height; y++)
+            foreach (var (x, y) in nonogram.GenerateCoord())
+            {
+                Console.SetCursorPosition(x + maxCol + 1, y + maxRow + 1);
+                var (fore, @char) = nonogram[x, y] switch
                 {
-                    Console.SetCursorPosition(x + maxCol + 1, y + maxRow + 1);
-                    var (fore, @char) = nonogram[x, y] switch
-                    {
-                        ColoredCell<ConsoleColor> { Color: var color } when color == selectedColor => (color, '█'),
-                        ColoredCell<ConsoleColor> { Color: var color } => (color, '▒'),
-                        EmptyCell => (nonogram.IgnoredColor, '█'),
-                        AllColoredSealCell => (selectedColor, 'X'),
-                        SealedCell<ConsoleColor> { Seals: var seals } when seals.Contains(selectedColor) => (selectedColor, 'X'),
-                        SealedCell<ConsoleColor> => (nonogram.IgnoredColor, 'x'),
-                    };
-                    Console.ForegroundColor = fore;
-                    Console.Write(@char);
-                }
+                    ColoredCell<ConsoleColor> { Color: var color } when color == selectedColor => (color, '█'),
+                    ColoredCell<ConsoleColor> { Color: var color } => (color, '▒'),
+                    EmptyCell => (nonogram.IgnoredColor, '█'),
+                    AllColoredSealCell => (selectedColor, 'X'),
+                    SealedCell<ConsoleColor> { Seals: var seals } when seals.Contains(selectedColor) => (selectedColor, 'X'),
+                    SealedCell<ConsoleColor> => (nonogram.IgnoredColor, 'x'),
+                };
+                Console.ForegroundColor = fore;
+                Console.Write(@char);
+            }
             //█▓▒░┌┐└┘─│
             Console.ResetColor();
             Console.SetCursorPosition(pos.x + maxCol, pos.y + maxRow);

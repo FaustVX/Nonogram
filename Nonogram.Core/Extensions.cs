@@ -76,5 +76,17 @@ namespace Nonogram
                     result[y, x] = converter(array[y][x]);
             return result;
         }
+
+        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this Game<T> @this)
+            where T : notnull
+            => Enumerable.Range(0, @this.Width)
+                .SelectMany(x => Enumerable.Range(0, @this.Height)
+                    .Select(y => (x, y)));
+
+        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this T[][] @this)
+            where T : notnull
+            => Enumerable.Range(0, @this.Length)
+                .SelectMany(x => Enumerable.Range(0, @this[x].Length)
+                    .Select(y => (x, y)));
     }
 }
