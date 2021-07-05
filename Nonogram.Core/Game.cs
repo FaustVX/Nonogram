@@ -1,8 +1,10 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Nonogram
 {
@@ -13,23 +15,42 @@ namespace Nonogram
             => new (pattern, ignoredColor);
     }
 
-    public class Game<T> : IEnumerable<ICell>
+    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged
     where T : notnull
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private readonly T[,] _pattern;
         private readonly ICell[,] _grid;
-        private int _coloredCellCount;
+
         public int Width { get; }
         public int Height { get; }
         public (T color, int qty, bool validated)[][] ColHints { get; }
         public (T color, int qty, bool validated)[][] RowHints { get; }
         public T[] PossibleColors { get; }
         public T IgnoredColor { get; }
-        public bool IsComplete { get; private set; }
-        public bool IsCorrect { get; private set; }
+        private bool _isComplete;
+        public bool IsComplete
+        {
+            get => _isComplete;
+            private set => OnPropertyChanged(ref _isComplete, in value);
+        }
+        private bool _isCorrect;
+        public bool IsCorrect
+        {
+            get => _isCorrect;
+            private set => OnPropertyChanged(ref _isCorrect, in value);
+        }
+        private int _coloredCellCount;
+
+        public int ColoredCellCount
+        {
+            get => _coloredCellCount;
+            set => OnPropertyChanged(ref _coloredCellCount, in value);
+        }
         public int TotalColoredCell { get; }
-        public int ColoredCellCount => _coloredCellCount;
-        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new (), _nexts = new ();
+
+        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new(), _nexts = new();
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
@@ -57,15 +78,24 @@ namespace Nonogram
             }
         }
 
+        protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
+        {
+            if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
+            {
+                storage = value;
+                PropertyChanged?.Invoke(this, new(propertyName));
+            }
+        }
+
         private void CalculateColoredCells(int x, int y, ICell value)
         {
             switch (this[x, y], value)
             {
                 case ({ IsColored: true }, { IsColored: false }):
-                    _coloredCellCount--;
+                    ColoredCellCount--;
                     break;
                 case ({ IsColored: false }, { IsColored: true }):
-                    _coloredCellCount++;
+                    ColoredCellCount++;
                     break;
             };
         }
@@ -185,7 +215,7 @@ namespace Nonogram
                     => new EmptyCell(),
                 (true, { IsColored: true }, _)
                     => new EmptyCell(),
-                _   => this[x, y],
+                _ => this[x, y],
             };
 
             ValidateHints(x, y);
@@ -289,7 +319,7 @@ namespace Nonogram
 
             _previous.Clear();
             _nexts.Clear();
-            _coloredCellCount = 0;
+            ColoredCellCount = 0;
 
             IsComplete = IsCorrect = false;
         }
