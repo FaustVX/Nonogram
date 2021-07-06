@@ -110,6 +110,9 @@ namespace Nonogram.WPF
             }
         }
 
+        private void TipsButtonClick(object sender, RoutedEventArgs e)
+            => Nonogram.Tips();
+
         private void CellInitialized(object sender, System.EventArgs e)
         {
             var border = (Border)sender;
