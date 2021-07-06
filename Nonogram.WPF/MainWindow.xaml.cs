@@ -58,6 +58,8 @@ namespace Nonogram.WPF
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
+                return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = Nonogram[x, y];
             Change((Border)sender, e.ChangedButton is MouseButton.Right);
@@ -88,6 +90,19 @@ namespace Nonogram.WPF
                     break;
                 case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
                     CurrentColor = Nonogram.PossibleColors[key - Key.D1];
+                    break;
+            }
+        }
+
+        private void This_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            switch (e.ChangedButton)
+            {
+                case MouseButton.XButton1 when !Nonogram.IsCorrect:
+                    Nonogram.Undo();
+                    break;
+                case MouseButton.XButton2:
+                    Nonogram.Redo();
                     break;
             }
         }

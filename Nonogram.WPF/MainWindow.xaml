@@ -12,6 +12,7 @@
         DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
+        MouseUp="This_MouseUp"
         SizeToContent="WidthAndHeight"
         Background="Gray">
     <Window.Resources>
