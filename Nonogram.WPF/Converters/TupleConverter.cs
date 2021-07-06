@@ -15,7 +15,7 @@ namespace Nonogram.WPF.Converters
                 else
                     throw new ArgumentException("Parameter must be an integer", nameof(parameter));
             else
-                throw new ArgumentException("Value must be a tuple", nameof(value));
+                return default!;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

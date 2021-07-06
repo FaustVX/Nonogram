@@ -5,22 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nonogram.WPF"
         xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
+        xmlns:ctrl="clr-namespace:Nonogram.WPF.Controls"
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         x:Name="This"
-        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
-        DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
+        DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        KeyUp="This_KeyUp">
+        KeyUp="This_KeyUp"
+        SizeToContent="WidthAndHeight">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
+        <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
+        <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
+        <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
+        <conv:ChainConverter x:Key="BoolToBrushConverter">
+            <StaticResource ResourceKey="TupleConverter"/>
+            <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
+        </conv:ChainConverter>
+        <conv:ChainConverter x:Key="BrushToColorConverter">
+            <StaticResource ResourceKey="TupleConverter"/>
+            <conv:BrushToColorConverter/>
+        </conv:ChainConverter>
+        <sys:Double x:Key="Size">15</sys:Double>
+        <DataTemplate x:Key="Hints">
+            <Border BorderThickness="0" CornerRadius="3">
+                <Border.Background>
+                    <LinearGradientBrush>
+                        <GradientStop Color="{Binding Converter={StaticResource BrushToColorConverter}, ConverterParameter=0}" Offset="0.75"/>
+                        <GradientStop Color="Gray" Offset="0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
+                       Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
+                       Width="{StaticResource Size}"
+                       TextAlignment="Center"
+                       ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
     <Window.Title>
-        <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneTime" x:Name="titleBinding">
-            <Binding Path="Nonogram.Width" Mode="OneTime"/>
-            <Binding Path="Nonogram.Height" Mode="OneTime"/>
-            <Binding Path="Nonogram.ColoredCellCount" Mode="OneTime"/>
-            <Binding Path="Nonogram.TotalColoredCell" Mode="OneTime"/>
+        <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneWay">
+            <Binding Path="Width" Mode="OneTime"/>
+            <Binding Path="Height" Mode="OneTime"/>
+            <Binding Path="ColoredCellCount" Mode="OneWay"/>
+            <Binding Path="TotalColoredCell" Mode="OneTime"/>
         </MultiBinding>
     </Window.Title>
 
@@ -30,9 +59,44 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" x:Name="colors"/>
+        <ListBox BorderThickness="0" Grid.Row="0" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}"
+                 Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}"
+                 SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Black" BorderThickness="2" CornerRadius="2">
+                        <Canvas Background="{Binding}" Width="{StaticResource Size}" Height="{StaticResource Size}"/>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <FrameworkElement.Resources>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Opacity" Value="0.3333"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="2"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Trigger.Setters>
+                                <Setter Property="Opacity" Value="1.0"/>
+                            </Trigger.Setters>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.Setters>
+                                <Setter Property="Opacity" Value="0.75"/>
+                            </Trigger.Setters>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </FrameworkElement.Resources>
+        </ListBox>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -42,11 +106,79 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid x:Name="rowHints" Grid.Column="0" Grid.Row="1" />
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <Grid x:Name="colHints" Grid.Column="1" Grid.Row="0" />
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <Grid Grid.Column="1" Grid.Row="1" x:Name="cells" />
+            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ctrl:UniformGrid Orientation="Horizontal"
+                            Columns="{Binding Nonogram.Width, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Rows="{Binding Nonogram.Height, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type core:ICell}">
+                        <Border
+                            BorderBrush="Gray"
+                            BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
+                            MouseDown="CellMouseDown"
+                            MouseEnter="CellMouseEnter"
+                            Initialized="CellInitialized"
+                            Width="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Height="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            <TextBlock
+                                Text="X"
+                                TextAlignment="Center"
+                                Background="Transparent">
+                                <TextBlock.Foreground>
+                                    <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
+                                        <Binding/>
+                                        <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
     </Grid>
 </Window>

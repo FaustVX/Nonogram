@@ -1,8 +1,12 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Nonogram
 {
@@ -13,23 +17,43 @@ namespace Nonogram
             => new (pattern, ignoredColor);
     }
 
-    public class Game<T> : IEnumerable<ICell>
+    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged
     where T : notnull
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
         private readonly T[,] _pattern;
         private readonly ICell[,] _grid;
-        private int _coloredCellCount;
+
         public int Width { get; }
         public int Height { get; }
-        public (T color, int qty, bool validated)[][] ColHints { get; }
-        public (T color, int qty, bool validated)[][] RowHints { get; }
+        public ObservableCollection<(T color, int qty, bool validated)>[] ColHints { get; }
+        public ObservableCollection<(T color, int qty, bool validated)>[] RowHints { get; }
         public T[] PossibleColors { get; }
         public T IgnoredColor { get; }
-        public bool IsComplete { get; private set; }
-        public bool IsCorrect { get; private set; }
+        private bool _isComplete;
+        public bool IsComplete
+        {
+            get => _isComplete;
+            private set => OnPropertyChanged(ref _isComplete, in value);
+        }
+        private bool _isCorrect;
+        public bool IsCorrect
+        {
+            get => _isCorrect;
+            private set => OnPropertyChanged(ref _isCorrect, in value);
+        }
+        private int _coloredCellCount;
+
+        public int ColoredCellCount
+        {
+            get => _coloredCellCount;
+            set => OnPropertyChanged(ref _coloredCellCount, in value);
+        }
         public int TotalColoredCell { get; }
-        public int ColoredCellCount => _coloredCellCount;
-        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new (), _nexts = new ();
+
+        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new(), _nexts = new();
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
@@ -53,19 +77,41 @@ namespace Nonogram
                 _nexts.Clear();
                 CalculateColoredCells(x, y, value);
 
-                _grid[y, x] = value;
+                OnCollectionChanged(x, y, in value);
             }
         }
+
+        protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
+        {
+            if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
+            {
+                storage = value;
+                PropertyChanged?.Invoke(this, new(propertyName));
+            }
+        }
+
+        protected void OnCollectionChanged(int x, int y, in ICell newItem)
+        {
+            var oldItem = this[x, y];
+            if (!oldItem.Equals(newItem))
+            {
+                _grid[y, x] = newItem;
+                CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, newItem, oldItem, x * Height + y));
+            }
+        }
+
+        protected void OnCollectionReset()
+            => CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
 
         private void CalculateColoredCells(int x, int y, ICell value)
         {
             switch (this[x, y], value)
             {
                 case ({ IsColored: true }, { IsColored: false }):
-                    _coloredCellCount--;
+                    ColoredCellCount--;
                     break;
                 case ({ IsColored: false }, { IsColored: true }):
-                    _coloredCellCount++;
+                    ColoredCellCount++;
                     break;
             };
         }
@@ -81,8 +127,8 @@ namespace Nonogram
             foreach (var (x, y) in this.GenerateCoord())
                 _grid[y, x] = new EmptyCell();
 
-            ColHints = new (T, int, bool)[Width][];
-            RowHints = new (T, int, bool)[Height][];
+            ColHints = new ObservableCollection<(T, int, bool)>[Width];
+            RowHints = new ObservableCollection<(T, int, bool)>[Height];
 
             PossibleColors = pattern.Cast<T>()
                 .ToHashSet()
@@ -92,16 +138,14 @@ namespace Nonogram
             TotalColoredCell = this.GenerateCoord().Count(pos => !_pattern[pos.y, pos.x].Equals(ignoredColor));
 
             for (var y = 0; y < RowHints.Length; y++)
-                RowHints[y] = CalculateHints(_pattern.GetRow(y))
+                RowHints[y] = new(CalculateHints(_pattern.GetRow(y))
                     .Where(g => PossibleColors.Contains(g.color))
-                    .Select(g => (g.color, g.qty, validated: false))
-                    .ToArray();
+                    .Select(g => (g.color, g.qty, validated: false)));
 
             for (var x = 0; x < ColHints.Length; x++)
-                ColHints[x] = CalculateHints(_pattern.GetCol(x))
+                ColHints[x] = new(CalculateHints(_pattern.GetCol(x))
                     .Where(g => PossibleColors.Contains(g.color))
-                    .Select(g => (g.color, g.qty, validated: false))
-                    .ToArray();
+                    .Select(g => (g.color, g.qty, validated: false)));
         }
 
         public Game<TOther> ConvertTo<TOther>(TOther ignoredColor, params TOther[] possibleColors)
@@ -129,10 +173,18 @@ namespace Nonogram
                 .SetValue(result, grid);
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-                result.RowHints[x][y].validated = RowHints[x][y].validated;
+            {
+                var hint = result.RowHints[x][y];
+                hint.validated = RowHints[x][y].validated;
+                result.RowHints[x][y] = hint;
+            }
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-                result.ColHints[x][y].validated = ColHints[x][y].validated;
+            {
+                var hint = result.ColHints[x][y];
+                hint.validated = ColHints[x][y].validated;
+                result.ColHints[x][y] = hint;
+            }
 
             return result;
         }
@@ -185,7 +237,7 @@ namespace Nonogram
                     => new EmptyCell(),
                 (true, { IsColored: true }, _)
                     => new EmptyCell(),
-                _   => this[x, y],
+                _ => this[x, y],
             };
 
             ValidateHints(x, y);
@@ -196,8 +248,8 @@ namespace Nonogram
             Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors);
             Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors);
 
-            IsComplete = (Array.TrueForAll(ColHints, ch => Array.TrueForAll(ch, h => h.validated))
-                && Array.TrueForAll(RowHints, rh => Array.TrueForAll(rh, h => h.validated)));
+            IsComplete = (Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
+                && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated)));
 
             if (IsComplete)
             {
@@ -214,33 +266,42 @@ namespace Nonogram
                 IsCorrect = true;
             }
 
-            static void Validate(IEnumerable<(T color, int qty)> line, (T color, int qty, bool validated)[] hints, T[] possibleColors)
+            static void Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
             {
                 var lineArray = line
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
-                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Length)
+                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Count)
                 {
-                    for (var i = 0; i < hints.Length; i++)
-                        hints[i].validated = true;
+                    for (var i = 0; i < hints.Count; i++)
+                    {
+                        var hint = hints[i];
+                        hint.validated = true;
+                        hints[i] = hint;
+                    }
                     return;
                 }
 
-                for (var i = 0; i < hints.Length; i++)
-                    hints[i].validated = false;
+                for (var i = 0; i < hints.Count; i++)
+                {
+                    var hint = hints[i];
+                    hint.validated = false;
+                    hints[i] = hint;
+                }
 
-                for (var i = 0; i < Math.Min(lineArray.Length, hints.Length); i++)
+                for (var i = 0; i < Math.Min(lineArray.Length, hints.Count); i++)
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
-                static bool ValidateCell((T color, int qty)[] line, (T color, int qty, bool validated)[] hints, Index i)
+                static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
                 {
-                    ref var hint = ref hints[i];
+                    var hint = hints[i];
                     var (color, qty) = line[i];
                     if (hint.qty != qty || !hint.color.Equals(color))
                         return false;
                     hint.validated = true;
+                    hints[i] = hint;
                     return true;
                 }
             }
@@ -254,7 +315,7 @@ namespace Nonogram
                 _previous.RemoveLast();
                 _nexts.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
-                _grid[y, x] = cell;
+                OnCollectionChanged(x, y, in cell);
                 ValidateHints(x, y);
                 return (x, y);
             }
@@ -269,7 +330,7 @@ namespace Nonogram
                 _nexts.RemoveLast();
                 _previous.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
-                _grid[y, x] = cell;
+                OnCollectionChanged(x, y, in cell);
                 ValidateHints(x, y);
                 return (x, y);
             }
@@ -280,16 +341,25 @@ namespace Nonogram
         {
             foreach (var (x, y) in this.GenerateCoord())
                 _grid[y, x] = new EmptyCell();
+            OnCollectionReset();
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-                RowHints[x][y].validated = false;
+            {
+                var hint = RowHints[x][y];
+                hint.validated = false;
+                RowHints[x][y] = hint;
+            }
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-                ColHints[x][y].validated = false;
+            {
+                var hint = ColHints[x][y];
+                hint.validated = false;
+                ColHints[x][y] = hint;
+            }
 
             _previous.Clear();
             _nexts.Clear();
-            _coloredCellCount = 0;
+            ColoredCellCount = 0;
 
             IsComplete = IsCorrect = false;
         }
@@ -299,6 +369,9 @@ namespace Nonogram
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
            => GetEnumerator();
+
+        public (int x, int y) GetCoord(ICell cell)
+            => this.GenerateCoord().FirstOrDefault(pos => object.ReferenceEquals(this[pos.x, pos.y], cell));
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
