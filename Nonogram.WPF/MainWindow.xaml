@@ -28,7 +28,8 @@
                        Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
                        Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
                        Width="{StaticResource Size}"
-                       TextAlignment="Center"/>
+                       TextAlignment="Center"
+                       ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
         </DataTemplate>
     </Window.Resources>
     <Window.Title>
