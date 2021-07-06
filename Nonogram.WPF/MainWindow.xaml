@@ -22,6 +22,7 @@
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
+        <conv:HoveredToBrushConverter HoveredBrush="Black" x:Key="HoveredToBrushConverter"/>
         <conv:ChainConverter x:Key="BoolToBrushConverter">
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
@@ -132,13 +133,21 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Row="0">
+                            <Border.BorderBrush>
+                                <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"/>
+                                    <Binding Path="HoverY" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                </MultiBinding>
+                            </Border.BorderBrush>
+                            <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -151,13 +160,21 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Col="0">
+                            <Border.BorderBrush>
+                                <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"/>
+                                    <Binding Path="HoverX" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                </MultiBinding>
+                            </Border.BorderBrush>
+                            <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -174,7 +191,7 @@
                     <DataTemplate DataType="{x:Type core:ICell}">
                         <Border
                             BorderBrush="Gray"
-                            BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            BorderThickness="0"
                             CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"

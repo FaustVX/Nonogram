@@ -1,5 +1,7 @@
 using Nonogram.WPF.Converters;
+using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,16 +17,33 @@ namespace Nonogram.WPF
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public Game<Brush> Nonogram { get; }
-        private Brush _currentColor = default!;
+        private Brush _currentColor;
         public Brush CurrentColor
         {
             get => _currentColor;
-            set
+            set => OnPropertyChanged(ref _currentColor, in value);
+        }
+
+        private int _hoverX;
+        public int HoverX
+        {
+            get => _hoverX;
+            set => OnPropertyChanged(ref _hoverX, in value);
+        }
+
+        private int _hoverY;
+        public int HoverY
+        {
+            get => _hoverY;
+            set => OnPropertyChanged(ref _hoverY, in value);
+        }
+
+        protected void OnPropertyChanged<T>(ref T storage, in T value, [CallerMemberName] string propertyName = default!)
+        {
+            if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
             {
-                if (_currentColor == value)
-                    return;
-                _currentColor = value;
-                PropertyChanged?.Invoke(this, new(nameof(CurrentColor)));
+                storage = value;
+                PropertyChanged?.Invoke(this, new(propertyName));
             }
         }
 
@@ -39,18 +58,18 @@ namespace Nonogram.WPF
         {
             Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Width, Nonogram.Height];
+            _currentColor = Nonogram.PossibleColors[0];
 
             InitializeComponent();
-            CurrentColor = Nonogram.PossibleColors[0];
             ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
+            var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
             {
-                var (x, y) = GetXYFromTag((FrameworkElement)sender);
                 if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y ))
                     if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
                         Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
