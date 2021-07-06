@@ -20,7 +20,7 @@
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
         <conv:ChainConverter x:Key="BoolToBrushConverter">
             <StaticResource ResourceKey="TupleConverter"/>
-            <conv:BoolToBrushConverter True="LightGray" False="Black"/>
+            <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
         </conv:ChainConverter>
         <sys:Double x:Key="Size">15</sys:Double>
         <DataTemplate x:Key="Hints">
@@ -58,7 +58,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}">
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Vertical"/>
@@ -77,7 +77,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}">
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
@@ -108,14 +108,14 @@
                     <DataTemplate DataType="{x:Type core:ICell}">
                         <Border
                             BorderBrush="Gray"
-                            BorderThickness="1"
+                            BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             CornerRadius="1"
                             Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
                             Initialized="CellInitialized"
-                            Width="{StaticResource Size}"
-                            Height="{StaticResource Size}">
+                            Width="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Height="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
                             <TextBlock
                                 Text="X"
                                 TextAlignment="Center"
