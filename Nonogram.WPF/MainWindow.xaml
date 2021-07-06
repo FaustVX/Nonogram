@@ -22,14 +22,25 @@
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
         </conv:ChainConverter>
+        <conv:ChainConverter x:Key="BrushToColorConverter">
+            <StaticResource ResourceKey="TupleConverter"/>
+            <conv:BrushToColorConverter/>
+        </conv:ChainConverter>
         <sys:Double x:Key="Size">15</sys:Double>
         <DataTemplate x:Key="Hints">
-            <TextBlock Background="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=0}" 
-                       Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
+            <Border BorderThickness="0" CornerRadius="3">
+                <Border.Background>
+                    <LinearGradientBrush>
+                        <GradientStop Color="{Binding Converter={StaticResource BrushToColorConverter}, ConverterParameter=0}" Offset="0.75"/>
+                        <GradientStop Color="Gray" Offset="0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
                        Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
                        Width="{StaticResource Size}"
                        TextAlignment="Center"
                        ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
+            </Border>
         </DataTemplate>
     </Window.Resources>
     <Window.Title>
@@ -145,7 +156,7 @@
                         <Border
                             BorderBrush="Gray"
                             BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            CornerRadius="1"
+                            CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
