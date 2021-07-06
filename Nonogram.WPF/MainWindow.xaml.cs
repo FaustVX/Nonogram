@@ -45,14 +45,15 @@ namespace Nonogram.WPF
             ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
         }
 
-        private ICell? _selectedColor;
+        private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
             {
                 var (x, y) = GetXYFromTag((FrameworkElement)sender);
-                if ((_selectedColor?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
-                    Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
+                if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y ))
+                    if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
+                        Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
             }
         }
 
@@ -61,7 +62,7 @@ namespace Nonogram.WPF
             if (e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
                 return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
-            _selectedColor = Nonogram[x, y];
+            _selectedColor = (Nonogram[x, y], x, y);
             Change((Border)sender, e.ChangedButton is MouseButton.Right);
         }
 
