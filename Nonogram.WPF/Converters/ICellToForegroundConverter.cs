@@ -10,12 +10,14 @@ namespace Nonogram.WPF.Converters
         public Brush IgnoredBrush { get; set; } = default!;
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-            => values.Length is 2
-                ? (values[0], values[1]) switch
+            => values.Length is 3
+                ? (values[0], values[1], values[2]) switch
                 {
-                    (SealedCell<Brush> { Seals: var seals }, Brush currentColor) when seals.Contains(currentColor) => currentColor,
-                    (AllColoredSealCell, _) => IgnoredBrush,
-                    _ => Brushes.Transparent
+                    not (ICell, Brush, bool) => default!,
+                    (_, _, true) => Brushes.Transparent,
+                    (SealedCell<Brush> { Seals: var seals }, Brush currentColor, false) when seals.Contains(currentColor) => currentColor,
+                    (AllColoredSealCell, _, _) => IgnoredBrush,
+                    (_, _, _) => Brushes.Transparent
                 } : default!;
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

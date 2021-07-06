@@ -37,7 +37,7 @@ namespace Nonogram.WPF
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Width, Nonogram.Height];
 
             InitializeComponent();

@@ -158,12 +158,17 @@
                             BorderBrush="Gray"
                             BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
                             Initialized="CellInitialized"
                             Width="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             Height="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            <Border.Background>
+                                <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
+                                    <Binding/>
+                                    <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                </MultiBinding>
+                            </Border.Background>
                             <TextBlock
                                 Text="X"
                                 TextAlignment="Center"
@@ -172,6 +177,7 @@
                                     <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
                                         <Binding/>
                                         <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                        <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                     </MultiBinding>
                                 </TextBlock.Foreground>
                             </TextBlock>
