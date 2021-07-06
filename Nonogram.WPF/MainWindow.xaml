@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nonogram.WPF"
         xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
+        xmlns:ctrl="clr-namespace:Nonogram.WPF.Controls"
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         x:Name="This"
@@ -15,6 +16,8 @@
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
+        <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
+        <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
         <conv:ChainConverter x:Key="BoolToBrushConverter">
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BoolToBrushConverter True="LightGray" False="Black"/>
@@ -93,7 +96,41 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Grid Grid.Column="1" Grid.Row="1" x:Name="cells" />
+            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ctrl:UniformGrid Orientation="Horizontal"
+                            Columns="{Binding Nonogram.Width, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Rows="{Binding Nonogram.Height, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type core:ICell}">
+                        <Border
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            CornerRadius="1"
+                            Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
+                            MouseDown="CellMouseDown"
+                            MouseEnter="CellMouseEnter"
+                            Initialized="CellInitialized"
+                            Width="{StaticResource Size}"
+                            Height="{StaticResource Size}">
+                            <TextBlock
+                                Text="X"
+                                TextAlignment="Center"
+                                Background="Transparent">
+                                <TextBlock.Foreground>
+                                    <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
+                                        <Binding/>
+                                        <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
     </Grid>
 </Window>

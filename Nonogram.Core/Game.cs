@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -16,10 +17,11 @@ namespace Nonogram
             => new (pattern, ignoredColor);
     }
 
-    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged
+    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged
     where T : notnull
     {
         public event PropertyChangedEventHandler? PropertyChanged;
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         private readonly T[,] _pattern;
         private readonly ICell[,] _grid;
@@ -75,7 +77,7 @@ namespace Nonogram
                 _nexts.Clear();
                 CalculateColoredCells(x, y, value);
 
-                _grid[y, x] = value;
+                OnCollectionChanged(x, y, in value);
             }
         }
 
@@ -87,6 +89,19 @@ namespace Nonogram
                 PropertyChanged?.Invoke(this, new(propertyName));
             }
         }
+
+        protected void OnCollectionChanged(int x, int y, in ICell newItem)
+        {
+            var oldItem = this[x, y];
+            if (!oldItem.Equals(newItem))
+            {
+                _grid[y, x] = newItem;
+                CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, newItem, oldItem, x * Height + y));
+            }
+        }
+
+        protected void OnCollectionReset()
+            => CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
 
         private void CalculateColoredCells(int x, int y, ICell value)
         {
@@ -300,7 +315,7 @@ namespace Nonogram
                 _previous.RemoveLast();
                 _nexts.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
-                _grid[y, x] = cell;
+                OnCollectionChanged(x, y, in cell);
                 ValidateHints(x, y);
                 return (x, y);
             }
@@ -315,7 +330,7 @@ namespace Nonogram
                 _nexts.RemoveLast();
                 _previous.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
-                _grid[y, x] = cell;
+                OnCollectionChanged(x, y, in cell);
                 ValidateHints(x, y);
                 return (x, y);
             }
@@ -326,6 +341,7 @@ namespace Nonogram
         {
             foreach (var (x, y) in this.GenerateCoord())
                 _grid[y, x] = new EmptyCell();
+            OnCollectionReset();
 
             foreach (var (x, y) in RowHints.GenerateCoord())
             {
@@ -353,6 +369,9 @@ namespace Nonogram
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
            => GetEnumerator();
+
+        public (int x, int y) GetCoord(ICell cell)
+            => this.GenerateCoord().FirstOrDefault(pos => object.ReferenceEquals(this[pos.x, pos.y], cell));
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
