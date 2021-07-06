@@ -12,7 +12,8 @@
         DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
-        SizeToContent="WidthAndHeight">
+        SizeToContent="WidthAndHeight"
+        Background="Gray">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
@@ -59,7 +60,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ListBox BorderThickness="0" Grid.Row="0" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}"
+        <ListBox BorderThickness="0" Grid.Row="0" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}" Background="Transparent"
                  Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}"
                  SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
             <ItemsControl.ItemsPanel>
