@@ -51,6 +51,13 @@ namespace Nonogram
             get => _coloredCellCount;
             set => OnPropertyChanged(ref _coloredCellCount, in value);
         }
+
+        private bool _autoSeal;
+        public bool AutoSeal
+        {
+            get => _autoSeal;
+            set => OnPropertyChanged(ref _autoSeal, value);
+        }
         public int TotalColoredCell { get; }
 
         private readonly LinkedList<(int x, int y, ICell cell)> _previous = new(), _nexts = new();
@@ -245,8 +252,14 @@ namespace Nonogram
 
         public void ValidateHints(int x, int y)
         {
-            Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors);
-            Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors);
+            if (Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors) && AutoSeal)
+                for (var i = 0; i < Height; i++)
+                    if (this[x, i] is { IsColored: false })
+                        this[x, i] = new AllColoredSealCell();
+            if (Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors) && AutoSeal)
+                for (var i = 0; i < Width; i++)
+                    if (this[i, y] is { IsColored: false })
+                        this[i, y] = new AllColoredSealCell();
 
             IsComplete = (Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
                 && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated)));
@@ -261,7 +274,7 @@ namespace Nonogram
                 IsCorrect = true;
             }
 
-            static void Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
+            static bool Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
             {
                 var lineArray = line
                     .Where(g => possibleColors.Contains(g.color))
@@ -275,7 +288,7 @@ namespace Nonogram
                         hint.validated = true;
                         hints[i] = hint;
                     }
-                    return;
+                    return hints.All(h => h.validated);
                 }
 
                 for (var i = 0; i < hints.Count; i++)
@@ -288,6 +301,9 @@ namespace Nonogram
                 for (var i = 0; i < Math.Min(lineArray.Length, hints.Count); i++)
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
+
+                return hints.All(h => h.validated);
+
 
                 static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
                 {

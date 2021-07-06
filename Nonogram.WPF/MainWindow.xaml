@@ -103,8 +103,15 @@
             </FrameworkElement.Resources>
         </ListBox>
 
-        <ItemsControl Grid.Row="1" HorizontalAlignment="Right">
-            <Button Content="Tips" Click="TipsButtonClick"/>
+        <ItemsControl Grid.Row="1" HorizontalAlignment="Right"
+                 Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <Button Content="Tips" Click="TipsButtonClick" Margin="1"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Margin="1"/>
         </ItemsControl>
 
         <Grid Grid.Row="2" Margin="5">
