@@ -11,7 +11,8 @@
         x:Name="This"
         DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        KeyUp="This_KeyUp">
+        KeyUp="This_KeyUp"
+        SizeToContent="WidthAndHeight">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
@@ -95,7 +96,7 @@
             </FrameworkElement.Resources>
         </ListBox>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
