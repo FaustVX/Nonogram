@@ -27,8 +27,7 @@ namespace Nonogram.WPF
                 PropertyChanged?.Invoke(this, new(nameof(CurrentColor)));
             }
         }
-        private double Size
-            => (double)Resources["Size"];
+
         private ICellToForegroundConverter ICellToForegroundConverter
             => (ICellToForegroundConverter)Resources["ICellToForegroundConverter"];
         private ICellToBackgroundConverter ICellToBackgroundConverter
@@ -38,29 +37,12 @@ namespace Nonogram.WPF
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Width, Nonogram.Height];
 
             InitializeComponent();
+            CurrentColor = Nonogram.PossibleColors[0];
             ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
-
-            foreach (var c in Nonogram.PossibleColors)
-            {
-                var radio = new RadioButton()
-                {
-                    GroupName = "Color",
-                    Background = c,
-                    Width = Size,
-                };
-                radio.Checked += RadioSelected;
-                colors.Children.Add(radio);
-            }
-            ((RadioButton)colors.Children[0]).IsChecked = true;
-
-            void RadioSelected(object sender, RoutedEventArgs e)
-            {
-                CurrentColor = ((Control)sender).Background;
-            }
         }
 
         private ICell? _selectedColor;
@@ -104,8 +86,8 @@ namespace Nonogram.WPF
                 case (ModifierKeys.Control, Key.Y):
                     Nonogram.Redo();
                     break;
-                case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < colors.Children.Count:
-                    ((RadioButton)colors.Children[key - Key.D1]).IsChecked = true;
+                case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
+                    CurrentColor = Nonogram.PossibleColors[key - Key.D1];
                     break;
             }
         }
