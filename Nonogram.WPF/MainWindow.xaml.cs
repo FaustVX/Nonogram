@@ -1,5 +1,7 @@
 using Nonogram.WPF.Converters;
+using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,16 +17,33 @@ namespace Nonogram.WPF
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public Game<Brush> Nonogram { get; }
-        private Brush _currentColor = default!;
+        private Brush _currentColor;
         public Brush CurrentColor
         {
             get => _currentColor;
-            set
+            set => OnPropertyChanged(ref _currentColor, in value);
+        }
+
+        private int _hoverX;
+        public int HoverX
+        {
+            get => _hoverX;
+            set => OnPropertyChanged(ref _hoverX, in value);
+        }
+
+        private int _hoverY;
+        public int HoverY
+        {
+            get => _hoverY;
+            set => OnPropertyChanged(ref _hoverY, in value);
+        }
+
+        protected void OnPropertyChanged<T>(ref T storage, in T value, [CallerMemberName] string propertyName = default!)
+        {
+            if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
             {
-                if (_currentColor == value)
-                    return;
-                _currentColor = value;
-                PropertyChanged?.Invoke(this, new(nameof(CurrentColor)));
+                storage = value;
+                PropertyChanged?.Invoke(this, new(propertyName));
             }
         }
 
@@ -37,29 +56,32 @@ namespace Nonogram.WPF
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(741, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
             _borders = new Border[Nonogram.Width, Nonogram.Height];
+            _currentColor = Nonogram.PossibleColors[0];
 
             InitializeComponent();
-            CurrentColor = Nonogram.PossibleColors[0];
             ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
         }
 
-        private ICell? _selectedColor;
+        private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
+            var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
             {
-                var (x, y) = GetXYFromTag((FrameworkElement)sender);
-                if ((_selectedColor?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
-                    Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
+                if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y ))
+                    if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
+                        Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
             }
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
+                return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
-            _selectedColor = Nonogram[x, y];
+            _selectedColor = (Nonogram[x, y], x, y);
             Change((Border)sender, e.ChangedButton is MouseButton.Right);
         }
 
@@ -86,11 +108,30 @@ namespace Nonogram.WPF
                 case (ModifierKeys.Control, Key.Y):
                     Nonogram.Redo();
                     break;
+                case (ModifierKeys.Control, Key.OemComma):
+                    Nonogram.Tips();
+                    break;
                 case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
                     CurrentColor = Nonogram.PossibleColors[key - Key.D1];
                     break;
             }
         }
+
+        private void This_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            switch (e.ChangedButton)
+            {
+                case MouseButton.XButton1 when !Nonogram.IsCorrect:
+                    Nonogram.Undo();
+                    break;
+                case MouseButton.XButton2:
+                    Nonogram.Redo();
+                    break;
+            }
+        }
+
+        private void TipsButtonClick(object sender, RoutedEventArgs e)
+            => Nonogram.Tips();
 
         private void CellInitialized(object sender, System.EventArgs e)
         {

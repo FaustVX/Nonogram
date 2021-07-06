@@ -12,13 +12,17 @@
         DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
-        SizeToContent="WidthAndHeight">
+        MouseUp="This_MouseUp"
+        SizeToContent="WidthAndHeight"
+        Background="Gray"
+        Title="Nonogram">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
+        <conv:HoveredToBrushConverter HoveredBrush="Black" x:Key="HoveredToBrushConverter"/>
         <conv:ChainConverter x:Key="BoolToBrushConverter">
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
@@ -44,22 +48,26 @@
             </Border>
         </DataTemplate>
     </Window.Resources>
-    <Window.Title>
-        <MultiBinding StringFormat="Nonogram {0} * {1} ({2} / {3} cells)" Mode="OneWay">
-            <Binding Path="Width" Mode="OneTime"/>
-            <Binding Path="Height" Mode="OneTime"/>
-            <Binding Path="ColoredCellCount" Mode="OneWay"/>
-            <Binding Path="TotalColoredCell" Mode="OneTime"/>
-        </MultiBinding>
-    </Window.Title>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ListBox BorderThickness="0" Grid.Row="0" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}"
+        <TextBlock Grid.Row="0" TextAlignment="Center">
+            <TextBlock.Text>
+                <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells)" Mode="OneWay">
+                    <Binding Path="Width" Mode="OneTime"/>
+                    <Binding Path="Height" Mode="OneTime"/>
+                    <Binding Path="ColoredCellCount" Mode="OneWay"/>
+                    <Binding Path="TotalColoredCell" Mode="OneTime"/>
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+
+        <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}" Background="Transparent"
                  Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}"
                  SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
             <ItemsControl.ItemsPanel>
@@ -96,7 +104,18 @@
             </FrameworkElement.Resources>
         </ListBox>
 
-        <Grid Grid.Row="1" Margin="5">
+        <ItemsControl Grid.Row="1" HorizontalAlignment="Right"
+                 Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <Button Content="Tips" Click="TipsButtonClick" Margin="1"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Margin="1"/>
+        </ItemsControl>
+
+        <Grid Grid.Row="2" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -114,13 +133,21 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Row="0">
+                            <Border.BorderBrush>
+                                <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"/>
+                                    <Binding Path="HoverY" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                </MultiBinding>
+                            </Border.BorderBrush>
+                            <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -133,13 +160,21 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Col="0">
+                            <Border.BorderBrush>
+                                <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"/>
+                                    <Binding Path="HoverX" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                </MultiBinding>
+                            </Border.BorderBrush>
+                            <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical" VerticalAlignment="Bottom"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -156,14 +191,19 @@
                     <DataTemplate DataType="{x:Type core:ICell}">
                         <Border
                             BorderBrush="Gray"
-                            BorderThickness="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=1, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            BorderThickness="0"
                             CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Background="{Binding Converter={StaticResource ICellToBackgroundConverter}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
                             Initialized="CellInitialized"
                             Width="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             Height="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            <Border.Background>
+                                <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
+                                    <Binding/>
+                                    <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                </MultiBinding>
+                            </Border.Background>
                             <TextBlock
                                 Text="X"
                                 TextAlignment="Center"
@@ -172,6 +212,7 @@
                                     <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
                                         <Binding/>
                                         <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                        <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                     </MultiBinding>
                                 </TextBlock.Foreground>
                             </TextBlock>

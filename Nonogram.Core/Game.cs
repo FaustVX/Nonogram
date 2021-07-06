@@ -51,6 +51,13 @@ namespace Nonogram
             get => _coloredCellCount;
             set => OnPropertyChanged(ref _coloredCellCount, in value);
         }
+
+        private bool _autoSeal;
+        public bool AutoSeal
+        {
+            get => _autoSeal;
+            set => OnPropertyChanged(ref _autoSeal, value);
+        }
         public int TotalColoredCell { get; }
 
         private readonly LinkedList<(int x, int y, ICell cell)> _previous = new(), _nexts = new();
@@ -245,8 +252,14 @@ namespace Nonogram
 
         public void ValidateHints(int x, int y)
         {
-            Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors);
-            Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors);
+            if (Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors) && AutoSeal)
+                for (var i = 0; i < Height; i++)
+                    if (this[x, i] is { IsColored: false })
+                        this[x, i] = new AllColoredSealCell();
+            if (Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors) && AutoSeal)
+                for (var i = 0; i < Width; i++)
+                    if (this[i, y] is { IsColored: false })
+                        this[i, y] = new AllColoredSealCell();
 
             IsComplete = (Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
                 && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated)));
@@ -254,19 +267,14 @@ namespace Nonogram
             if (IsComplete)
             {
                 foreach (var (i, j) in this.GenerateCoord())
-                    switch ((_grid[j, i], _pattern[j, i]))
-                    {
-                        case (not ColoredCell<T>, var pattern) when pattern.Equals(IgnoredColor):
-                            continue;
-                        case (ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern):
-                            continue;
-                        default:
-                            return;
-                    }
+                    if (IsSameAsPattern(i, j, treatEmptySameAsSeals: true))
+                        continue;
+                    else
+                        return;
                 IsCorrect = true;
             }
 
-            static void Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
+            static bool Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
             {
                 var lineArray = line
                     .Where(g => possibleColors.Contains(g.color))
@@ -280,7 +288,7 @@ namespace Nonogram
                         hint.validated = true;
                         hints[i] = hint;
                     }
-                    return;
+                    return hints.All(h => h.validated);
                 }
 
                 for (var i = 0; i < hints.Count; i++)
@@ -294,6 +302,9 @@ namespace Nonogram
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
+                return hints.All(h => h.validated);
+
+
                 static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
                 {
                     var hint = hints[i];
@@ -305,6 +316,41 @@ namespace Nonogram
                     return true;
                 }
             }
+        }
+
+        private bool IsSameAsPattern(int x, int y, bool treatEmptySameAsSeals)
+            => (treatEmptySameAsSeals, _grid[y, x], _pattern[y, x]) switch
+            {
+                (false, { IsEmpty: true }, _)
+                    => false,
+                (false, AllColoredSealCell, var pattern) when pattern.Equals(IgnoredColor)
+                    => true,
+                (false, SealedCell<T> { Seals: var seals }, var pattern) when seals.Contains(pattern)
+                    => false,
+                (true, { IsColored: false }, var pattern) when pattern.Equals(IgnoredColor)
+                    => true,
+                (_, ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern)
+                    => true,
+                _   => false,
+            };
+
+        public (int x, int y)? Tips()
+        {
+            if (IsCorrect)
+                return null;
+
+            var rng = new Random();
+            int x, y;
+            do
+            {
+                x = rng.Next(Width);
+                y = rng.Next(Height);
+            } while (IsSameAsPattern(x, y, treatEmptySameAsSeals: false));
+            this[x, y] = _pattern[y, x].Equals(IgnoredColor)
+                ? new AllColoredSealCell()
+                : new ColoredCell<T>(_pattern[y, x]);
+            ValidateHints(x, y);
+            return (x, y);
         }
 
         public (int x, int y)? Undo()
