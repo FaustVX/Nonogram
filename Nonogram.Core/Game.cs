@@ -254,15 +254,10 @@ namespace Nonogram
             if (IsComplete)
             {
                 foreach (var (i, j) in this.GenerateCoord())
-                    switch ((_grid[j, i], _pattern[j, i]))
-                    {
-                        case (not ColoredCell<T>, var pattern) when pattern.Equals(IgnoredColor):
-                            continue;
-                        case (ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern):
-                            continue;
-                        default:
-                            return;
-                    }
+                    if (IsSameAsPattern(i, j, treatEmptySameAsSeals: true))
+                        continue;
+                    else
+                        return;
                 IsCorrect = true;
             }
 
@@ -305,6 +300,41 @@ namespace Nonogram
                     return true;
                 }
             }
+        }
+
+        private bool IsSameAsPattern(int x, int y, bool treatEmptySameAsSeals)
+            => (treatEmptySameAsSeals, _grid[y, x], _pattern[y, x]) switch
+            {
+                (false, { IsEmpty: true }, _)
+                    => false,
+                (false, AllColoredSealCell, var pattern) when pattern.Equals(IgnoredColor)
+                    => true,
+                (false, SealedCell<T> { Seals: var seals }, var pattern) when seals.Contains(pattern)
+                    => false,
+                (true, { IsColored: false }, var pattern) when pattern.Equals(IgnoredColor)
+                    => true,
+                (_, ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern)
+                    => true,
+                _   => false,
+            };
+
+        public (int x, int y)? Tips()
+        {
+            if (IsCorrect)
+                return null;
+
+            var rng = new Random();
+            int x, y;
+            do
+            {
+                x = rng.Next(Width);
+                y = rng.Next(Height);
+            } while (IsSameAsPattern(x, y, treatEmptySameAsSeals: false));
+            this[x, y] = _pattern[y, x].Equals(IgnoredColor)
+                ? new AllColoredSealCell()
+                : new ColoredCell<T>(_pattern[y, x]);
+            ValidateHints(x, y);
+            return (x, y);
         }
 
         public (int x, int y)? Undo()
