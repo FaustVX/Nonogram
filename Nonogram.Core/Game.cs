@@ -282,11 +282,11 @@ namespace Nonogram
 
         public void ValidateHints(int x, int y)
         {
-            if (Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), ColHints[x], PossibleColors) && AutoSeal)
+            if (Validate(CalculateHints(_grid.GetCol(x).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)).ToArray(), ColHints[x], PossibleColors) && AutoSeal)
                 for (var i = 0; i < Height; i++)
                     if (this[x, i] is { IsColored: false })
                         this[x, i] = new AllColoredSealCell();
-            if (Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)), RowHints[y], PossibleColors) && AutoSeal)
+            if (Validate(CalculateHints(_grid.GetRow(y).Select(g => g is ColoredCell<T> color ? color.Color : IgnoredColor)).ToArray(), RowHints[y], PossibleColors) && AutoSeal)
                 for (var i = 0; i < Width; i++)
                     if (this[i, y] is { IsColored: false })
                         this[i, y] = new AllColoredSealCell();
@@ -304,13 +304,13 @@ namespace Nonogram
                 IsCorrect = true;
             }
 
-            static bool Validate(IEnumerable<(T color, int qty)> line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
+            static bool Validate((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
             {
-                var lineArray = line
+                line = line
                     .Where(g => possibleColors.Contains(g.color))
                     .ToArray();
 
-                if (lineArray.Intersect(hints.Select(g => (g.color, g.qty))).Count() == hints.Count)
+                if (line.Zip(hints).TakeWhile(hs => (hs.First.qty, hs.First.color).Equals((hs.Second.qty, hs.Second.color))).Count() == hints.Count)
                 {
                     for (var i = 0; i < hints.Count; i++)
                     {
@@ -318,7 +318,7 @@ namespace Nonogram
                         hint.validated = true;
                         hints[i] = hint;
                     }
-                    return lineArray.Length == hints.Count && hints.All(h => h.validated);
+                    return true;
                 }
 
                 for (var i = 0; i < hints.Count; i++)
@@ -328,21 +328,32 @@ namespace Nonogram
                     hints[i] = hint;
                 }
 
-                for (var i = 0; i < Math.Min(lineArray.Length, hints.Count); i++)
-                    if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
-                        break;
-
-                return lineArray.Length == hints.Count && hints.All(h => h.validated);
-
-
-                static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
+                foreach (var color in possibleColors)
                 {
-                    var hint = hints[i];
+                    var lineArray = line
+                        .Where(g => g.color.Equals(color))
+                        .ToArray();
+                    var hintsArray = hints
+                        .Select((g, i) => (g, i))
+                        .Where(g => g.g.color.Equals(color))
+                        .ToArray();
+
+                    for (var i = 0; i < Math.Min(lineArray.Length, hintsArray.Length); i++)
+                        if (!ValidateCell(lineArray, hintsArray, hints, i) && !ValidateCell(lineArray, hintsArray, hints, Index.FromEnd(i + 1)))
+                            break;
+                }
+
+                return false;
+
+
+                static bool ValidateCell((T color, int qty)[] line, IList<((T color, int qty, bool validated), int i)> array, IList<(T color, int qty, bool validated)> hints, Index i)
+                {
+                    var (hint, pos) = array[i];
                     var (color, qty) = line[i];
                     if (hint.qty != qty || !hint.color.Equals(color))
                         return false;
                     hint.validated = true;
-                    hints[i] = hint;
+                    hints[pos] = hint;
                     return true;
                 }
             }
