@@ -6,6 +6,9 @@ namespace Nonogram.WPF.Controls
     {
         private static int _row, _col;
 
+        public static void Reset()
+            => _row = _col = 0;
+
         public static int GetRow(DependencyObject obj)
             => (int)obj.GetValue(RowProperty);
 

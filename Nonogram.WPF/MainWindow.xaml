@@ -9,7 +9,7 @@
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         x:Name="This"
-        DataContext="{Binding Nonogram, Mode=OneTime, RelativeSource={RelativeSource Self}}"
+        DataContext="{Binding Nonogram, Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         MouseUp="This_MouseUp"
@@ -43,6 +43,7 @@
                 <TextBlock Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
                        Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
                        Width="{StaticResource Size}"
+                       Height="{StaticResource Size}"
                        TextAlignment="Center"
                        ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
             </Border>
@@ -61,10 +62,10 @@
         <TextBlock Grid.Row="0" TextAlignment="Center">
             <TextBlock.Text>
                 <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells)" Mode="OneWay">
-                    <Binding Path="Width" Mode="OneTime"/>
-                    <Binding Path="Height" Mode="OneTime"/>
+                    <Binding Path="Width" Mode="OneWay"/>
+                    <Binding Path="Height" Mode="OneWay"/>
                     <Binding Path="ColoredCellCount" Mode="OneWay"/>
-                    <Binding Path="TotalColoredCell" Mode="OneTime"/>
+                    <Binding Path="TotalColoredCell" Mode="OneWay"/>
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
@@ -113,8 +114,15 @@
                     <StackPanel Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <Button Content="Tips" Click="TipsButtonClick" Margin="1"/>
-            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Margin="1"/>
+            <FrameworkElement.Resources>
+                <Style TargetType="Control">
+                    <Setter Property="Margin" Value="1"/>
+                </Style>
+            </FrameworkElement.Resources>
+
+            <Button Content="New" Click="NewClick"/>
+            <Button Content="Tips" Click="TipsButtonClick"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>
         </ItemsControl>
 
         <Grid Grid.Row="2" Margin="5">
@@ -185,8 +193,8 @@
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ctrl:UniformGrid Orientation="Horizontal"
-                            Columns="{Binding Nonogram.Width, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Rows="{Binding Nonogram.Height, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                            Columns="{Binding Nonogram.Width, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Rows="{Binding Nonogram.Height, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
