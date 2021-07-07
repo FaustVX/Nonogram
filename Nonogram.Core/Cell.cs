@@ -34,14 +34,14 @@ namespace Nonogram
     {
         public static SealedCell<T> Without<T>(T seal, T[] possibleColors)
             where T : notnull
-            => new SealedCell<T>(possibleColors.Where(s => !s.Equals(seal)));
+            => new(possibleColors.Where(s => !s.Equals(seal)));
 
         public bool Equals(ICell? other)
             => other is AllColoredSealCell;
 
         public T[]? GetSeals<T>()
             where T : notnull
-            => System.Array.Empty<T>();
+            => Array.Empty<T>();
     }
 
     public sealed class ColoredCell<T> : ICell
@@ -70,7 +70,7 @@ namespace Nonogram
             => Seals.ToArray();
 
         public SealedCell<T> Remove(T seal)
-            => new SealedCell<T>(Seals.Where(s => !s.Equals(seal)));
+            => new(Seals.Where(s => !s.Equals(seal)));
 
         public SealedCell<T> Add(T color)
             => new(this, color);
@@ -92,7 +92,7 @@ namespace Nonogram
 
         public SealedCell<TOther> ConvertTo<TOther>(T[] oldPossibleColors, TOther[] possibleColors)
             where TOther : notnull
-            => new (Seals.Select(s => s.ConvertTo(oldPossibleColors, possibleColors, default!)));
+            => new(Seals.Select(s => s.ConvertTo(oldPossibleColors, possibleColors, default!)));
 
         public bool Equals(ICell? other)
             => other is SealedCell<T> { Seals: var seals } && Seals.Count == seals.Count && Seals.Intersect(seals).Count() == Seals.Count;

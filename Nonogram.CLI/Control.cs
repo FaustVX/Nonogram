@@ -1,7 +1,7 @@
 namespace Nonogram.CLI
 {
     public interface IControl
-    {}
+    { }
 
     public class Ok : IControl
     {
@@ -36,11 +36,11 @@ namespace Nonogram.CLI
     }
 
     public class Undo : IControl
-    {}
+    { }
 
     public class Redo : IControl
-    {}
+    { }
 
     public class Restart : IControl
-    {}
+    { }
 }

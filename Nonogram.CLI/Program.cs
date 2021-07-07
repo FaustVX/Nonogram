@@ -9,7 +9,7 @@ namespace Nonogram.CLI
         private static void Main(string[] args)
         {
             var id = int.Parse(args[0]);
-            System.Console.WriteLine($"Download pattern#{id} from webpbn.com");
+            Console.WriteLine($"Download pattern#{id} from webpbn.com");
             var nonogram = Services.WebPbn.Get<ConsoleColor>(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
             Play(nonogram, ConsoleColor.DarkGray);
         }
@@ -17,16 +17,16 @@ namespace Nonogram.CLI
         private static void Play(Game<ConsoleColor> nonogram, ConsoleColor validatedBackgroundColor)
         {
             Console.Clear();
-            var (color, x, y) = (new Nullable<int>(0), 1, 1);
+            var (color, x, y) = (new int?(0), 1, 1);
             do
             {
-                var (seal, undo, redo, ok) = (false, false, false, true);
+                bool seal, ok;
                 do
                 {
                     Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor);
                     if (color is not null)
                         Console.ForegroundColor = nonogram.IgnoredColor;
-                    System.Console.WriteLine($"X:{x}, Y:{y} ({nonogram.ColoredCellCount} / {nonogram.TotalColoredCell} cells)");
+                    Console.WriteLine($"X:{x}, Y:{y} ({nonogram.ColoredCellCount} / {nonogram.TotalColoredCell} cells)");
                     Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
                     Console.ResetColor();
                     ok = seal = false;
@@ -70,33 +70,33 @@ namespace Nonogram.CLI
             static IControl? ReadKey(Game<ConsoleColor> nonogram, (int? color, int x, int y) state)
                 => ((Console.ReadKey(intercept: true), state)) switch
                 {
-                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (color: > 0, _, _))
+                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift }, (color: > 0, _, _))
                         => new Color(state.color - 1),
-                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift },    (color: 0, _, _))
+                    ({ Key: ConsoleKey.Tab, Modifiers: ConsoleModifiers.Shift }, (color: 0, _, _))
                         => new Color(null),
-                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(color: null, _, _))
+                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift }, (color: null, _, _))
                         => new Color(0),
-                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift },(color: var c, _, _))   when c < nonogram.PossibleColors.Length - 1
+                    ({ Key: ConsoleKey.Tab, Modifiers: not ConsoleModifiers.Shift }, (color: var c, _, _)) when c < nonogram.PossibleColors.Length - 1
                         => new Color(state.color + 1),
-                    ({ Key: ConsoleKey.LeftArrow },                                 (_, x: > 1, _))
+                    ({ Key: ConsoleKey.LeftArrow }, (_, x: > 1, _))
                         => new X(state.x - 1),
-                    ({ Key: ConsoleKey.RightArrow },                                (_, x: var x, _))       when x < nonogram.Width
+                    ({ Key: ConsoleKey.RightArrow }, (_, x: var x, _)) when x < nonogram.Width
                         => new X(state.x + 1),
-                    ({ Key: ConsoleKey.UpArrow },                                   (_, _, y: > 1))
+                    ({ Key: ConsoleKey.UpArrow }, (_, _, y: > 1))
                         => new Y(state.y - 1),
-                    ({ Key: ConsoleKey.DownArrow },                                 (_, _, y: var y))       when y < nonogram.Height
+                    ({ Key: ConsoleKey.DownArrow }, (_, _, y: var y)) when y < nonogram.Height
                         => new Y(state.y + 1),
-                    ({ Key: ConsoleKey.Z, Modifiers: ConsoleModifiers.Control },    _)
+                    ({ Key: ConsoleKey.Z, Modifiers: ConsoleModifiers.Control }, _)
                         => new Undo(),
-                    ({ Key: ConsoleKey.Y, Modifiers: ConsoleModifiers.Control },    _)
+                    ({ Key: ConsoleKey.Y, Modifiers: ConsoleModifiers.Control }, _)
                         => new Redo(),
-                    ({ Key: ConsoleKey.R, Modifiers: ConsoleModifiers.Control },    _)
+                    ({ Key: ConsoleKey.R, Modifiers: ConsoleModifiers.Control }, _)
                         => new Restart(),
-                    ({ Key: ConsoleKey.X },                                         _)
+                    ({ Key: ConsoleKey.X }, _)
                         => new Ok(isSealed: true),
-                    ({ Key: ConsoleKey.Spacebar or ConsoleKey.Enter },              _)
+                    ({ Key: ConsoleKey.Spacebar or ConsoleKey.Enter }, _)
                         => new Ok(isSealed: false),
-                    _   => null,
+                    _ => null,
                 };
         }
 
@@ -111,12 +111,12 @@ namespace Nonogram.CLI
             {
                 for (var i = nonogram.ColHints[x].Count - 1; i >= 0; i--)
                 {
-                    var hint = nonogram.ColHints[x][i];
+                    var (color, qty, validated) = nonogram.ColHints[x][i];
                     Console.SetCursorPosition(maxCol + x + 1, i + yOffset);
-                    Console.ForegroundColor = hint.color;
-                    if (hint.validated)
+                    Console.ForegroundColor = color;
+                    if (validated)
                         Console.BackgroundColor = validatedBackgroundColor;
-                    Console.Write(hint.qty);
+                    Console.Write(qty);
                     Console.ResetColor();
                 }
                 WriteAt('─', maxCol + x + 1, maxRow);
@@ -127,12 +127,12 @@ namespace Nonogram.CLI
             {
                 for (var i = nonogram.RowHints[y].Count - 1; i >= 0; i--)
                 {
-                    var hint = nonogram.RowHints[y][i];
+                    var (color, qty, validated) = nonogram.RowHints[y][i];
                     Console.SetCursorPosition(i, maxRow + y + 1);
-                    Console.ForegroundColor = hint.color;
-                    if (hint.validated)
+                    Console.ForegroundColor = color;
+                    if (validated)
                         Console.BackgroundColor = validatedBackgroundColor;
-                    Console.Write(hint.qty);
+                    Console.Write(qty);
                     Console.ResetColor();
                 }
                 WriteAt('│', maxCol, maxRow + y + 1);
@@ -158,6 +158,7 @@ namespace Nonogram.CLI
                     AllColoredSealCell => (selectedColor, 'X'),
                     SealedCell<ConsoleColor> { Seals: var seals } when seals.Contains(selectedColor) => (selectedColor, 'X'),
                     SealedCell<ConsoleColor> => (nonogram.IgnoredColor, 'x'),
+                    _ => throw new Exception(),
                 };
                 Console.ForegroundColor = fore;
                 Console.Write(@char);

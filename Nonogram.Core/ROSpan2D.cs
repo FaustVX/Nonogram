@@ -21,7 +21,7 @@ namespace Nonogram
         }
 
         public ROSpan2D<T> Offset(int x, int y)
-            => new (_array, x + Left, y + Top, Width, Height);
+            => new(_array, x + Left, y + Top, Width, Height);
 
         public ROSpan2D(T[,] array, int left, int top, int width, int height)
             => (_array, Left, Top, Width, Height) = (array, Clamp(left, array, 1), Clamp(top, array, 0), Clamp(width, array, 1), Clamp(height, array, 0));
@@ -36,7 +36,7 @@ namespace Nonogram
             => GetEnumerator();
 
         public static implicit operator ROSpan2D<T>(T[,] array)
-            => new (array, 0, 0, array.GetLength(1), array.GetLength(0));
+            => new(array, 0, 0, array.GetLength(1), array.GetLength(0));
 
         private struct Enumerator : IEnumerator<T>
         {

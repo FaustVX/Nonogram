@@ -14,7 +14,7 @@ namespace Nonogram
     {
         public static Game<T> Create<T>(T[,] pattern, T ignoredColor = default!)
             where T : notnull
-            => new (pattern, ignoredColor);
+            => new(pattern, ignoredColor);
     }
 
     public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged
@@ -361,7 +361,7 @@ namespace Nonogram
                     => true,
                 (_, ColoredCell<T> { Color: var c }, var pattern) when c.Equals(pattern)
                     => true,
-                _   => false,
+                _ => false,
             };
 
         public (int x, int y)? Tips()
@@ -453,7 +453,7 @@ namespace Nonogram
            => GetEnumerator();
 
         public (int x, int y) GetCoord(ICell cell)
-            => this.GenerateCoord().FirstOrDefault(pos => object.ReferenceEquals(this[pos.x, pos.y], cell));
+            => this.GenerateCoord().FirstOrDefault(pos => ReferenceEquals(this[pos.x, pos.y], cell));
 
         public static IEnumerable<(T color, int qty)> CalculateHints(IEnumerable<T> row)
         {
