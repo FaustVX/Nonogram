@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -19,6 +21,10 @@ namespace Nonogram.Services
                 return Get(rng.Next(1000), converter);
             }
             catch (XmlException)
+            {
+                return TryGetRandomId(rng, converter);
+            }
+            catch (TaskCanceledException)
             {
                 return TryGetRandomId(rng, converter);
             }
@@ -60,7 +66,7 @@ namespace Nonogram.Services
                         new("id", id.ToString()),
                         new("fmt", "xml"),
                         new("xml_soln", "on")
-                    }))
+                    }), new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token)
                     .GetAwaiter().GetResult()
                     .Content
                     .ReadAsStream();

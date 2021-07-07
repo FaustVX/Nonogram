@@ -196,6 +196,34 @@ namespace Nonogram
             return result;
         }
 
+        public void BoxSeal()
+        {
+            if (IsCorrect)
+                return;
+
+            for (var x = 0; x < Width; x++)
+                if (ColHints[x].Count == 0)
+                    for (var y = 0; y < Height; y++)
+                        ValidateHints(x, y, IgnoredColor, true);
+            for (var y = 0; y < Height; y++)
+                if (RowHints[y].Count == 0)
+                    for (var x = 0; x < Width; x++)
+                        ValidateHints(x, y, IgnoredColor, true);
+
+            if (PossibleColors.Length > 1)
+                foreach (var color in PossibleColors)
+                {
+                    for (var x = 0; x < Width; x++)
+                        if (!ColHints[x].Any(hint => hint.color.Equals(color)))
+                            for (var y = 0; y < Height; y++)
+                                ValidateHints(x, y, color, true);
+                    for (var y = 0; y < Height; y++)
+                        if (!RowHints[y].Any(hint => hint.color.Equals(color)))
+                            for (var x = 0; x < Width; x++)
+                                ValidateHints(x, y, color, true);
+                }
+        }
+
         public void SetColor(int x, int y, T color)
         {
             if (this[x, y].IsEmpty)

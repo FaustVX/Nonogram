@@ -16,7 +16,7 @@ namespace Nonogram.WPF
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private Game<Brush> _nonogram;
+        private Game<Brush> _nonogram = default!;
         public Game<Brush> Nonogram
         {
             get => _nonogram;
@@ -34,7 +34,7 @@ namespace Nonogram.WPF
             }
         }
 
-        private Brush _currentColor;
+        private Brush _currentColor = default!;
         public Brush CurrentColor
         {
             get => _currentColor;
@@ -156,6 +156,9 @@ namespace Nonogram.WPF
 
         private static Game<Brush> TryGetRandomId()
             => Services.WebPbn.TryGetRandomId<Brush>(new(), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+
+        private void BoxClick(object sender, RoutedEventArgs e)
+            => Nonogram.BoxSeal();
 
         private void This_StateChanged(object sender, EventArgs e)
             => SizeToContent = SizeToContent.WidthAndHeight;

@@ -124,6 +124,7 @@
             </FrameworkElement.Resources>
 
             <Button Content="New" Click="NewClick"/>
+            <Button Content="Box" Click="BoxClick"/>
             <Button Content="Tips" Click="TipsButtonClick" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
             <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
         </ItemsControl>
@@ -214,6 +215,7 @@
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
                                     <Binding/>
+                                    <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                     <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                 </MultiBinding>
                             </Border.Background>
