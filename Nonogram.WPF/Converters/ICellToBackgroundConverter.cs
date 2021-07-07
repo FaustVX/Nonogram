@@ -14,7 +14,7 @@ namespace Nonogram.WPF.Converters
             => values.Length is 3
                 ? (values[0], values[1], values[2]) switch
                 {
-                    not (ICell or null, Brush or null, bool) => default!,
+                    not (ICell, Brush or null, bool) => default!,
                     (EmptyCell, _, _) => IgnoredBrush,
                     (ColoredCell<Brush> c, _, _) => c.Color,
                     (SealedCell<Brush> { Seals: var seals }, Brush brush, false) when !seals.Contains(brush) => IgnoredBrush,

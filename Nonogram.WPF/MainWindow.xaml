@@ -116,17 +116,18 @@
             </ItemsControl.ItemsPanel>
             <FrameworkElement.Resources>
                 <Style TargetType="ButtonBase" x:Key="Style">
-                    <Setter Property="Margin" Value="1"/>
+                    <Setter Property="Margin" Value="1.5"/>
                     <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Visibility" Value="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
                 </Style>
                 <Style TargetType="Button" BasedOn="{StaticResource Style}"/>
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
-            <Button Content="New" Click="NewClick"/>
+            <Button Content="New" Click="NewClick" Visibility="Visible"/>
             <Button Content="Box" Click="BoxClick"/>
-            <Button Content="Tips" Click="TipsButtonClick" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
-            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
+            <Button Content="Tips" Click="TipsButtonClick"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>
         </ItemsControl>
 
         <Grid Grid.Row="2" Margin="5">
