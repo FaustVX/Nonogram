@@ -29,6 +29,8 @@ namespace Nonogram.WPF
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
+                if (WindowState is WindowState.Normal)
+                    SizeToContent = SizeToContent.WidthAndHeight;
             }
         }
 
@@ -154,5 +156,8 @@ namespace Nonogram.WPF
 
         private static Game<Brush> TryGetRandomId()
             => Services.WebPbn.TryGetRandomId<Brush>(new(), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+
+        private void This_StateChanged(object sender, EventArgs e)
+            => SizeToContent = SizeToContent.WidthAndHeight;
     }
 }

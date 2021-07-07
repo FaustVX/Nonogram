@@ -15,7 +15,8 @@
         MouseUp="This_MouseUp"
         SizeToContent="WidthAndHeight"
         Background="Gray"
-        Title="Nonogram">
+        Title="Nonogram"
+        StateChanged="This_StateChanged">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
@@ -107,8 +108,7 @@
             </FrameworkElement.Resources>
         </ListBox>
 
-        <ItemsControl Grid.Row="1" HorizontalAlignment="Right"
-                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
+        <ItemsControl Grid.Row="1" HorizontalAlignment="Right">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>
@@ -124,8 +124,8 @@
             </FrameworkElement.Resources>
 
             <Button Content="New" Click="NewClick"/>
-            <Button Content="Tips" Click="TipsButtonClick"/>
-            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>
+            <Button Content="Tips" Click="TipsButtonClick" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
         </ItemsControl>
 
         <Grid Grid.Row="2" Margin="5">
@@ -196,8 +196,8 @@
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ctrl:UniformGrid Orientation="Horizontal"
-                            Columns="{Binding Nonogram.Width, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Rows="{Binding Nonogram.Height, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                            Columns="{Binding Width, Mode=OneWay}"
+                            Rows="{Binding Height, Mode=OneWay}"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
