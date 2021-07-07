@@ -261,8 +261,8 @@ namespace Nonogram
                     if (this[i, y] is { IsColored: false })
                         this[i, y] = new AllColoredSealCell();
 
-            IsComplete = (Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
-                && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated)));
+            IsComplete = Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
+                && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated));
 
             if (IsComplete)
             {
@@ -288,7 +288,7 @@ namespace Nonogram
                         hint.validated = true;
                         hints[i] = hint;
                     }
-                    return hints.All(h => h.validated);
+                    return lineArray.Length == hints.Count && hints.All(h => h.validated);
                 }
 
                 for (var i = 0; i < hints.Count; i++)
@@ -302,7 +302,7 @@ namespace Nonogram
                     if (!ValidateCell(lineArray, hints, i) && !ValidateCell(lineArray, hints, Index.FromEnd(i + 1)))
                         break;
 
-                return hints.All(h => h.validated);
+                return lineArray.Length == hints.Count && hints.All(h => h.validated);
 
 
                 static bool ValidateCell((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, Index i)
@@ -362,7 +362,10 @@ namespace Nonogram
                 _nexts.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
                 OnCollectionChanged(x, y, in cell);
+                var autoSeal = AutoSeal;
+                _autoSeal = false;
                 ValidateHints(x, y);
+                _autoSeal = autoSeal;
                 return (x, y);
             }
             return null;
@@ -377,7 +380,10 @@ namespace Nonogram
                 _previous.AddLast((x, y, _grid[y, x]));
                 CalculateColoredCells(x, y, cell);
                 OnCollectionChanged(x, y, in cell);
+                var autoSeal = AutoSeal;
+                _autoSeal = false;
                 ValidateHints(x, y);
+                _autoSeal = autoSeal;
                 return (x, y);
             }
             return null;
