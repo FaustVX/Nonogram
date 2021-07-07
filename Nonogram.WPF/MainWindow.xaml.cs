@@ -54,11 +54,23 @@ namespace Nonogram.WPF
 
         public MainWindow()
         {
-            Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+            Nonogram = TryGetRandomId(new());
             _currentColor = Nonogram.PossibleColors[0];
 
             InitializeComponent();
             ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
+
+            static Game<Brush> TryGetRandomId(Random rng)
+            {
+                try
+                {
+                    return Services.WebPbn.Get<Brush>(rng.Next(1000), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+                }
+                catch (Exception)
+                {
+                    return TryGetRandomId(rng);
+                }
+            }
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
