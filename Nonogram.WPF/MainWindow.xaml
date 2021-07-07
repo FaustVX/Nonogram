@@ -47,6 +47,8 @@
                        ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
             </Border>
         </DataTemplate>
+        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="IsCorrectVisibility"/>
+        <conv:BoolConverter Type="{x:Type sys:Double}" False="15" True="30" x:Key="IsCorrectSize"/>
     </Window.Resources>
 
     <Grid>
@@ -68,7 +70,7 @@
         </TextBlock>
 
         <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}" Background="Transparent"
-                 Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}"
+                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"
                  SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -105,7 +107,7 @@
         </ListBox>
 
         <ItemsControl Grid.Row="1" HorizontalAlignment="Right"
-                 Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>
@@ -125,7 +127,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Vertical"/>
@@ -152,7 +154,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={conv:BoolConverter Visibility, False={x:Static Visibility.Visible}, True={x:Static Visibility.Hidden}}}">
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
@@ -196,8 +198,8 @@
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
                             Initialized="CellInitialized"
-                            Width="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Height="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=15, True=30}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            Width="{Binding Nonogram.IsCorrect, Converter={StaticResource IsCorrectSize}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Height="{Binding Nonogram.IsCorrect, Converter={StaticResource IsCorrectSize}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
                                     <Binding/>

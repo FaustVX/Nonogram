@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace Nonogram.WPF.Converters
 {
+    [MarkupExtensionReturnType(typeof(IValueConverter))]
     public class BoolConverterExtension : MarkupExtension
     {
         public BoolConverterExtension()
