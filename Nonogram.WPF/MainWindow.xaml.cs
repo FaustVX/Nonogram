@@ -52,12 +52,9 @@ namespace Nonogram.WPF
         private ICellToBackgroundConverter ICellToBackgroundConverter
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
-        private readonly Border[,] _borders;
-
         public MainWindow()
         {
             Nonogram = Services.WebPbn.Get<Brush>(2, (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
-            _borders = new Border[Nonogram.Width, Nonogram.Height];
             _currentColor = Nonogram.PossibleColors[0];
 
             InitializeComponent();
@@ -138,7 +135,6 @@ namespace Nonogram.WPF
             var border = (Border)sender;
             var (x, y) = Nonogram.GetCoord((ICell)border.DataContext);
             border.Tag = (x, y);
-            _borders[x, y] = border;
         }
     }
 }
