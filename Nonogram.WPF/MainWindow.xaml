@@ -115,9 +115,12 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <FrameworkElement.Resources>
-                <Style TargetType="Control">
+                <Style TargetType="ButtonBase" x:Key="Style">
                     <Setter Property="Margin" Value="1"/>
+                    <Setter Property="BorderThickness" Value="0"/>
                 </Style>
+                <Style TargetType="Button" BasedOn="{StaticResource Style}"/>
+                <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
             <Button Content="New" Click="NewClick"/>
