@@ -4,12 +4,26 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Nonogram.Services
 {
     public static class WebPbn
     {
+        public static Game<T> TryGetRandomId<T>(Random rng, Func<string, int, T> converter)
+        where T : notnull
+        {
+            try
+            {
+                return Get(rng.Next(1000), converter);
+            }
+            catch (XmlException)
+            {
+                return TryGetRandomId(rng, converter);
+            }
+        }
+
         public static Game<T> Get<T>(int id, Func<string, int, T> converter)
         where T : notnull
         {

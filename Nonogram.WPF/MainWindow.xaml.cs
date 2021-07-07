@@ -70,7 +70,7 @@ namespace Nonogram.WPF
         public MainWindow()
         {
             InitializeComponent();
-            Nonogram = TryGetRandomId(new());
+            Nonogram = TryGetRandomId();
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
@@ -150,18 +150,9 @@ namespace Nonogram.WPF
         }
 
         private void NewClick(object sender, RoutedEventArgs e)
-            => Nonogram = TryGetRandomId(new());
+            => Nonogram = TryGetRandomId();
 
-        private static Game<Brush> TryGetRandomId(Random rng)
-        {
-            try
-            {
-                return Services.WebPbn.Get<Brush>(rng.Next(1000), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
-            }
-            catch (Exception)
-            {
-                return TryGetRandomId(rng);
-            }
-        }
+        private static Game<Brush> TryGetRandomId()
+            => Services.WebPbn.TryGetRandomId<Brush>(new(), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
     }
 }
