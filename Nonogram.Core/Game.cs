@@ -236,6 +236,8 @@ namespace Nonogram
                     => seals.Add(color),
                 (false, SealedCell<T> seals, _) when seals.Seals.Contains(color)
                     => seals.Remove(color),
+                (false, SealedCell<T>, false)
+                    => new ColoredCell<T>(color),
                 (false, AllColoredSealCell, false)
                     => AllColoredSealCell.Without(color, PossibleColors),
                 (false, { IsEmpty: true }, false)
