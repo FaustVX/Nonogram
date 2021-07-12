@@ -55,6 +55,16 @@ namespace Nonogram.WPF
             set => OnPropertyChanged(ref _hoverY, in value);
         }
 
+        private int _size = 150;
+        public double Size
+        {
+            get => _size / 10d;
+            set => OnPropertyChanged(ref _size, in value, v => (int)(v * 10));
+        }
+
+        protected void OnPropertyChanged<T, U>(ref T storage, in U value, Func<U, T> converter, [CallerMemberName] string propertyName = default!)
+            => OnPropertyChanged(ref storage, converter(value), propertyName);
+
         protected void OnPropertyChanged<T>(ref T storage, in T value, [CallerMemberName] string propertyName = default!)
         {
             if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
@@ -124,6 +134,12 @@ namespace Nonogram.WPF
                     break;
                 case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
                     CurrentColor = Nonogram.PossibleColors[key - Key.D1];
+                    break;
+                case (ModifierKeys.Control, Key.Add or Key.OemPlus):
+                    Size += 0.1;
+                    break;
+                case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
+                    Size -= 0.1;
                     break;
             }
         }
