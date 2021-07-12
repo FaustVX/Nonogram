@@ -8,14 +8,10 @@ namespace Nonogram.WPF.Converters
     public class BoolConverterExtension : MarkupExtension
     {
         public BoolConverterExtension()
-        {
-            Type = typeof(bool);
-        }
+            => Type = typeof(bool);
 
         public BoolConverterExtension(Type type)
-        {
-            Type = type;
-        }
+            => Type = type;
 
         public Type Type { get; set; }
         public object True { get; set; } = default!;

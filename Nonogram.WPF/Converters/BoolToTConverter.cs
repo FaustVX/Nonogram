@@ -1,11 +1,8 @@
-﻿using System;
-using System.Globalization;
-using System.Reflection;
-using System.Windows.Data;
+﻿using System.Reflection;
 
 namespace Nonogram.WPF.Converters
 {
-    public class BoolToTConverter<T> : IValueConverter
+    public class BoolToTConverter<T> : IValueConverter<bool, T>
         where T : notnull
     {
         public BoolToTConverter()
@@ -29,9 +26,7 @@ namespace Nonogram.WPF.Converters
 
         private static MethodInfo? Parse;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is true ? True : False;
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+        public T Convert(bool value)
+            => value ? True : False;
     }
 }
