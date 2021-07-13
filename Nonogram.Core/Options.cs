@@ -14,7 +14,7 @@ namespace Nonogram
         {
             switch (Options.Option)
             {
-                case Options.WebPbn { WebPbnIndex: null }:
+                case null or Options.WebPbn { WebPbnIndex: null }:
                     return Services.WebPbn.TryGetRandomId(new(), converterRGB);
                 case Options.WebPbn { WebPbnIndex: int idx }:
                     return Services.WebPbn.Get(idx, converterRGB);
