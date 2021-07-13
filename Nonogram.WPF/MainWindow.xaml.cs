@@ -3,7 +3,6 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -69,7 +68,7 @@ namespace Nonogram.WPF
             set => OnPropertyChanged(ref _size, in value, v => (int)(v * 10));
         }
 
-        protected void OnPropertyChanged<T, U>(ref T storage, in U value, Func<U, T> converter, [CallerMemberName] string propertyName = default!)
+        protected void OnPropertyChanged<TStorage, TValue>(ref TStorage storage, in TValue value, Func<TValue, TStorage> converter, [CallerMemberName] string propertyName = default!)
             => OnPropertyChanged(ref storage, converter(value), propertyName: propertyName);
 
         protected void OnPropertyChanged<T>(ref T storage, in T value, Func<T, bool> validator = default!, [CallerMemberName] string propertyName = default!, params string[] otherPropertyNames)
@@ -102,11 +101,9 @@ namespace Nonogram.WPF
         {
             var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
-            {
                 if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y))
                     if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
-                        Change((Border)sender, e.RightButton is MouseButtonState.Pressed);
-            }
+                        Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
@@ -115,15 +112,15 @@ namespace Nonogram.WPF
                 return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = (Nonogram[x, y], x, y);
-            Change((Border)sender, e.ChangedButton is MouseButton.Right);
+            Change((FrameworkElement)sender, e.ChangedButton is MouseButton.Right);
         }
 
-        private void Change(Border border, bool isSealed)
+        private void Change(FrameworkElement element, bool isSealed)
         {
             if (Nonogram.IsCorrect)
                 return;
 
-            var (x, y) = GetXYFromTag(border);
+            var (x, y) = GetXYFromTag(element);
 
             Nonogram.ValidateHints(x, y, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? Nonogram.IgnoredColor : CurrentColor, seal: isSealed);
         }
@@ -183,9 +180,9 @@ namespace Nonogram.WPF
         private void TipsButtonClick(object sender, RoutedEventArgs e)
             => Nonogram.Tips();
 
-        private void CellInitialized(object sender, System.EventArgs e)
+        private void CellInitialized(object sender, EventArgs e)
         {
-            var border = (Border)sender;
+            var border = (FrameworkElement)sender;
             var (x, y) = Nonogram.GetCoord((ICell)border.DataContext);
             border.Tag = (x, y);
         }

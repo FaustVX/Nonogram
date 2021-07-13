@@ -10,7 +10,7 @@ namespace Nonogram.CLI
         {
             var id = int.Parse(args[0]);
             Console.WriteLine($"Download pattern#{id} from webpbn.com");
-            var nonogram = Services.WebPbn.Get<ConsoleColor>(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
+            var nonogram = Services.WebPbn.Get(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
             Play(nonogram, ConsoleColor.DarkGray);
         }
 

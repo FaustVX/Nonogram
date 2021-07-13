@@ -18,7 +18,7 @@ namespace Nonogram.Services
         {
             try
             {
-                return Get(rng.Next(1000), converter);
+                return Get(rng.Next(10_000), converter);
             }
             catch (XmlException)
             {
