@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Net.Http;
 using CommandLine;
 
 namespace Nonogram
@@ -19,7 +20,13 @@ namespace Nonogram
                     return Services.WebPbn.Get(idx, converterRGB);
                 case Options.Resize resize:
                     {
-                        var bitmap = new Bitmap(Image.FromFile(resize.FileInfo.FullName));
+                        var stream = resize switch
+                        {
+                            { FileInfo: { Exists: true } file } => file.OpenRead(),
+                            { URI: { Scheme: "http" or "https" } uri } => new HttpClient().GetStreamAsync(uri).GetAwaiter().GetResult(),
+                            _ => throw new Exception(),
+                        };
+                        var bitmap = new Bitmap(Image.FromStream(stream));
                         var array = new Color[bitmap.Width, bitmap.Height];
                         for (int x = 0; x < bitmap.Width; x++)
                             for (int y = 0; y < bitmap.Height; y++)
@@ -51,6 +58,7 @@ namespace Nonogram
             [Option("file", Required = true)]
             public string File { get; set; } = default!;
             public FileInfo FileInfo => new(File);
+            public Uri URI => new(File);
             [Option('w', "width", Required = true)]
             public int Width { get; set; }
             [Option('h', "height", Required = true)]
