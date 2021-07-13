@@ -138,9 +138,11 @@ namespace Nonogram
             ColHints = new ObservableCollection<(T, int, bool)>[Width];
             RowHints = new ObservableCollection<(T, int, bool)>[Height];
 
+            var rng = new Random(0);
             PossibleColors = pattern.Cast<T>()
                 .ToHashSet()
                 .Where(c => !ColorEqualizer(c, IgnoredColor))
+                .OrderBy(_ => rng.Next())
                 .ToArray();
 
             TotalColoredCell = this.GenerateCoord().Count(pos => !ColorEqualizer(_pattern[pos.y, pos.x], ignoredColor));
