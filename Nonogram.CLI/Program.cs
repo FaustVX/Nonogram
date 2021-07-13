@@ -8,9 +8,8 @@ namespace Nonogram.CLI
     {
         private static void Main(string[] args)
         {
-            var id = int.Parse(args[0]);
-            Console.WriteLine($"Download pattern#{id} from webpbn.com");
-            var nonogram = Services.WebPbn.Get(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
+            Options.ParseArgs(args);
+            var nonogram = Options.Generate((name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
             Play(nonogram, ConsoleColor.DarkGray);
         }
 

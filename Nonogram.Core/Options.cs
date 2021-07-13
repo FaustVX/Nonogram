@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using CommandLine;
 
-namespace Nonogram.WPF
+namespace Nonogram
 {
     public abstract class Options
     {
@@ -18,6 +18,12 @@ namespace Nonogram.WPF
                     return Services.WebPbn.Get(idx, converter);
                 default: throw new Exception();
             }
+        }
+
+        public static void ParseArgs(string[] args)
+        {
+            Parser.Default.ParseArguments<Options.WebPbn>(args).WithParsed(o => Options.Option = o);
+            Parser.Default.ParseArguments<Options.Resize>(args).WithParsed(o => Options.Option = o);
         }
 
         [Verb("webpbn", false, HelpText = "Retrieve pattern from 'Webpbn.com'")]
