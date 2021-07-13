@@ -26,7 +26,7 @@ namespace Nonogram.WPF
                 var autoSeal = Nonogram?.AutoSeal;
                 OnPropertyChanged(ref _nonogram, in value);
                 Controls.ColRow.Reset();
-                CurrentColorIndex = 0;
+                CurrentColorIndex = _lastColorIndex = 0;
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
@@ -42,7 +42,7 @@ namespace Nonogram.WPF
             set => OnPropertyChanged(ref _currentColor, in value, otherPropertyNames: nameof(CurrentColorIndex));
         }
 
-        private int _currentColorIndex;
+        private int _currentColorIndex, _lastColorIndex;
         public int CurrentColorIndex
         {
             get => _currentColorIndex;
@@ -136,6 +136,7 @@ namespace Nonogram.WPF
 
         private void This_KeyUp(object sender, KeyEventArgs e)
         {
+            e.Handled = true;
             switch ((e.KeyboardDevice.Modifiers, e.Key))
             {
                 case (ModifierKeys.Control, Key.Z) when !Nonogram.IsCorrect:
@@ -148,13 +149,23 @@ namespace Nonogram.WPF
                     Nonogram.Tips();
                     break;
                 case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
-                    CurrentColorIndex = key - Key.D1;
+                    if (CurrentColorIndex != key - Key.D1)
+                    {
+                        _lastColorIndex = CurrentColorIndex;
+                        CurrentColorIndex = key - Key.D1;
+                    }
                     break;
                 case (ModifierKeys.Control, Key.Add or Key.OemPlus):
                     Size += 0.1;
                     break;
                 case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
                     Size -= 0.1;
+                    break;
+                case (_, Key.Tab):
+                    (CurrentColorIndex, _lastColorIndex) = (_lastColorIndex, CurrentColorIndex);
+                    break;
+                default:
+                    e.Handled = false;
                     break;
             }
         }
