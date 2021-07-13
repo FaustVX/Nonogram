@@ -25,8 +25,8 @@ namespace Nonogram.WPF
                 var autoSeal = Nonogram?.AutoSeal;
                 OnPropertyChanged(ref _nonogram, in value);
                 Controls.ColRow.Reset();
-                CurrentColor = Nonogram!.PossibleColors[0];
-                ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram.IgnoredColor;
+                CurrentColorIndex = 0;
+                ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
                 if (WindowState is WindowState.Normal)
@@ -38,7 +38,14 @@ namespace Nonogram.WPF
         public Brush CurrentColor
         {
             get => _currentColor;
-            set => OnPropertyChanged(ref _currentColor, in value);
+            set => OnPropertyChanged(ref _currentColor, in value, otherPropertyNames: nameof(CurrentColorIndex));
+        }
+
+        private int _currentColorIndex;
+        public int CurrentColorIndex
+        {
+            get => _currentColorIndex;
+            set => OnPropertyChanged(ref _currentColorIndex, in value, otherPropertyNames: nameof(CurrentColor));
         }
 
         private int _hoverX;
@@ -63,14 +70,19 @@ namespace Nonogram.WPF
         }
 
         protected void OnPropertyChanged<T, U>(ref T storage, in U value, Func<U, T> converter, [CallerMemberName] string propertyName = default!)
-            => OnPropertyChanged(ref storage, converter(value), propertyName);
+            => OnPropertyChanged(ref storage, converter(value), propertyName: propertyName);
 
-        protected void OnPropertyChanged<T>(ref T storage, in T value, [CallerMemberName] string propertyName = default!)
+        protected void OnPropertyChanged<T>(ref T storage, in T value, Func<T, bool> validator = default!, [CallerMemberName] string propertyName = default!, params string[] otherPropertyNames)
         {
             if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
             {
-                storage = value;
-                PropertyChanged?.Invoke(this, new(propertyName));
+                if (validator?.Invoke(value) ?? true)
+                {
+                    storage = value;
+                    PropertyChanged?.Invoke(this, new(propertyName));
+                    foreach (var name in otherPropertyNames)
+                        PropertyChanged?.Invoke(this, new(name));
+                }
             }
         }
 
@@ -133,7 +145,7 @@ namespace Nonogram.WPF
                     Nonogram.Tips();
                     break;
                 case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
-                    CurrentColor = Nonogram.PossibleColors[key - Key.D1];
+                    CurrentColorIndex = key - Key.D1;
                     break;
                 case (ModifierKeys.Control, Key.Add or Key.OemPlus):
                     Size += 0.1;
@@ -155,6 +167,17 @@ namespace Nonogram.WPF
                     Nonogram.Redo();
                     break;
             }
+        }
+
+        private void This_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var offset = e.Delta switch
+            {
+                > 0 => Nonogram.PossibleColors.Length - 1,
+                0 => 0,
+                < 0 => +1,
+            };
+            CurrentColorIndex = (CurrentColorIndex + offset) % Nonogram.PossibleColors.Length;
         }
 
         private void TipsButtonClick(object sender, RoutedEventArgs e)

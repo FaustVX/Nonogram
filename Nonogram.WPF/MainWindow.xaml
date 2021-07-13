@@ -13,6 +13,7 @@
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         MouseUp="This_MouseUp"
+        MouseWheel="This_MouseWheel"
         SizeToContent="WidthAndHeight"
         Background="Gray"
         Title="Nonogram"
@@ -72,7 +73,8 @@
 
         <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}" Background="Transparent"
                  Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"
-                 SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                 SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                 SelectedIndex="{Binding CurrentColorIndex, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
