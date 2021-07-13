@@ -27,10 +27,10 @@ namespace Nonogram
                             _ => throw new Exception(),
                         };
                         var bitmap = new Bitmap(Image.FromStream(stream));
-                        var array = new Color[bitmap.Width, bitmap.Height];
+                        var array = new Color[bitmap.Height, bitmap.Width];
                         for (int x = 0; x < bitmap.Width; x++)
                             for (int y = 0; y < bitmap.Height; y++)
-                                array[x, y] = bitmap.GetPixel(x, y);
+                                array[y, x] = bitmap.GetPixel(x, y);
 
                         var pattern = global::Nonogram.Extensions.ReduceArray<Color, T>(array, resize.Width, resize.Height, converterColor);
                         return Game.Create(pattern, ignoredColor);
