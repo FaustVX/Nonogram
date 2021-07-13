@@ -57,7 +57,7 @@ namespace Nonogram
             => Color = color;
 
         public bool Equals(ICell? other)
-            => other is ColoredCell<T> { Color: var c } && c.Equals(Color);
+            => other is ColoredCell<T> { Color: var c } && Game<T>.ColorEqualizer(c, Color);
     }
 
     public sealed class SealedCell<T> : ICell

@@ -92,6 +92,10 @@ namespace Nonogram.WPF
         private ICellToBackgroundConverter ICellToBackgroundConverter
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
+        static MainWindow()
+        {
+            Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
+        }
         public MainWindow()
         {
             InitializeComponent();
