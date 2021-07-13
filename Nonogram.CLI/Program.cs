@@ -9,7 +9,7 @@ namespace Nonogram.CLI
         private static void Main(string[] args)
         {
             Options.ParseArgs(args);
-            var nonogram = Options.Generate((name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
+            var nonogram = Options.Generate((name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true), default!);
             Play(nonogram, ConsoleColor.DarkGray);
         }
 

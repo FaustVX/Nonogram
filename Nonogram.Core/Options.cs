@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using CommandLine;
 
@@ -6,16 +7,27 @@ namespace Nonogram
 {
     public abstract class Options
     {
-        public static Options? Option { get; set; } = default;
-        public static Game<T> Generate<T>(Func<string, int, T> converter)
+        public static Options Option { get; set; } = default!;
+        public static Game<T> Generate<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, T ignoredColor = default!)
         where T : notnull
         {
             switch (Options.Option)
             {
                 case Options.WebPbn { WebPbnIndex: null }:
-                    return Services.WebPbn.TryGetRandomId(new(), converter);
+                    return Services.WebPbn.TryGetRandomId(new(), converterRGB);
                 case Options.WebPbn { WebPbnIndex: int idx }:
-                    return Services.WebPbn.Get(idx, converter);
+                    return Services.WebPbn.Get(idx, converterRGB);
+                case Options.Resize resize:
+                    {
+                        var bitmap = new Bitmap(Image.FromFile(resize.FileInfo.FullName));
+                        var array = new Color[bitmap.Width, bitmap.Height];
+                        for (int x = 0; x < bitmap.Width; x++)
+                            for (int y = 0; y < bitmap.Height; y++)
+                                array[x, y] = bitmap.GetPixel(x, y);
+
+                        var pattern = global::Nonogram.Extensions.ReduceArray<Color, T>(array, resize.Width, resize.Height, converterColor);
+                        return Game.Create(pattern, ignoredColor);
+                    }
                 default: throw new Exception();
             }
         }
@@ -31,6 +43,20 @@ namespace Nonogram
         {
             [Option('i', "id", HelpText = "Index pattern from 'Webpbn.com'")]
             public int? WebPbnIndex { get; set; }
+        }
+
+        [Verb("resize", false)]
+        public class Resize : Options
+        {
+            [Option("file", Required = true)]
+            public string File { get; set; } = default!;
+            public FileInfo FileInfo => new(File);
+            [Option('w', "width", Required = true)]
+            public int Width { get; set; }
+            [Option('h', "height", Required = true)]
+            public int Height { get; set; }
+            [Option('f', "factor", Default = 15)]
+            public int FactorReduction { get; set; }
         }
     }
 }
