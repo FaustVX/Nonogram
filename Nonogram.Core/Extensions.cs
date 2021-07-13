@@ -53,6 +53,10 @@ namespace Nonogram
         where TOut : notnull
         {
             var (inWidth, inHeight) = (arrayIn.GetLength(1), arrayIn.GetLength(0));
+            if (width <= 0)
+                width = inWidth;
+            if (height <= 0)
+                height = inHeight;
             var arrayOut = new TOut[height, width];
             var stepSizeX = inWidth / width;
             var stepSizeY = inHeight / height;

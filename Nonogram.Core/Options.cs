@@ -41,30 +41,40 @@ namespace Nonogram
 
         public static void ParseArgs(string[] args)
         {
-            Parser.Default.ParseArguments<Options.WebPbn>(args).WithParsed(o => Options.Option = o);
-            Parser.Default.ParseArguments<Options.Resize>(args).WithParsed(o => Options.Option = o);
+            if (args is null or { Length: 0 })
+                Options.Option = new Options.WebPbn();
+            else if (args.Length is 1)
+                Options.Option = new Options.Resize() { File = args[0] };
+            else
+            {
+                Parser.Default.ParseArguments<Options.WebPbn>(args).WithParsed(o => Options.Option = o);
+                Parser.Default.ParseArguments<Options.Resize>(args).WithParsed(o => Options.Option = o);
+            }
         }
 
         [Verb("webpbn", false, HelpText = "Retrieve pattern from 'Webpbn.com'")]
         public class WebPbn : Options
         {
             [Option('i', "id", HelpText = "Index pattern from 'Webpbn.com'")]
-            public int? WebPbnIndex { get; set; }
+            public int? WebPbnIndex { get; init; }
         }
 
         [Verb("resize", false)]
         public class Resize : Options
         {
             [Option("file", Required = true)]
-            public string File { get; set; } = default!;
+            public string File { get; init; } = default!;
             public FileInfo FileInfo => new(File);
             public Uri URI => new(File);
+
             [Option('w', "width", Required = true)]
-            public int Width { get; set; }
+            public int Width { get; init; }
+
             [Option('h', "height", Required = true)]
-            public int Height { get; set; }
-            [Option('f', "factor", Default = 15)]
-            public int FactorReduction { get; set; }
+            public int Height { get; init; }
+
+            [Option('f', "factor", Default = 100)]
+            public int FactorReduction { get; init; } = 1;
         }
     }
 }
