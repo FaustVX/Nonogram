@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace Nonogram.WPF
 {
@@ -7,5 +8,13 @@ namespace Nonogram.WPF
     /// </summary>
     public partial class App : Application
     {
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            Options.ParseArgs(args);
+            var application = new App();
+            application.InitializeComponent();
+            application.Run();
+        }
     }
 }

@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Nonogram.CLI/bin/Debug/net5.0/Nonogram.CLI.dll",
-            "args": ["${input:id}"],
+            "args": "${input:args}",
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "integratedTerminal",
@@ -27,7 +27,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Nonogram.WPF/bin/Debug/net5.0-windows/Nonogram.WPF.dll",
-            "args": [],
+            "args": "${input:args}",
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "integratedTerminal",
@@ -47,9 +47,9 @@
     ],
     "inputs": [
         {
-            "id": "id",
+            "id": "args",
             "type": "promptString",
-            "description": "WebPbn id"
-        }
+            "description": "Args"
+        },
     ]
 }

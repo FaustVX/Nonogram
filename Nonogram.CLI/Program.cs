@@ -6,11 +6,27 @@ namespace Nonogram.CLI
 {
     public static class Program
     {
+        private static ConsoleColor FromColor(System.Drawing.Color c)
+        {
+            int index = (c.R > 128 | c.G > 128 | c.B > 128) ? 8 : 0; // Bright bit
+            index |= (c.R > 64) ? 4 : 0; // Red bit
+            index |= (c.G > 64) ? 2 : 0; // Green bit
+            index |= (c.B > 64) ? 1 : 0; // Blue bit
+            return (System.ConsoleColor)index;
+        }
         private static void Main(string[] args)
         {
-            var id = int.Parse(args[0]);
-            Console.WriteLine($"Download pattern#{id} from webpbn.com");
-            var nonogram = Services.WebPbn.Get(id, (name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true));
+            Options.ParseArgs(args);
+            var nonogram = Options.Generate((name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true),
+            span =>
+            {
+                var ratio = ((Options.Resize)Options.Option).FactorReduction;
+                var count = (ulong)span.Width * (ulong)span.Height;
+                var color = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
+                    (acc, col) => (acc.r + col.R, acc.g + col.G, acc.b + col.B),
+                    acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
+                return FromColor(System.Drawing.Color.FromArgb(255, color.r, color.g, color.b));
+            });
             Play(nonogram, ConsoleColor.DarkGray);
         }
 

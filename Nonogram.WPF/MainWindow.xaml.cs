@@ -1,6 +1,8 @@
 using Nonogram.WPF.Converters;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -90,10 +92,14 @@ namespace Nonogram.WPF
         private ICellToBackgroundConverter ICellToBackgroundConverter
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
+        static MainWindow()
+        {
+            Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
+        }
         public MainWindow()
         {
             InitializeComponent();
-            Nonogram = TryGetRandomId();
+            Nonogram = Generate();
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
@@ -188,10 +194,31 @@ namespace Nonogram.WPF
         }
 
         private void NewClick(object sender, RoutedEventArgs e)
-            => Nonogram = TryGetRandomId();
+            => Nonogram = Generate();
 
-        private static Game<Brush> TryGetRandomId()
-            => Services.WebPbn.TryGetRandomId<Brush>(new(), (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))));
+        private static Game<Brush> Generate()
+        {
+            var cache = new Dictionary<Color, Brush>();
+            return Options.Generate<Brush>(
+                           (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))),
+                           span =>
+                           {
+                               var ratio = ((Options.Resize)Options.Option).FactorReduction;
+                               var count = (ulong)span.Width * (ulong)span.Height;
+                               var color = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
+                                   (acc, col) => (acc.r + col.R, acc.g + col.G, acc.b + col.B),
+                                   acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
+                               return TryGet(Color.FromRgb((byte)(color.r / ratio * ratio), (byte)(color.g / ratio * ratio), (byte)(color.b / ratio * ratio)));
+                           },
+                           Brushes.Black);
+
+            Brush TryGet(Color color)
+            {
+                if (cache.TryGetValue(color, out var value))
+                    return value;
+                return cache[color] = new SolidColorBrush(color);
+            }
+        }
 
         private void BoxClick(object sender, RoutedEventArgs e)
             => Nonogram.BoxSeal();
