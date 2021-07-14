@@ -6,12 +6,10 @@ namespace Nonogram
 {
     public interface ICell : IEquatable<ICell>
     {
-        public T? GetColor<T>()
-            where T : notnull
+        public object? GetColor()
             => default;
 
-        public T[]? GetSeals<T>()
-            where T : notnull
+        public object[]? GetSeals()
             => null;
 
         public bool IsColored
@@ -39,9 +37,8 @@ namespace Nonogram
         public bool Equals(ICell? other)
             => other is AllColoredSealCell;
 
-        public T[]? GetSeals<T>()
-            where T : notnull
-            => Array.Empty<T>();
+        public object[]? GetSeals()
+            => Array.Empty<object>();
     }
 
     public sealed class ColoredCell<T> : ICell
@@ -50,7 +47,7 @@ namespace Nonogram
         public T Color { get; }
         public bool IsColored => true;
 
-        public T? GetColor()
+        public object? GetColor()
             => Color;
 
         public ColoredCell(T color)
@@ -66,8 +63,8 @@ namespace Nonogram
         public List<T> Seals { get; }
         public bool IsSealed => true;
 
-        public T[]? GetSeals()
-            => Seals.ToArray();
+        public object[]? GetSeals()
+            => Seals.Cast<object>().ToArray();
 
         public SealedCell<T> Remove(T seal)
             => new(Seals.Where(s => !s.Equals(seal)));

@@ -219,11 +219,11 @@ namespace Nonogram
                     for (var x = 0; x < Width; x++)
                         if (!ColHints[x].Any(hint => ColorEqualizer(hint.color, color)))
                             for (var y = 0; y < Height; y++)
-                                ValidateHints(x, y, color, true);
+                                Seal(x, y, color);
                     for (var y = 0; y < Height; y++)
                         if (!RowHints[y].Any(hint => ColorEqualizer(hint.color, color)))
                             for (var x = 0; x < Width; x++)
-                                ValidateHints(x, y, color, true);
+                                Seal(x, y, color);
                 }
         }
 
@@ -242,7 +242,7 @@ namespace Nonogram
 
         public void Seal(int x, int y, T color)
         {
-            if (this[x, y].IsEmpty)
+            if (this[x, y] is { IsEmpty: true } or { IsSealed: true })
                 ValidateHints(x, y, color, seal: true);
         }
 
@@ -293,6 +293,26 @@ namespace Nonogram
                 for (var i = 0; i < Width; i++)
                     if (this[i, y] is { IsColored: false })
                         this[i, y] = new AllColoredSealCell();
+
+            if (AutoSeal && this[x, y].GetColor() is T color)
+            {
+                var any = false;
+                if (RowHints[y].Where(h => ColorEqualizer(color, h.color)).All(All) && any)
+                    for (var i = 0; i < Width; i++)
+                        if (!this[i, y].IsColored)
+                            Seal(i, y, color);
+                any = false;
+                if (ColHints[x].Where(h => ColorEqualizer(color, h.color)).All(All) && any)
+                    for (var i = 0; i < Height; i++)
+                        if (!this[x, i].IsColored)
+                            Seal(x, i, color);
+
+                bool All((T color, int qty, bool validated) h)
+                {
+                    any |= h.validated;
+                    return h.validated;
+                }
+            }
 
             IsComplete = Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
                 && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated));
