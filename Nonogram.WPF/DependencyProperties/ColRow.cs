@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 
-namespace Nonogram.WPF.Controls
+namespace Nonogram.WPF.DependencyProperties
 {
-    public class ColRow : DependencyObject
+    public class ColRow
     {
         private static int _row, _col;
 
@@ -28,7 +28,5 @@ namespace Nonogram.WPF.Controls
         // Using a DependencyProperty as the backing store for Col.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ColProperty =
             DependencyProperty.RegisterAttached("Col", typeof(int), typeof(ColRow), new PropertyMetadata(-1, (_, _) => { }, (_, _) => _col++));
-
-
     }
 }

@@ -25,7 +25,7 @@ namespace Nonogram.WPF
             {
                 var autoSeal = Nonogram?.AutoSeal;
                 OnPropertyChanged(ref _nonogram, in value);
-                Controls.ColRow.Reset();
+                DependencyProperties.ColRow.Reset();
                 CurrentColorIndex = _lastColorIndex = 0;
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
@@ -93,9 +93,7 @@ namespace Nonogram.WPF
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
         static MainWindow()
-        {
-            Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
-        }
+            => Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
         public MainWindow()
         {
             InitializeComponent();
@@ -210,16 +208,16 @@ namespace Nonogram.WPF
         private static Game<Brush> Generate()
         {
             var cache = new Dictionary<Color, Brush>();
-            return Options.Generate<Brush>(
+            return Options.Generate(
                            (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))),
                            span =>
                            {
                                var ratio = ((Options.Resize)Options.Option).FactorReduction;
                                var count = (ulong)span.Width * (ulong)span.Height;
-                               var color = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
+                               var (r, g, b) = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
                                    (acc, col) => (acc.r + col.R, acc.g + col.G, acc.b + col.B),
                                    acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
-                               return TryGet(Color.FromRgb((byte)(color.r / ratio * ratio), (byte)(color.g / ratio * ratio), (byte)(color.b / ratio * ratio)));
+                               return TryGet(Color.FromRgb((byte)(r / ratio * ratio), (byte)(g / ratio * ratio), (byte)(b / ratio * ratio)));
                            },
                            Brushes.Black);
 

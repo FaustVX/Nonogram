@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Nonogram.WPF"
         xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
         xmlns:ctrl="clr-namespace:Nonogram.WPF.Controls"
+        xmlns:dp="clr-namespace:Nonogram.WPF.DependencyProperties"
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         x:Name="This"
@@ -151,7 +152,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Row="0">
+                        <Border BorderThickness="0.5" CornerRadius="2" dp:ColRow.Row="0">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
@@ -178,7 +179,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="0.5" CornerRadius="2" ctrl:ColRow.Col="0">
+                        <Border BorderThickness="0.5" CornerRadius="2" dp:ColRow.Col="0">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
