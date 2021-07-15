@@ -30,13 +30,13 @@ namespace Nonogram.WPF.Converters
             => throw new NotImplementedException();
     }
 
-    public interface IMultiValueConverter<T1, T2, T3, TOut> : IMultiValueConverter
+    public interface IMultiValueConverter<T1, T2, T3, T4, TOut> : IMultiValueConverter
     {
-        TOut Convert((T1, T2, T3) values);
+        TOut Convert((T1, T2, T3, T4) values);
 
         object? IMultiValueConverter.Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-            => values.Length is 3 && values[0].CheckType<T1>(true) is var t1 && values[1].CheckType<T2>(true) is var t2 && values[2].CheckType<T3>(true) is var t3
-            ? Convert((t1, t2, t3))
+            => values.Length is 4 && values[0].CheckType<T1>(true) is var t1 && values[1].CheckType<T2>(true) is var t2 && values[2].CheckType<T3>(true) is var t3 && values[3].CheckType<T4>(true) is var t4
+            ? Convert((t1, t2, t3, t4))
             : throw new Exception();
 
         object[] IMultiValueConverter.ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

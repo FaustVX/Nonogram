@@ -1,4 +1,5 @@
 using Nonogram.WPF.Converters;
+using Nonogram.WPF.DependencyProperties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,9 +25,9 @@ namespace Nonogram.WPF
             set
             {
                 var autoSeal = Nonogram?.AutoSeal;
+                ColRow.Reset();
+                CanBeSelected.SetSelectedColor(this, 0);
                 OnPropertyChanged(ref _nonogram, in value);
-                DependencyProperties.ColRow.Reset();
-                CurrentColorIndex = _lastColorIndex = 0;
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
@@ -35,19 +36,11 @@ namespace Nonogram.WPF
             }
         }
 
-        private Brush _currentColor = default!;
         public Brush CurrentColor
-        {
-            get => _currentColor;
-            set => OnPropertyChanged(ref _currentColor, in value, otherPropertyNames: nameof(CurrentColorIndex));
-        }
+            => Nonogram.PossibleColors[CurrentColorIndex];
 
-        private int _currentColorIndex, _lastColorIndex;
         public int CurrentColorIndex
-        {
-            get => _currentColorIndex;
-            set => OnPropertyChanged(ref _currentColorIndex, in value, otherPropertyNames: nameof(CurrentColor));
-        }
+            => CanBeSelected.GetSelectedColor(this);
 
         private int _hoverX;
         public int HoverX
@@ -146,21 +139,11 @@ namespace Nonogram.WPF
                 case (ModifierKeys.Control, Key.OemComma):
                     Nonogram.Tips();
                     break;
-                case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
-                    if (CurrentColorIndex != key - Key.D1)
-                    {
-                        _lastColorIndex = CurrentColorIndex;
-                        CurrentColorIndex = key - Key.D1;
-                    }
-                    break;
                 case (ModifierKeys.Control, Key.Add or Key.OemPlus):
                     Size += 0.1;
                     break;
                 case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
                     Size -= 0.1;
-                    break;
-                case (_, Key.Tab):
-                    (CurrentColorIndex, _lastColorIndex) = (_lastColorIndex, CurrentColorIndex);
                     break;
                 default:
                     e.Handled = false;
@@ -179,17 +162,6 @@ namespace Nonogram.WPF
                     Nonogram.Redo();
                     break;
             }
-        }
-
-        private void This_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            var offset = e.Delta switch
-            {
-                > 0 => Nonogram.PossibleColors.Length - 1,
-                0 => 0,
-                < 0 => +1,
-            };
-            CurrentColorIndex = (CurrentColorIndex + offset) % Nonogram.PossibleColors.Length;
         }
 
         private void TipsButtonClick(object sender, RoutedEventArgs e)

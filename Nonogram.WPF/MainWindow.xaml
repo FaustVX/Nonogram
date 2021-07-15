@@ -14,7 +14,7 @@
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         MouseUp="This_MouseUp"
-        MouseWheel="This_MouseWheel"
+        dp:CanBeSelected.SelectedColor="0"
         SizeToContent="WidthAndHeight"
         Background="Gray"
         Title="Nonogram"
@@ -72,10 +72,9 @@
             </TextBlock.Text>
         </TextBlock>
 
-        <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" ItemsSource="{Binding PossibleColors}" Background="Transparent"
-                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"
-                 SelectedItem="{Binding CurrentColor, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                 SelectedIndex="{Binding CurrentColorIndex, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+        <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" Background="Transparent" x:Name="colors"
+                 dp:CanBeSelected.IsSelector="{Binding PossibleColors}"
+                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
@@ -83,10 +82,22 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="Black" BorderThickness="2" CornerRadius="2">
-                        <Canvas Background="{Binding}"
-                                Width="{Binding Size, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                                Height="{Binding Size, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                    <Border CornerRadius="2" dp:CanBeSelected.IsLocked="False" dp:CanBeSelected.IsColor="{Binding}"
+                            Width="{Binding Size, Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Height="{Binding Size, Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                                <Style.Triggers>
+                                    <Trigger Property="dp:CanBeSelected.IsLocked" Value="True">
+                                        <Setter Property="BorderBrush" Value="White"/>
+                                        <Setter Property="BorderThickness" Value="5"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Canvas Background="{Binding}"/>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -218,7 +229,8 @@
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
                                     <Binding/>
-                                    <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
+                                    <Binding Path="(dp:CanBeSelected.SelectedColor)" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                     <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                 </MultiBinding>
                             </Border.Background>
@@ -241,7 +253,8 @@
                                 <TextBlock.Foreground>
                                     <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
                                         <Binding/>
-                                        <Binding Path="CurrentColor" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                        <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
+                                        <Binding Path="(dp:CanBeSelected.SelectedColor)" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                         <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                     </MultiBinding>
                                 </TextBlock.Foreground>
