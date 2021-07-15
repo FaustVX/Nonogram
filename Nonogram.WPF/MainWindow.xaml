@@ -13,7 +13,7 @@
         DataContext="{Binding Nonogram, Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
-        MouseUp="This_MouseUp"
+        dp:UndoRedo.UndoRedo="{Binding}"
         dp:CanBeSelected.SelectedColor="0"
         SizeToContent="WidthAndHeight"
         Background="Gray"

@@ -130,12 +130,6 @@ namespace Nonogram.WPF
             e.Handled = true;
             switch ((e.KeyboardDevice.Modifiers, e.Key))
             {
-                case (ModifierKeys.Control, Key.Z) when !Nonogram.IsCorrect:
-                    Nonogram.Undo();
-                    break;
-                case (ModifierKeys.Control, Key.Y):
-                    Nonogram.Redo();
-                    break;
                 case (ModifierKeys.Control, Key.OemComma):
                     Nonogram.Tips();
                     break;
@@ -147,19 +141,6 @@ namespace Nonogram.WPF
                     break;
                 default:
                     e.Handled = false;
-                    break;
-            }
-        }
-
-        private void This_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            switch (e.ChangedButton)
-            {
-                case MouseButton.XButton1 when !Nonogram.IsCorrect:
-                    Nonogram.Undo();
-                    break;
-                case MouseButton.XButton2:
-                    Nonogram.Redo();
                     break;
             }
         }
