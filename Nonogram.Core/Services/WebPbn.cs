@@ -28,6 +28,10 @@ namespace Nonogram.Services
             {
                 return TryGetRandomId(rng, converter);
             }
+            catch (OperationCanceledException)
+            {
+                return TryGetRandomId(rng, converter);
+            }
         }
 
         public static Game<T> Get<T>(int id, Func<string, int, T> converter)
