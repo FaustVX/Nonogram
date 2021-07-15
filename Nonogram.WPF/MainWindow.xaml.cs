@@ -56,16 +56,6 @@ namespace Nonogram.WPF
             set => OnPropertyChanged(ref _hoverY, in value);
         }
 
-        private int _size = 150;
-        public double Size
-        {
-            get => _size / 10d;
-            set => OnPropertyChanged(ref _size, in value, v => (int)(v * 10));
-        }
-
-        protected void OnPropertyChanged<TStorage, TValue>(ref TStorage storage, in TValue value, Func<TValue, TStorage> converter, [CallerMemberName] string propertyName = default!)
-            => OnPropertyChanged(ref storage, converter(value), propertyName: propertyName);
-
         protected void OnPropertyChanged<T>(ref T storage, in T value, Func<T, bool> validator = default!, [CallerMemberName] string propertyName = default!, params string[] otherPropertyNames)
         {
             if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
@@ -136,17 +126,6 @@ namespace Nonogram.WPF
                 case (ModifierKeys.Control, Key.OemComma):
                     Nonogram.Tips();
                     e.Handled = true;
-                    break;
-                case (ModifierKeys.Control, Key.Add or Key.OemPlus):
-                    Size += 0.1;
-                    e.Handled = true;
-                    break;
-                case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
-                    Size -= 0.1;
-                    e.Handled = true;
-                    break;
-                default:
-                    e.Handled = false;
                     break;
             }
         }

@@ -14,6 +14,7 @@
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         dp:UndoRedo.UndoRedo="{Binding}"
+        dp:Size.CellSize="15"
         dp:CanBeSelected.SelectedColor="0"
         SizeToContent="WidthAndHeight"
         Background="Gray"
@@ -44,8 +45,8 @@
                 </Border.Background>
                 <TextBlock Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
                        Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
-                       Width="{Binding Size, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                       Height="{Binding Size, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                       Width="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                       Height="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                        TextAlignment="Center"
                        ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
             </Border>
@@ -83,8 +84,8 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border CornerRadius="2" dp:CanBeSelected.IsLocked="False" dp:CanBeSelected.IsColor="{Binding}"
-                            Width="{Binding Size, Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Height="{Binding Size, Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            Width="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            Height="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="BorderBrush" Value="Black"/>
@@ -237,13 +238,13 @@
                             <FrameworkElement.Width>
                                 <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
                                     <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                    <Binding Path="Size" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="(dp:Size.CellSize)" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                 </MultiBinding>
                             </FrameworkElement.Width>
                             <FrameworkElement.Height>
                                 <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
                                     <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                    <Binding Path="Size" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="(dp:Size.CellSize)" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
                                 </MultiBinding>
                             </FrameworkElement.Height>
                             <TextBlock
