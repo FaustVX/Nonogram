@@ -14,7 +14,7 @@
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         dp:UndoRedo.UndoRedo="{Binding}"
-        dp:Size.CellSize="15"
+        dp:Size.CellSize="17.5"
         dp:CanBeSelected.SelectedColor="0"
         SizeToContent="WidthAndHeight"
         Background="Gray"
@@ -35,24 +35,39 @@
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BrushToColorConverter/>
         </conv:ChainConverter>
+        <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">
-            <Border BorderThickness="0" CornerRadius="3">
+            <Border BorderThickness="0" CornerRadius="3"
+                    ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
+                    Width="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                    Height="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
                 <Border.Background>
                     <LinearGradientBrush>
                         <GradientStop Color="{Binding Converter={StaticResource BrushToColorConverter}, ConverterParameter=0}" Offset="0.75"/>
                         <GradientStop Color="Gray" Offset="0"/>
                     </LinearGradientBrush>
                 </Border.Background>
-                <TextBlock Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
-                       Foreground="{Binding Converter={StaticResource BoolToBrushConverter}, ConverterParameter=2}"
-                       Width="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                       Height="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                       TextAlignment="Center"
-                       ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"/>
+                <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center"
+                       FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.75, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                       Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}">
+                    <FrameworkElement.Resources>
+                        <Style TargetType="ctrl:OutlinedTextBlock">
+                            <Setter Property="Fill" Value="White"/>
+                            <Setter Property="Stroke" Value="Black"/>
+                            <Setter Property="StrokeThickness" Value="1"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=2}" Value="True">
+                                    <Setter Property="Fill" Value="Black"/>
+                                    <Setter Property="Stroke" Value="Red"/>
+                                    <Setter Property="StrokeThickness" Value="1"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </FrameworkElement.Resources>
+                </ctrl:OutlinedTextBlock>
             </Border>
         </DataTemplate>
         <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="IsCorrectVisibility"/>
-        <conv:MultiplyConverter x:Key="IsCorrectSize"/>
     </Window.Resources>
 
     <Grid>
