@@ -17,7 +17,7 @@ namespace Nonogram
             => new(pattern, ignoredColor);
     }
 
-    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged
+    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged, IUndoRedo
     where T : notnull
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -417,6 +417,9 @@ namespace Nonogram
             return (x, y);
         }
 
+        void IUndoRedo.Undo()
+            => Undo();
+
         public (int x, int y)? Undo()
         {
             var last = _previous.Last;
@@ -434,6 +437,9 @@ namespace Nonogram
             }
             return null;
         }
+
+        void IUndoRedo.Redo()
+            => Redo();
 
         public (int x, int y)? Redo()
         {

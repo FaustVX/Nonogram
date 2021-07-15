@@ -1,4 +1,5 @@
 using Nonogram.WPF.Converters;
+using Nonogram.WPF.DependencyProperties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,9 +25,9 @@ namespace Nonogram.WPF
             set
             {
                 var autoSeal = Nonogram?.AutoSeal;
+                ColRow.Reset();
+                CanBeSelected.SetSelectedColor(this, 0);
                 OnPropertyChanged(ref _nonogram, in value);
-                Controls.ColRow.Reset();
-                CurrentColorIndex = _lastColorIndex = 0;
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
@@ -35,19 +36,11 @@ namespace Nonogram.WPF
             }
         }
 
-        private Brush _currentColor = default!;
         public Brush CurrentColor
-        {
-            get => _currentColor;
-            set => OnPropertyChanged(ref _currentColor, in value, otherPropertyNames: nameof(CurrentColorIndex));
-        }
+            => Nonogram.PossibleColors[CurrentColorIndex];
 
-        private int _currentColorIndex, _lastColorIndex;
         public int CurrentColorIndex
-        {
-            get => _currentColorIndex;
-            set => OnPropertyChanged(ref _currentColorIndex, in value, otherPropertyNames: nameof(CurrentColor));
-        }
+            => CanBeSelected.GetSelectedColor(this);
 
         private int _hoverX;
         public int HoverX
@@ -93,9 +86,7 @@ namespace Nonogram.WPF
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
         static MainWindow()
-        {
-            Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
-        }
+            => Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
         public MainWindow()
         {
             InitializeComponent();
@@ -109,7 +100,10 @@ namespace Nonogram.WPF
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
                 if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y))
                     if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
+                    {
                         Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
+                        e.Handled = true;
+                    }
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
@@ -119,6 +113,7 @@ namespace Nonogram.WPF
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = (Nonogram[x, y], x, y);
             Change((FrameworkElement)sender, e.ChangedButton is MouseButton.Right);
+            e.Handled = true;
         }
 
         private void Change(FrameworkElement element, bool isSealed)
@@ -136,62 +131,24 @@ namespace Nonogram.WPF
 
         private void This_KeyUp(object sender, KeyEventArgs e)
         {
-            e.Handled = true;
             switch ((e.KeyboardDevice.Modifiers, e.Key))
             {
-                case (ModifierKeys.Control, Key.Z) when !Nonogram.IsCorrect:
-                    Nonogram.Undo();
-                    break;
-                case (ModifierKeys.Control, Key.Y):
-                    Nonogram.Redo();
-                    break;
                 case (ModifierKeys.Control, Key.OemComma):
                     Nonogram.Tips();
-                    break;
-                case (_, >= Key.D1 and <= Key.D9 and var key) when (key - Key.D1) < Nonogram.PossibleColors.Length:
-                    if (CurrentColorIndex != key - Key.D1)
-                    {
-                        _lastColorIndex = CurrentColorIndex;
-                        CurrentColorIndex = key - Key.D1;
-                    }
+                    e.Handled = true;
                     break;
                 case (ModifierKeys.Control, Key.Add or Key.OemPlus):
                     Size += 0.1;
+                    e.Handled = true;
                     break;
                 case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
                     Size -= 0.1;
-                    break;
-                case (_, Key.Tab):
-                    (CurrentColorIndex, _lastColorIndex) = (_lastColorIndex, CurrentColorIndex);
+                    e.Handled = true;
                     break;
                 default:
                     e.Handled = false;
                     break;
             }
-        }
-
-        private void This_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            switch (e.ChangedButton)
-            {
-                case MouseButton.XButton1 when !Nonogram.IsCorrect:
-                    Nonogram.Undo();
-                    break;
-                case MouseButton.XButton2:
-                    Nonogram.Redo();
-                    break;
-            }
-        }
-
-        private void This_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            var offset = e.Delta switch
-            {
-                > 0 => Nonogram.PossibleColors.Length - 1,
-                0 => 0,
-                < 0 => +1,
-            };
-            CurrentColorIndex = (CurrentColorIndex + offset) % Nonogram.PossibleColors.Length;
         }
 
         private void TipsButtonClick(object sender, RoutedEventArgs e)
@@ -210,16 +167,16 @@ namespace Nonogram.WPF
         private static Game<Brush> Generate()
         {
             var cache = new Dictionary<Color, Brush>();
-            return Options.Generate<Brush>(
+            return Options.Generate(
                            (_, rgb) => new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16))),
                            span =>
                            {
                                var ratio = ((Options.Resize)Options.Option).FactorReduction;
                                var count = (ulong)span.Width * (ulong)span.Height;
-                               var color = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
+                               var (r, g, b) = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
                                    (acc, col) => (acc.r + col.R, acc.g + col.G, acc.b + col.B),
                                    acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
-                               return TryGet(Color.FromRgb((byte)(color.r / ratio * ratio), (byte)(color.g / ratio * ratio), (byte)(color.b / ratio * ratio)));
+                               return TryGet(Color.FromRgb((byte)(r / ratio * ratio), (byte)(g / ratio * ratio), (byte)(b / ratio * ratio)));
                            },
                            Brushes.Black);
 

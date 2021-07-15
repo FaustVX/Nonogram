@@ -1,4 +1,4 @@
-﻿using Nonogram.WPF.Controls;
+﻿using Nonogram.WPF.DependencyProperties;
 using System.Windows;
 using System.Windows.Media;
 
