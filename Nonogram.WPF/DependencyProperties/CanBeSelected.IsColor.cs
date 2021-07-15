@@ -13,11 +13,11 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for IsColor.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsColorProperty =
-            DependencyProperty.RegisterAttached("IsColor", typeof(object), typeof(CanBeSelected), new PropertyMetadata(null, ValidateIsColor));
+            DependencyProperty.RegisterAttached("IsColor", typeof(object), typeof(CanBeSelected), new PropertyMetadata(null, IsColorChanged));
 
         private static Dictionary<object, FrameworkElement> _cache = default!;
 
-        private static void ValidateIsColor(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void IsColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             switch ((d, e.OldValue, e.NewValue))
             {

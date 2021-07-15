@@ -17,7 +17,7 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for Row.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty RowProperty =
-            DependencyProperty.RegisterAttached("Row", typeof(int), typeof(ColRow), new PropertyMetadata(-1, (_, _) => { }, (_, _) => _row++));
+            DependencyProperty.RegisterAttached("Row", typeof(int), typeof(ColRow), new PropertyMetadata(-1, static (_, _) => { }, static (_, _) => _row++));
 
         public static int GetCol(DependencyObject obj)
             => (int)obj.GetValue(ColProperty);
@@ -27,6 +27,6 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for Col.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ColProperty =
-            DependencyProperty.RegisterAttached("Col", typeof(int), typeof(ColRow), new PropertyMetadata(-1, (_, _) => { }, (_, _) => _col++));
+            DependencyProperty.RegisterAttached("Col", typeof(int), typeof(ColRow), new PropertyMetadata(-1, static (_, _) => { }, static (_, _) => _col++));
     }
 }

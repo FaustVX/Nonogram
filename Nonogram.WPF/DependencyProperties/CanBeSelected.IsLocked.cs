@@ -14,9 +14,9 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for IsLocked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsLockedProperty =
-            DependencyProperty.RegisterAttached("IsLocked", typeof(bool?), typeof(CanBeSelected), new PropertyMetadata(null, ValidateIsLocked));
+            DependencyProperty.RegisterAttached("IsLocked", typeof(bool?), typeof(CanBeSelected), new PropertyMetadata(null, IsLockedChanged));
 
-        private static void ValidateIsLocked(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void IsLockedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             switch ((d, e.OldValue, e.NewValue))
             {

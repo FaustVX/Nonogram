@@ -16,9 +16,9 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for IsSelector.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsSelectorProperty =
-            DependencyProperty.RegisterAttached("IsSelector", typeof(IList), typeof(CanBeSelected), new PropertyMetadata(null, ValidateIsSelector));
+            DependencyProperty.RegisterAttached("IsSelector", typeof(IList), typeof(CanBeSelected), new PropertyMetadata(null, IsSelectorChanged));
 
-        private static void ValidateIsSelector(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void IsSelectorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             _cache = new();
             _lastColorIndex = 0;
