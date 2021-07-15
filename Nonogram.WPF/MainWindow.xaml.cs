@@ -100,7 +100,10 @@ namespace Nonogram.WPF
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
                 if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y))
                     if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
+                    {
                         Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
+                        e.Handled = true;
+                    }
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
@@ -110,6 +113,7 @@ namespace Nonogram.WPF
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = (Nonogram[x, y], x, y);
             Change((FrameworkElement)sender, e.ChangedButton is MouseButton.Right);
+            e.Handled = true;
         }
 
         private void Change(FrameworkElement element, bool isSealed)
@@ -127,17 +131,19 @@ namespace Nonogram.WPF
 
         private void This_KeyUp(object sender, KeyEventArgs e)
         {
-            e.Handled = true;
             switch ((e.KeyboardDevice.Modifiers, e.Key))
             {
                 case (ModifierKeys.Control, Key.OemComma):
                     Nonogram.Tips();
+                    e.Handled = true;
                     break;
                 case (ModifierKeys.Control, Key.Add or Key.OemPlus):
                     Size += 0.1;
+                    e.Handled = true;
                     break;
                 case (ModifierKeys.Control, Key.Subtract or Key.OemMinus):
                     Size -= 0.1;
+                    e.Handled = true;
                     break;
                 default:
                     e.Handled = false;

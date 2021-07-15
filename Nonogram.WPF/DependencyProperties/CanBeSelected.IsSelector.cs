@@ -70,6 +70,7 @@ namespace Nonogram.WPF.DependencyProperties
                 < 0 => GetOffset(+1),
             };
             SetSelectedColor(_window, (GetSelectedColor(_window) + offset) % _colors.Count);
+            e.Handled = true;
 
             static int GetOffset(int offset)
             {
@@ -81,23 +82,21 @@ namespace Nonogram.WPF.DependencyProperties
 
         private static void KeyUp(object sender, KeyEventArgs e)
         {
-            e.Handled = true;
             switch (e.Key)
             {
                 case Key.Tab:
                     var temp = _lastColorIndex;
                     _lastColorIndex = GetSelectedColor(_window);
                     SetSelectedColor(_window, temp);
+                    e.Handled = true;
                     break;
                 case >= Key.D1 and <= Key.D9 and var key when (key - Key.D1) is var pos && pos < _colors.Count && ValidateSelectedColor(pos):
                     if (GetSelectedColor(_window) != key - Key.D1)
                     {
                         _lastColorIndex = GetSelectedColor(_window);
                         SetSelectedColor(_window, key - Key.D1);
+                        e.Handled = true;
                     }
-                    break;
-                default:
-                    e.Handled = false;
                     break;
             }
         }

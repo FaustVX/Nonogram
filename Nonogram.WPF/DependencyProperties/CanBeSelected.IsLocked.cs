@@ -32,7 +32,10 @@ namespace Nonogram.WPF.DependencyProperties
         private static void SetSelected(object sender, MouseButtonEventArgs e)
         {
             if (GetIsLocked((DependencyObject)sender) || _cache.Values.Count(e => GetIsLocked(e)) < _colors.Count - 1)
+            {
                 SetIsLocked((DependencyObject)sender, !GetIsLocked((DependencyObject)sender));
+                e.Handled = true;
+            }
         }
     }
 }
