@@ -140,6 +140,8 @@
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
+            <Button Content="Save" Click="SaveClick"/>
+            <Button Content="Load" Click="LoadClick" Visibility="Visible"/>
             <Button Content="New" Click="NewClick" Visibility="Visible"/>
             <Button Content="Box" Click="BoxClick"/>
             <Button Content="Tips" Click="TipsButtonClick"/>

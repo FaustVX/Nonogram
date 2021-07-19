@@ -133,35 +133,45 @@ namespace Nonogram.WPF
                     e.Handled = true;
                     break;
                 case (ModifierKeys.Control, Key.S):
-                        var saveDialog = new SaveFileDialog()
-                        {
-                            AddExtension = true,
-                            Filter = "Picross files|*.picross",
-                            DefaultExt = "*.picross",
-                        };
-                        if (saveDialog.ShowDialog(this) is not true)
-                            break;
-                        var saveGame = MessageBox.Show(this, "Save also the current game ?", "Save all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
-                        var save = saveGame ? Nonogram.SaveGame() : Nonogram.SavePattern();
-                        var saveFile = new FileInfo(saveDialog.FileName);
-                        using (var stream = saveFile.OpenWrite())
-                            stream.Write(save);
-                        break;
+                    SaveClick(default!, default!);
+                    break;
                 case (ModifierKeys.Control, Key.O):
-                        var openDialog = new OpenFileDialog()
-                        {
-                            AddExtension = true,
-                            Filter = "Picross files|*.picross",
-                            DefaultExt = "*.picross",
-                        };
-                        if (openDialog.ShowDialog(this) is not true)
-                            break;
-                        var loadGame = MessageBox.Show(this, "Load also the saved game ?", "Load all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
-                        var openFile = new FileInfo(openDialog.FileName);
-                        using (var stream = openFile.OpenRead())
-                            Nonogram = Game.Load(stream, ColorLoader, loadGame);
-                        break;
+                    LoadClick(default!, default!);
+                    break;
             }
+        }
+
+        private void SaveClick(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new SaveFileDialog()
+            {
+                AddExtension = true,
+                Filter = "Picross files|*.picross",
+                DefaultExt = "*.picross",
+            };
+            if (saveDialog.ShowDialog(this) is not true)
+                return;
+            var saveGame = MessageBox.Show(this, "Save also the current game ?", "Save all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+            var save = saveGame ? Nonogram.SaveGame() : Nonogram.SavePattern();
+            var saveFile = new FileInfo(saveDialog.FileName);
+            using var stream = saveFile.OpenWrite();
+            stream.Write(save);
+        }
+
+        private void LoadClick(object sender, RoutedEventArgs e)
+        {
+            var openDialog = new OpenFileDialog()
+            {
+                AddExtension = true,
+                Filter = "Picross files|*.picross",
+                DefaultExt = "*.picross",
+            };
+            if (openDialog.ShowDialog(this) is not true)
+                return;
+            var loadGame = MessageBox.Show(this, "Load also the saved game ?", "Load all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+            var openFile = new FileInfo(openDialog.FileName);
+            using var stream = openFile.OpenRead();
+            Nonogram = Game.Load(stream, ColorLoader, loadGame);
         }
 
         private void TipsButtonClick(object sender, RoutedEventArgs e)
