@@ -159,7 +159,7 @@ namespace Nonogram.WPF
                         var loadGame = MessageBox.Show(this, "Load also the saved game ?", "Load all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
                         var openFile = new FileInfo(openDialog.FileName);
                         using (var stream = openFile.OpenRead())
-                            Nonogram = Game.Load(stream, e => (Brush)new SolidColorBrush(Color.FromArgb(e.GetNext(), e.GetNext(), e.GetNext(), e.GetNext())), loadGame);
+                            Nonogram = Game.Load(stream, ColorLoader, loadGame);
                         break;
             }
         }
@@ -191,7 +191,7 @@ namespace Nonogram.WPF
                                    acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
                                return TryGet(Color.FromRgb((byte)(r / ratio * ratio), (byte)(g / ratio * ratio), (byte)(b / ratio * ratio)));
                            },
-                           Brushes.Black);
+                           ColorLoader, Brushes.Black);
 
             Brush TryGet(Color color)
             {
@@ -200,6 +200,9 @@ namespace Nonogram.WPF
                 return cache[color] = new SolidColorBrush(color);
             }
         }
+
+        private static Brush ColorLoader(IEnumerator<byte> enumerator)
+            => new SolidColorBrush(Color.FromArgb(enumerator.GetNext(), enumerator.GetNext(), enumerator.GetNext(), enumerator.GetNext()));
 
         private void BoxClick(object sender, RoutedEventArgs e)
             => Nonogram.BoxSeal();
