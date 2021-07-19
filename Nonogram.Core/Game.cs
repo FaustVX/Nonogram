@@ -40,12 +40,12 @@ namespace Nonogram
             where T : notnull
             => new(pattern, ignoredColor);
 
-        public static Game<T> LoadPattern<T>(Stream patternSave, Func<IEnumerator<byte>, T> deserializer)
+        public static Game<T> Load<T>(Stream patternSave, Func<IEnumerator<byte>, T> deserializer, bool loadGame)
             where T : notnull
         {
             var version = patternSave.ReadByte();
             if (version is not 1)
-                throw new FormatException($"Format {version} not supported");
+                throw new FormatException($"Version: {version} not supported");
 
             using var enumerator = new StreamEnumerator(patternSave);
             var (width, height) = (patternSave.ReadByte(), patternSave.ReadByte());
@@ -54,7 +54,17 @@ namespace Nonogram
             foreach (var (x, y) in pattern.GenerateCoord())
                 pattern[y, x] = colors[patternSave.ReadByte()];
 
-            return Game.Create(pattern, colors[0]);
+            var game = Game.Create(pattern, colors[0]);
+            if (loadGame && patternSave.Position < patternSave.Length)
+                foreach (var (x, y) in pattern.GenerateCoord())
+                    game._grid[y, x] = patternSave.ReadByte() switch
+                    {
+                        0 => new EmptyCell(),
+                        1 => new AllColoredSealCell(),
+                        2 => new SealedCell<T>(Enumerable.Range(0, patternSave.ReadByte()).Select(_ => colors[patternSave.ReadByte()])),
+                        3 => new ColoredCell<T>(colors[patternSave.ReadByte()]),
+                    };
+            return game;
         }
     }
 
@@ -67,7 +77,7 @@ namespace Nonogram
         public static Func<T, byte[]> ColorSerializer { get; set; }
 
         private readonly T[,] _pattern;
-        private readonly ICell[,] _grid;
+        internal readonly ICell[,] _grid;
 
         public int Width { get; }
         public int Height { get; }
