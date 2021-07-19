@@ -43,6 +43,10 @@ namespace Nonogram
         public static Game<T> LoadPattern<T>(Stream patternSave, Func<IEnumerator<byte>, T> deserializer)
             where T : notnull
         {
+            var version = patternSave.ReadByte();
+            if (version is not 1)
+                throw new FormatException($"Format {version} not supported");
+
             using var enumerator = new StreamEnumerator(patternSave);
             var (width, height) = (patternSave.ReadByte(), patternSave.ReadByte());
             var colors = Enumerable.Range(0, patternSave.ReadByte()).Select(_ => deserializer(enumerator)).ToArray();
@@ -527,7 +531,7 @@ namespace Nonogram
         public byte[] SavePattern()
         {
             var colors = PossibleColors.Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
-            return new[]{ (byte)Width, (byte)Height, (byte)colors.Length }
+            return new[]{ (byte)1, (byte)Width, (byte)Height, (byte)colors.Length }
                 .Concat(ColorSerializer(IgnoredColor))
                 .Concat(PossibleColors.SelectMany(ColorSerializer))
                 .Concat(this.GenerateCoord()
