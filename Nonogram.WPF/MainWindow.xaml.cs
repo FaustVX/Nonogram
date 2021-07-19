@@ -1,8 +1,10 @@
+using Microsoft.Win32;
 using Nonogram.WPF.Converters;
 using Nonogram.WPF.DependencyProperties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -76,7 +78,10 @@ namespace Nonogram.WPF
             => (ICellToBackgroundConverter)Resources["ICellToBackgroundConverter"];
 
         static MainWindow()
-            => Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
+        {
+            Game<Brush>.ColorEqualizer = (a, b) => (a, b) is (SolidColorBrush { Color: var c1 }, SolidColorBrush { Color: var c2 }) ? Color.Equals(c1, c2) : a.Equals(b);
+            Game<Brush>.ColorSerializer = brush => brush is SolidColorBrush b ? new[] { b.Color.A, b.Color.R, b.Color.G, b.Color.B } : null!;
+        }
         public MainWindow()
         {
             InitializeComponent();
@@ -127,7 +132,46 @@ namespace Nonogram.WPF
                     Nonogram.Tips();
                     e.Handled = true;
                     break;
+                case (ModifierKeys.Control, Key.S):
+                    SaveClick(default!, default!);
+                    break;
+                case (ModifierKeys.Control, Key.O):
+                    LoadClick(default!, default!);
+                    break;
             }
+        }
+
+        private void SaveClick(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new SaveFileDialog()
+            {
+                AddExtension = true,
+                Filter = "Picross files|*.picross",
+                DefaultExt = "*.picross",
+            };
+            if (saveDialog.ShowDialog(this) is not true)
+                return;
+            var saveGame = MessageBox.Show(this, "Save also the current game ?", "Save all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+            var save = saveGame ? Nonogram.SaveGame() : Nonogram.SavePattern();
+            var saveFile = new FileInfo(saveDialog.FileName);
+            using var stream = saveFile.OpenWrite();
+            stream.Write(save);
+        }
+
+        private void LoadClick(object sender, RoutedEventArgs e)
+        {
+            var openDialog = new OpenFileDialog()
+            {
+                AddExtension = true,
+                Filter = "Picross files|*.picross",
+                DefaultExt = "*.picross",
+            };
+            if (openDialog.ShowDialog(this) is not true)
+                return;
+            var loadGame = MessageBox.Show(this, "Load also the saved game ?", "Load all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+            var openFile = new FileInfo(openDialog.FileName);
+            using var stream = openFile.OpenRead();
+            Nonogram = Game.Load(stream, ColorLoader, loadGame);
         }
 
         private void TipsButtonClick(object sender, RoutedEventArgs e)
@@ -157,7 +201,7 @@ namespace Nonogram.WPF
                                    acc => (r: (byte)(acc.r / count), g: (byte)(acc.g / count), b: (byte)(acc.b / count)));
                                return TryGet(Color.FromRgb((byte)(r / ratio * ratio), (byte)(g / ratio * ratio), (byte)(b / ratio * ratio)));
                            },
-                           Brushes.Black);
+                           ColorLoader, Brushes.Black);
 
             Brush TryGet(Color color)
             {
@@ -166,6 +210,9 @@ namespace Nonogram.WPF
                 return cache[color] = new SolidColorBrush(color);
             }
         }
+
+        private static Brush ColorLoader(IEnumerator<byte> enumerator)
+            => new SolidColorBrush(Color.FromArgb(enumerator.GetNext(), enumerator.GetNext(), enumerator.GetNext(), enumerator.GetNext()));
 
         private void BoxClick(object sender, RoutedEventArgs e)
             => Nonogram.BoxSeal();

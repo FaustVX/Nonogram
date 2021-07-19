@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Net.Http;
@@ -10,23 +11,28 @@ namespace Nonogram
     {
         public static Options Option { get; set; } = default!;
 
-        protected abstract Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, T ignoredColor = default!)
+        protected abstract Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
             where T : notnull;
 
-        public static Game<T> Generate<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, T ignoredColor = default!)
+        public static Game<T> Generate<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
             where T : notnull
-            => (Option ??= new WebPbn()).Execute<T>(converterRGB, converterColor, ignoredColor);
+            => (Option ??= new WebPbn()).Execute(converterRGB, converterColor, loader, ignoredColor);
 
         public static void ParseArgs(string[] args)
         {
             if (args is null or { Length: 0 })
-                Options.Option = new Options.WebPbn();
+                Option = new WebPbn();
+            else if (args.Length is 1 && args[0].EndsWith(".picross"))
+                Option = new Load() { File = args[0] };
+            else if (args.Length is 1 && int.TryParse(args[0], out var index))
+                Option = new WebPbn() { WebPbnIndex = index };
             else if (args.Length is 1)
-                Options.Option = new Options.Resize() { File = args[0] };
+                Option = new Resize() { File = args[0] };
             else
             {
-                Parser.Default.ParseArguments<Options.WebPbn>(args).WithParsed(o => Options.Option = o);
-                Parser.Default.ParseArguments<Options.Resize>(args).WithParsed(o => Options.Option = o);
+                Parser.Default.ParseArguments<WebPbn>(args).WithParsed(o => Option = o);
+                Parser.Default.ParseArguments<Resize>(args).WithParsed(o => Option = o);
+                Parser.Default.ParseArguments<Load  >(args).WithParsed(o => Option = o);
             }
         }
 
@@ -36,7 +42,7 @@ namespace Nonogram
             [Option('i', "id", HelpText = "Index pattern from 'Webpbn.com'")]
             public int? WebPbnIndex { get; init; }
 
-            protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, T ignoredColor = default!)
+            protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
                 => WebPbnIndex switch
                 {
                     null => Services.WebPbn.TryGetRandomId(new(), converterRGB),
@@ -61,9 +67,9 @@ namespace Nonogram
             [Option('f', "factor", Default = 100)]
             public int FactorReduction { get; init; } = 1;
 
-            protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, T ignoredColor = default!)
+            protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
             {
-                var stream = this switch
+                using var stream = this switch
                 {
                     { FileInfo: { Exists: true } file } => file.OpenRead(),
                     { URI: { Scheme: "http" or "https" } uri } => new HttpClient().GetStreamAsync(uri).GetAwaiter().GetResult(),
@@ -77,6 +83,22 @@ namespace Nonogram
 
                 var pattern = global::Nonogram.Extensions.ReduceArray<Color, T>(array, Width, Height, converterColor);
                 return Game.Create(pattern, ignoredColor);
+            }
+        }
+
+        [Verb("load", false)]
+        public class Load : Options
+        {
+            [Option('l', "all", Default = false)]
+            public bool LoadGame { get; init; }
+            [Option("file", Required = true)]
+            public string File { get; init; } = default!;
+            public FileInfo FileInfo => new(File);
+
+            protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
+            {
+                using var stream = FileInfo.OpenRead();
+                return Game.Load(stream, loader, LoadGame);
             }
         }
     }
