@@ -1,8 +1,10 @@
+using Microsoft.Win32;
 using Nonogram.WPF.Converters;
 using Nonogram.WPF.DependencyProperties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -130,6 +132,35 @@ namespace Nonogram.WPF
                     Nonogram.Tips();
                     e.Handled = true;
                     break;
+                case (ModifierKeys.Control, Key.S):
+                        var saveDialog = new SaveFileDialog()
+                        {
+                            AddExtension = true,
+                            Filter = "Picross files|*.picross",
+                            DefaultExt = "*.picross",
+                        };
+                        if (saveDialog.ShowDialog(this) is not true)
+                            break;
+                        var saveGame = MessageBox.Show(this, "Save also the current game ?", "Save all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+                        var save = saveGame ? Nonogram.SaveGame() : Nonogram.SavePattern();
+                        var saveFile = new FileInfo(saveDialog.FileName);
+                        using (var stream = saveFile.OpenWrite())
+                            stream.Write(save);
+                        break;
+                case (ModifierKeys.Control, Key.O):
+                        var openDialog = new OpenFileDialog()
+                        {
+                            AddExtension = true,
+                            Filter = "Picross files|*.picross",
+                            DefaultExt = "*.picross",
+                        };
+                        if (openDialog.ShowDialog(this) is not true)
+                            break;
+                        var loadGame = MessageBox.Show(this, "Load also the saved game ?", "Load all ?", MessageBoxButton.YesNo, MessageBoxImage.Question) is MessageBoxResult.Yes;
+                        var openFile = new FileInfo(openDialog.FileName);
+                        using (var stream = openFile.OpenRead())
+                            Nonogram = Game.Load(stream, e => (Brush)new SolidColorBrush(Color.FromArgb(e.GetNext(), e.GetNext(), e.GetNext(), e.GetNext())), loadGame);
+                        break;
             }
         }
 
