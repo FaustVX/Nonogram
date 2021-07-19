@@ -54,16 +54,16 @@ namespace Nonogram
             foreach (var (x, y) in pattern.GenerateCoord())
                 pattern[y, x] = colors[patternSave.ReadByte()];
 
-            var game = Game.Create(pattern, colors[0]);
+            var game = Create(pattern, colors[0]);
             if (loadGame && patternSave.Position < patternSave.Length)
             {
                 foreach (var (x, y) in pattern.GenerateCoord())
-                    game._grid[y, x] = patternSave.ReadByte() switch
+                    (game._grid[y, x], game._coloredCellCount) = (patternSave.ReadByte(), game._coloredCellCount) switch
                     {
-                        0 => new EmptyCell(),
-                        1 => new AllColoredSealCell(),
-                        2 => new SealedCell<T>(Enumerable.Range(0, patternSave.ReadByte()).Select(_ => colors[patternSave.ReadByte()])),
-                        3 => new ColoredCell<T>(colors[patternSave.ReadByte()]),
+                        (0, var count) => ((ICell)new EmptyCell(), count),
+                        (1, var count) => (new AllColoredSealCell(), count),
+                        (2, var count) => (new SealedCell<T>(Enumerable.Range(0, patternSave.ReadByte()).Select(_ => colors[patternSave.ReadByte()])), count),
+                        (3, var count) => (new ColoredCell<T>(colors[patternSave.ReadByte()]), count + 1),
                     };
 
                 for (var x = 0; x < width; x++)
@@ -104,7 +104,7 @@ namespace Nonogram
             get => _isCorrect;
             private set => OnPropertyChanged(ref _isCorrect, in value);
         }
-        private int _coloredCellCount;
+        internal int _coloredCellCount;
 
         public int ColoredCellCount
         {
