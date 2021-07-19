@@ -540,6 +540,22 @@ namespace Nonogram
                 .ToArray();
         }
 
+        public byte[] SaveGame()
+        {
+            var colors = PossibleColors.Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
+            return SavePattern()
+            .Concat(this.GenerateCoord()
+                .Select(pos => this[pos.x, pos.y])
+                .SelectMany(cell => cell switch
+                {
+                    EmptyCell => new byte[]{ 0 },
+                    AllColoredSealCell => new byte[]{ 1 },
+                    SealedCell<T> { Seals: var s } => new byte[]{ 2, (byte)s.Count }.Concat(s.Select(c => colors.First(col => ColorEqualizer(col.c, c)).i)),
+                    ColoredCell<T> { Color: T c } => new byte[]{ 3, colors.First(col => ColorEqualizer(col.c, c)).i },
+                }))
+            .ToArray();
+        }
+
         public IEnumerator<ICell> GetEnumerator()
             => this.GenerateCoord().Select(pos => this[pos.x, pos.y]).GetEnumerator();
 
