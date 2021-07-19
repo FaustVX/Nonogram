@@ -13,24 +13,29 @@ namespace Nonogram.Services
 {
     public static class WebPbn
     {
-        public static Game<T> TryGetRandomId<T>(Random rng, Func<string, int, T> converter)
+        public static Game<T> TryGetRandomId<T>(Random rng, (int min, int max) width, (int min, int max) height, (int min, int max) colors, Func<string, int, T> converter)
         where T : notnull
         {
             try
             {
-                return Get(rng.Next(10_000), converter);
+                var game = Get(rng.Next(10_000), converter);
+                if (game.Width >= width.min && game.Width <= width.max
+                    && game.Height >= height.min && game.Height <= height.max
+                    && game.PossibleColors.Length >= colors.min && game.PossibleColors.Length <= colors.max)
+                    return game;
+                return TryGetRandomId(rng, width, height, colors, converter);
             }
             catch (XmlException)
             {
-                return TryGetRandomId(rng, converter);
+                return TryGetRandomId(rng, width, height, colors, converter);
             }
             catch (TaskCanceledException)
             {
-                return TryGetRandomId(rng, converter);
+                return TryGetRandomId(rng, width, height, colors, converter);
             }
             catch (OperationCanceledException)
             {
-                return TryGetRandomId(rng, converter);
+                return TryGetRandomId(rng, width, height, colors, converter);
             }
         }
 

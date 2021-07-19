@@ -42,10 +42,29 @@ namespace Nonogram
             [Option('i', "id", HelpText = "Index pattern from 'Webpbn.com'")]
             public int? WebPbnIndex { get; init; }
 
+            [Option('w', "minWidth")]
+            public int MinWidth { get; init; } = 0;
+
+            [Option('W', "maxWidth")]
+            public int MaxWidth { get; init; } = int.MaxValue;
+
+            [Option('h', "minHeight")]
+            public int MinHeight { get; init; } = 0;
+
+            [Option('H', "maxHeight")]
+            public int MaxHeight { get; init; } = int.MaxValue;
+
+            [Option('c', "minColors")]
+            public int MinColors { get; init; } = 0;
+
+            [Option('C', "maxColors")]
+            public int MaxColors { get; init; } = int.MaxValue;
+
+
             protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
                 => WebPbnIndex switch
                 {
-                    null => Services.WebPbn.TryGetRandomId(new(), converterRGB),
+                    null => Services.WebPbn.TryGetRandomId(new(), (MinWidth, MaxWidth), (MinHeight, MaxHeight), (MinColors, MaxColors), converterRGB),
                     int idx => Services.WebPbn.Get(idx, converterRGB)
                 };
         }
