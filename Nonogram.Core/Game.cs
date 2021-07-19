@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -12,9 +13,45 @@ namespace Nonogram
 {
     public static class Game
     {
+        private struct StreamEnumerator : IEnumerator<byte>
+        {
+            public StreamEnumerator(Stream stream)
+                => (Stream, Current) = (stream, 0);
+
+            public Stream Stream { get; }
+
+            public byte Current { get; set; }
+
+            object System.Collections.IEnumerator.Current => Current;
+
+            public void Dispose()
+            { }
+            public bool MoveNext()
+            {
+                var i = Stream.ReadByte();
+                Current = (byte)i;
+                return i >= 0;
+            }
+            public void Reset()
+            { }
+        }
+
         public static Game<T> Create<T>(T[,] pattern, T ignoredColor = default!)
             where T : notnull
             => new(pattern, ignoredColor);
+
+        public static Game<T> LoadPattern<T>(Stream patternSave, Func<IEnumerator<byte>, T> deserializer)
+            where T : notnull
+        {
+            using var enumerator = new StreamEnumerator(patternSave);
+            var (width, height) = (patternSave.ReadByte(), patternSave.ReadByte());
+            var colors = Enumerable.Range(0, patternSave.ReadByte()).Select(_ => deserializer(enumerator)).ToArray();
+            var pattern = new T[height, width];
+            foreach (var (x, y) in pattern.GenerateCoord())
+                pattern[y, x] = colors[patternSave.ReadByte()];
+
+            return Game.Create(pattern, colors[0]);
+        }
     }
 
     public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged, IUndoRedo

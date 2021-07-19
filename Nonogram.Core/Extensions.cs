@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Nonogram
@@ -92,5 +93,28 @@ namespace Nonogram
             => Enumerable.Range(0, @this.Length)
                 .SelectMany(x => Enumerable.Range(0, @this[x].Count)
                     .Select(y => (x, y)));
+
+        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this T[,] @this)
+            => Enumerable.Range(0, @this.GetLength(1))
+                .SelectMany(x => Enumerable.Range(0, @this.GetLength(0))
+                    .Select(y => (x, y)));
+
+        public static bool TryGetNext<T>(this IEnumerator<T> enumerator, [MaybeNullWhen(false)] out T value)
+        {
+            if (enumerator.MoveNext())
+            {
+                value = enumerator.Current;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        public static T? GetNext<T>(this IEnumerator<T> enumerator)
+        {
+            if (TryGetNext(enumerator, out var value))
+                return value;
+            return default;
+        }
     }
 }
