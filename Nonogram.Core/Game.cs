@@ -23,6 +23,7 @@ namespace Nonogram
         public event PropertyChangedEventHandler? PropertyChanged;
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public static Func<T, T, bool> ColorEqualizer { get; set; } = typeof(T) == typeof(IEquatable<T>) ? (a, b) => ((IEquatable<T>)a).Equals(b) : EqualityComparer<T>.Default.Equals;
+        public static Func<T, byte[]> ColorSerializer { get; set; }
 
         private readonly T[,] _pattern;
         private readonly ICell[,] _grid;
@@ -484,6 +485,18 @@ namespace Nonogram
             ColoredCellCount = 0;
 
             IsComplete = IsCorrect = false;
+        }
+
+        public byte[] SavePattern()
+        {
+            var colors = PossibleColors.Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
+            return new[]{ (byte)Width, (byte)Height, (byte)colors.Length }
+                .Concat(ColorSerializer(IgnoredColor))
+                .Concat(PossibleColors.SelectMany(ColorSerializer))
+                .Concat(this.GenerateCoord()
+                    .Select(pos => _pattern[pos.y, pos.x])
+                    .Select(c => colors.First(col => ColorEqualizer(col.c, c)).i))
+                .ToArray();
         }
 
         public IEnumerator<ICell> GetEnumerator()
