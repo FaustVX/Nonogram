@@ -267,10 +267,16 @@ namespace Nonogram
                 if (ColHints[x].Count == 0)
                     for (var y = 0; y < Height; y++)
                         ValidateHints(x, y, IgnoredColor, true);
+                else if (ColHints[x][0].qty == Height)
+                    for (var y = 0; y < Height; y++)
+                        ValidateHints(x, y, ColHints[x][0].color, false);
             for (var y = 0; y < Height; y++)
                 if (RowHints[y].Count == 0)
                     for (var x = 0; x < Width; x++)
                         ValidateHints(x, y, IgnoredColor, true);
+                else if (RowHints[y][0].qty == Width)
+                    for (var x = 0; x < Width; x++)
+                        ValidateHints(x, y, RowHints[y][0].color, false);
 
             if (PossibleColors.Length > 1)
                 foreach (var color in PossibleColors)
