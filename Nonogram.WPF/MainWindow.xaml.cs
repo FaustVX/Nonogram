@@ -95,9 +95,9 @@ namespace Nonogram.WPF
         private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
+            var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (IsMeasureStarted)
                 return;
-            var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
                 if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y))
                     if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
