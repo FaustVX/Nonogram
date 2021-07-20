@@ -77,6 +77,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <ProgressBar Grid.Row="0"
+                     Value="{Binding ColoredCellCount}"
+                     Maximum="{Binding TotalColoredCell}"
+                     Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
+
         <TextBlock Grid.Row="0" TextAlignment="Center">
             <TextBlock.Text>
                 <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells)" Mode="OneWay">
