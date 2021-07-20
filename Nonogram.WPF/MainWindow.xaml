@@ -39,8 +39,8 @@
         <DataTemplate x:Key="Hints">
             <Border BorderThickness="0" CornerRadius="3"
                     ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
-                    Width="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                    Height="{Binding (dp:Size.CellSize), RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                    Width="{Binding (dp:Size.CellSize), ElementName=This}"
+                    Height="{Binding (dp:Size.CellSize), ElementName=This}">
                 <Border.Background>
                     <LinearGradientBrush>
                         <GradientStop Color="{Binding Converter={StaticResource BrushToColorConverter}, ConverterParameter=0}" Offset="0.75"/>
@@ -48,7 +48,7 @@
                     </LinearGradientBrush>
                 </Border.Background>
                 <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center"
-                       FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.75, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                       FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.75, ElementName=This}"
                        Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}">
                     <FrameworkElement.Resources>
                         <Style TargetType="ctrl:OutlinedTextBlock">
@@ -99,8 +99,8 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border CornerRadius="2" dp:CanBeSelected.IsLocked="False" dp:CanBeSelected.IsColor="{Binding}"
-                            Width="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                            Height="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+                            Width="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, ElementName=This}"
+                            Height="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=1.5, ElementName=This}">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="BorderBrush" Value="Black"/>
@@ -155,7 +155,7 @@
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
-            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, ElementName=This}"/>
             <Button Content="Save" Click="SaveClick"/>
             <Button Content="Load" Click="LoadClick" Visibility="Visible"/>
             <Button Content="New" Click="NewClick" Visibility="Visible"/>
@@ -186,7 +186,7 @@
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
-                                    <Binding Path="HoverY" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                    <Binding Path="HoverY" ElementName="This"/>
                                 </MultiBinding>
                             </Border.BorderBrush>
                             <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
@@ -213,7 +213,7 @@
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
-                                    <Binding Path="HoverX" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}"/>
+                                    <Binding Path="HoverX" ElementName="This"/>
                                 </MultiBinding>
                             </Border.BorderBrush>
                             <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
@@ -241,29 +241,29 @@
                         <Border
                             BorderBrush="Gray"
                             BorderThickness="0"
-                            CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, ElementName=This}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
-                            dp:Measure.Tool="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                            dp:Measure.Tool="{Binding ElementName=This}"
                             Initialized="CellInitialized">
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
                                     <Binding/>
                                     <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
-                                    <Binding Path="(dp:CanBeSelected.SelectedColor)" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                    <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
+                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
                                 </MultiBinding>
                             </Border.Background>
                             <FrameworkElement.Width>
                                 <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
-                                    <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                    <Binding Path="(dp:Size.CellSize)" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
+                                    <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
                                 </MultiBinding>
                             </FrameworkElement.Width>
                             <FrameworkElement.Height>
                                 <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
-                                    <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                    <Binding Path="(dp:Size.CellSize)" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
+                                    <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
                                 </MultiBinding>
                             </FrameworkElement.Height>
                             <TextBlock
@@ -274,8 +274,8 @@
                                     <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
                                         <Binding/>
                                         <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
-                                        <Binding Path="(dp:CanBeSelected.SelectedColor)" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
-                                        <Binding Path="Nonogram.IsCorrect" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}" Mode="OneWay"/>
+                                        <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
+                                        <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
                                     </MultiBinding>
                                 </TextBlock.Foreground>
                             </TextBlock>
