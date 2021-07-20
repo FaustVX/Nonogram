@@ -33,7 +33,7 @@
         </conv:ChainConverter>
         <conv:ChainConverter x:Key="BrushToColorConverter">
             <StaticResource ResourceKey="TupleConverter"/>
-            <conv:BrushToColorConverter/>
+            <conv:BrushToColorConverter NullColor="Transparent"/>
         </conv:ChainConverter>
         <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">

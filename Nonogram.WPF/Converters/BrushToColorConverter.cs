@@ -1,11 +1,12 @@
-﻿using System;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 
 namespace Nonogram.WPF.Converters
 {
-    public class BrushToColorConverter : IValueConverter<SolidColorBrush?, Color?>
+    public class BrushToColorConverter : IValueConverter<SolidColorBrush?, Color>
     {
-        public Color? Convert(SolidColorBrush? value)
-            => value?.Color;
+        public Color NullColor { get; set; }
+
+        public Color Convert(SolidColorBrush? value)
+            => value?.Color ?? NullColor;
     }
 }
