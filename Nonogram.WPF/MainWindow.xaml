@@ -155,7 +155,7 @@
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
-            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.Started), Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             <Button Content="Save" Click="SaveClick"/>
             <Button Content="Load" Click="LoadClick" Visibility="Visible"/>
             <Button Content="New" Click="NewClick" Visibility="Visible"/>

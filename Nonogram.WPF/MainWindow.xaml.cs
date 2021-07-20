@@ -45,8 +45,8 @@ namespace Nonogram.WPF
         public int CurrentColorIndex
             => CanBeSelected.GetSelectedColor(this);
 
-        public bool MeasureStarted
-            => DependencyProperties.Measure.GetStarted(this);
+        public bool IsMeasureStarted
+            => DependencyProperties.Measure.GetIsStarted(this);
 
         private int _hoverX;
         public int HoverX
@@ -95,7 +95,7 @@ namespace Nonogram.WPF
         private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
-            if (MeasureStarted)
+            if (IsMeasureStarted)
                 return;
             var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
@@ -109,7 +109,7 @@ namespace Nonogram.WPF
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (MeasureStarted || e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
+            if (IsMeasureStarted || e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
                 return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = (Nonogram[x, y], x, y);

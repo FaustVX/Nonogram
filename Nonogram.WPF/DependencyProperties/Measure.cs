@@ -7,15 +7,15 @@ namespace Nonogram.WPF.DependencyProperties
 {
     public static class Measure
     {
-        public static bool GetStarted(DependencyObject obj)
-            => (bool)obj.GetValue(StartedProperty);
+        public static bool GetIsStarted(DependencyObject obj)
+            => (bool)obj.GetValue(IsStartedProperty);
 
-        public static void SetStarted(DependencyObject obj, bool value)
-            => obj.SetValue(StartedProperty, value);
+        public static void SetIsStarted(DependencyObject obj, bool value)
+            => obj.SetValue(IsStartedProperty, value);
 
-        // Using a DependencyProperty as the backing store for Started.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty StartedProperty =
-            DependencyProperty.RegisterAttached("Started", typeof(bool), typeof(Measure), new PropertyMetadata(false));
+        // Using a DependencyProperty as the backing store for IsStarted.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsStartedProperty =
+            DependencyProperty.RegisterAttached("IsStarted", typeof(bool), typeof(Measure), new PropertyMetadata(false));
 
 
 
@@ -35,10 +35,10 @@ namespace Nonogram.WPF.DependencyProperties
             switch (d, e.OldValue, e.NewValue)
             {
                 case (Window w, null, not null):
-                    SetStarted(w, true);
+                    SetIsStarted(w, true);
                     break;
                 case (Window w, not null, null):
-                    SetStarted(w, false);
+                    SetIsStarted(w, false);
                     break;
             }
         }
@@ -71,7 +71,7 @@ namespace Nonogram.WPF.DependencyProperties
         {
             var elem = (FrameworkElement)sender;
             var window = GetTool(elem);
-            if (!GetStarted(window))
+            if (!GetIsStarted(window))
                 return;
             SetStartPoint(window, elem);
             e.Handled = true;
@@ -81,7 +81,7 @@ namespace Nonogram.WPF.DependencyProperties
         {
             var elem = (FrameworkElement)sender;
             var window = GetTool(elem);
-            if (!GetStarted(window))
+            if (!GetIsStarted(window))
                 return;
             e.Handled = true;
         }
@@ -90,7 +90,7 @@ namespace Nonogram.WPF.DependencyProperties
         {
             var elem = (FrameworkElement)sender;
             var window = GetTool(elem);
-            if (!GetStarted(window) || GetStartPoint(window) is not FrameworkElement start)
+            if (!GetIsStarted(window) || GetStartPoint(window) is not FrameworkElement start)
                 return;
             var startPos = GetXYFromTag(start);
             var endPos = GetXYFromTag(elem);
