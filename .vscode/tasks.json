@@ -25,9 +25,14 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Nonogram.CLI/Nonogram.CLI.csproj",
+                "${workspaceFolder}/Nonogram.WPF/Nonogram.WPF.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "/property:PublishSingleFile=true",
+                // "/property:PublishTrimmed=true",
+                "--configuration=Release",
+                "--runtime=${input:runtime}",
+                "--self-contained=true",
             ],
             "problemMatcher": "$msCompile",
             "presentation": {
@@ -109,6 +114,19 @@
             "id": "id",
             "type": "promptString",
             "description": "WebPbn id"
-        }
+        },
+        {
+            "id": "runtime",
+            "description": "Select Runtime",
+            "type": "pickString",
+            "default": "win-x64",
+            "options":
+            [
+                "win-x64",
+                "linux-x64",
+                "linux-arm",
+                "osx-x64"
+            ]
+        },
     ]
 }
