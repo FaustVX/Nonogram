@@ -155,6 +155,7 @@
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
             </FrameworkElement.Resources>
 
+            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             <Button Content="Save" Click="SaveClick"/>
             <Button Content="Load" Click="LoadClick" Visibility="Visible"/>
             <Button Content="New" Click="NewClick" Visibility="Visible"/>
@@ -243,6 +244,7 @@
                             CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             MouseDown="CellMouseDown"
                             MouseEnter="CellMouseEnter"
+                            dp:Measure.Tool="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                             Initialized="CellInitialized">
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">

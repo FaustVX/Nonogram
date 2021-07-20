@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 
 namespace Nonogram.WPF
 {
@@ -19,5 +20,8 @@ namespace Nonogram.WPF
                 (T2 t, _) => t,
                 _ => throw new NotImplementedException(),
             };
+
+        public static (int x, int y) GetXYFromTag(FrameworkElement element)
+            => ((int, int))element.Tag;
     }
 }
