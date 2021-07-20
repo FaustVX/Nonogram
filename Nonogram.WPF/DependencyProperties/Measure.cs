@@ -15,27 +15,35 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for IsStarted.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsStartedProperty =
-            DependencyProperty.RegisterAttached("IsStarted", typeof(bool), typeof(Measure), new PropertyMetadata(false));
+            DependencyProperty.RegisterAttached("IsStarted", typeof(bool), typeof(Measure), new PropertyMetadata(false, IsStartedChanged));
+
+        private static void IsStartedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+            => SetPoint(d, null);
 
 
 
+        public static FrameworkElement? GetPoint(DependencyObject obj)
+            => (FrameworkElement?)obj.GetValue(PointProperty);
 
-        public static FrameworkElement? GetStartPoint(DependencyObject obj)
-            => (FrameworkElement?)obj.GetValue(StartPointProperty);
+        public static void SetPoint(DependencyObject obj, FrameworkElement? value)
+            => obj.SetValue(PointProperty, value);
 
-        public static void SetStartPoint(DependencyObject obj, FrameworkElement? value)
-            => obj.SetValue(StartPointProperty, value);
+        // Using a DependencyProperty as the backing store for Point.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointProperty =
+            DependencyProperty.RegisterAttached("Point", typeof(FrameworkElement), typeof(Measure), new PropertyMetadata(null, PointChanged));
 
-        // Using a DependencyProperty as the backing store for StartPoint.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty StartPointProperty =
-            DependencyProperty.RegisterAttached("StartPoint", typeof(FrameworkElement), typeof(Measure), new PropertyMetadata(null, StartPointChanged));
-
-        private static void StartPointChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void PointChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             switch (d, e.OldValue, e.NewValue)
             {
                 case (Window w, null, not null):
                     SetIsStarted(w, true);
+                    break;
+                case (Window w, FrameworkElement old, FrameworkElement @new):
+                    var startPos = GetXYFromTag(old);
+                    var endPos = GetXYFromTag(@new);
+                    MessageBox.Show(w, $"The size of this selection is (W: {Math.Abs(endPos.x - startPos.x) + 1} - H: {Math.Abs(endPos.y - startPos.y) + 1})", "Measure", MessageBoxButton.OK, MessageBoxImage.Information);
+                    SetPoint(w, null);
                     break;
                 case (Window w, not null, null):
                     SetIsStarted(w, false);
@@ -61,7 +69,6 @@ namespace Nonogram.WPF.DependencyProperties
             {
                 case (FrameworkElement elem, null, Window w):
                     elem.MouseDown += MouseDown;
-                    elem.MouseEnter += MouseEnter;
                     elem.MouseUp += MouseUp;
                     break;
             }
@@ -73,16 +80,7 @@ namespace Nonogram.WPF.DependencyProperties
             var window = GetTool(elem);
             if (!GetIsStarted(window))
                 return;
-            SetStartPoint(window, elem);
-            e.Handled = true;
-        }
-
-        private static void MouseEnter(object sender, MouseEventArgs e)
-        {
-            var elem = (FrameworkElement)sender;
-            var window = GetTool(elem);
-            if (!GetIsStarted(window))
-                return;
+            SetPoint(window, elem);
             e.Handled = true;
         }
 
@@ -90,12 +88,9 @@ namespace Nonogram.WPF.DependencyProperties
         {
             var elem = (FrameworkElement)sender;
             var window = GetTool(elem);
-            if (!GetIsStarted(window) || GetStartPoint(window) is not FrameworkElement start)
+            if (!GetIsStarted(window) || GetPoint(window) is null)
                 return;
-            var startPos = GetXYFromTag(start);
-            var endPos = GetXYFromTag(elem);
-            MessageBox.Show(window, $"The size of this selection is (W: {Math.Abs(endPos.x - startPos.x) + 1} - H: {Math.Abs(endPos.y - startPos.y) + 1})", "Measure", MessageBoxButton.OK, MessageBoxImage.Information);
-            SetStartPoint(window, null);
+            SetPoint(window, elem);
             e.Handled = true;
         }
     }
