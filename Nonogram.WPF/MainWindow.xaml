@@ -238,7 +238,7 @@
                     <ItemsPanelTemplate>
                         <ctrl:UniformGrid Orientation="Horizontal"
                             Columns="{Binding Width, Mode=OneWay}"
-                            Rows="{Binding Height, Mode=OneWay}"/>
+                            Rows="{Binding Height, Mode=OneWay}" SnapsToDevicePixels="True"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
