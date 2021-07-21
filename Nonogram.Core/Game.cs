@@ -389,7 +389,8 @@ namespace Nonogram
                 }
             }
 
-            IsComplete = Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
+            IsComplete = ColoredCellCount == TotalColoredCell
+                && Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
                 && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated));
 
             if (IsComplete)

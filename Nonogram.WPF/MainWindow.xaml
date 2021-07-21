@@ -81,6 +81,7 @@
         <ProgressBar Grid.Row="0"
                      Value="{Binding ColoredCellCount}"
                      Maximum="{Binding TotalColoredCell}"
+                     IsIndeterminate="{Binding IsComplete}"
                      Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
 
         <TextBlock Grid.Row="0" TextAlignment="Center"
