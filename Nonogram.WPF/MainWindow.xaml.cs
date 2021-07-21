@@ -48,20 +48,6 @@ namespace Nonogram.WPF
         public bool IsMeasureStarted
             => DependencyProperties.Measure.GetIsStarted(this);
 
-        private int _hoverX;
-        public int HoverX
-        {
-            get => _hoverX;
-            set => OnPropertyChanged(ref _hoverX, in value);
-        }
-
-        private int _hoverY;
-        public int HoverY
-        {
-            get => _hoverY;
-            set => OnPropertyChanged(ref _hoverY, in value);
-        }
-
         protected void OnPropertyChanged<T>(ref T storage, in T value, Func<T, bool> validator = default!, [CallerMemberName] string propertyName = default!, params string[] otherPropertyNames)
         {
             if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
@@ -95,7 +81,9 @@ namespace Nonogram.WPF
         private (ICell cell, int x, int y)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
-            var (x, y) = (HoverX, HoverY) = GetXYFromTag((FrameworkElement)sender);
+            var (x, y) = GetXYFromTag((FrameworkElement)sender);
+            ColRow.SetHoverX(this, x);
+            ColRow.SetHoverY(this, y);
             if (IsMeasureStarted)
                 return;
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)

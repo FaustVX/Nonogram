@@ -191,7 +191,7 @@
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
-                                    <Binding Path="HoverY" ElementName="This"/>
+                                    <Binding Path="(dp:ColRow.HoverY)" ElementName="This"/>
                                 </MultiBinding>
                             </Border.BorderBrush>
                             <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
@@ -218,7 +218,7 @@
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
-                                    <Binding Path="HoverX" ElementName="This"/>
+                                    <Binding Path="(dp:ColRow.HoverX)" ElementName="This"/>
                                 </MultiBinding>
                             </Border.BorderBrush>
                             <ItemsControl ItemsSource="{Binding Converter={StaticResource EmptyCollectionConverter}}" ItemTemplate="{StaticResource Hints}">
