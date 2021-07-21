@@ -82,7 +82,8 @@
                      Maximum="{Binding TotalColoredCell}"
                      Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
 
-        <TextBlock Grid.Row="0" TextAlignment="Center">
+        <TextBlock Grid.Row="0" TextAlignment="Center"
+                     Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
             <TextBlock.Text>
                 <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells)" Mode="OneWay">
                     <Binding Path="Width" Mode="OneWay"/>
