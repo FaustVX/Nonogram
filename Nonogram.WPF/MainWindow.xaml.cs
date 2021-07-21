@@ -210,5 +210,8 @@ namespace Nonogram.WPF
 
         private void This_StateChanged(object sender, EventArgs e)
             => SizeToContent = SizeToContent.WidthAndHeight;
+
+        private void This_Closing(object sender, CancelEventArgs e)
+            => SaveClick(default!, default!);
     }
 }

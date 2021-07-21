@@ -19,7 +19,8 @@
         SizeToContent="WidthAndHeight"
         Background="Gray"
         Title="Nonogram"
-        StateChanged="This_StateChanged">
+        StateChanged="This_StateChanged"
+        Closing="This_Closing">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
         <conv:TupleConverter x:Key="TupleConverter"/>
