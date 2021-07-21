@@ -28,7 +28,7 @@ namespace Nonogram.WPF
             set
             {
                 var autoSeal = Nonogram?.AutoSeal;
-                ColRow.Reset();
+                ColRow.Helper.Reset(this);
                 CanBeSelected.SetSelectedColor(this, 0);
                 OnPropertyChanged(ref _nonogram, in value);
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
