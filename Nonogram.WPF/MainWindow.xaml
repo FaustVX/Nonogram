@@ -188,7 +188,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="0.5" CornerRadius="2" dp:ColRow.Row="0"
+                        <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="0,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
                                 dp:ColRow.Source="{Binding ElementName=This}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
@@ -216,7 +216,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="0.5" CornerRadius="2" dp:ColRow.Col="0"
+                        <Border BorderThickness=".5,3,.5,3" CornerRadius="2" dp:ColRow.Col="0" Padding="0,0,0,2" Margin="0,0,0,2" VerticalAlignment="Bottom"
                                 dp:ColRow.Source="{Binding ElementName=This}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
