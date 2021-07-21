@@ -68,6 +68,7 @@
             </Border>
         </DataTemplate>
         <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="IsCorrectVisibility"/>
+        <conv:HintsSumConverter x:Key="HintSumConverter" StringFormat="The Total is: {0}"/>
     </Window.Resources>
 
     <Grid>
@@ -189,7 +190,8 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="0,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
-                                dp:ColRow.Source="{Binding ElementName=This}">
+                                dp:ColRow.Source="{Binding ElementName=This}"
+                                ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
@@ -217,7 +219,8 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderThickness=".5,3,.5,3" CornerRadius="2" dp:ColRow.Col="0" Padding="0,0,0,2" Margin="0,0,0,2" VerticalAlignment="Bottom"
-                                dp:ColRow.Source="{Binding ElementName=This}">
+                                dp:ColRow.Source="{Binding ElementName=This}"
+                                ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
                                     <Binding RelativeSource="{RelativeSource Self}"/>
