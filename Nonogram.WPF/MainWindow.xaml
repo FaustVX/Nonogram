@@ -239,61 +239,58 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ctrl:UniformGrid Orientation="Horizontal"
-                            Columns="{Binding Width, Mode=OneWay}"
-                            Rows="{Binding Height, Mode=OneWay}" SnapsToDevicePixels="True"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type core:ICell}">
-                        <Border
-                            BorderBrush="Gray"
-                            BorderThickness="0"
-                            CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, ElementName=This}"
-                            MouseDown="CellMouseDown"
-                            MouseEnter="CellMouseEnter"
-                            dp:Measure.Tool="{Binding ElementName=This}"
-                            Initialized="CellInitialized">
-                            <Border.Background>
-                                <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
-                                    <Binding/>
-                                    <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
-                                    <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
-                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
-                                </MultiBinding>
-                            </Border.Background>
-                            <FrameworkElement.Width>
-                                <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
-                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
-                                    <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
-                                </MultiBinding>
-                            </FrameworkElement.Width>
-                            <FrameworkElement.Height>
-                                <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
-                                    <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
-                                    <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
-                                </MultiBinding>
-                            </FrameworkElement.Height>
-                            <TextBlock
-                                Text="X"
-                                TextAlignment="Center"
-                                Background="Transparent">
-                                <TextBlock.Foreground>
-                                    <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
+            <Border Grid.Column="1" Grid.Row="1" BorderBrush="Black" BorderThickness="1" CornerRadius="2">
+                <ItemsControl ItemsSource="{Binding}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ctrl:UniformGrid Orientation="Horizontal"
+                                              Columns="{Binding Width, Mode=OneWay}"
+                                              Rows="{Binding Height, Mode=OneWay}" SnapsToDevicePixels="True"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type core:ICell}">
+                            <Border BorderBrush="Gray" BorderThickness="0"
+                                    CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, ElementName=This}"
+                                    MouseDown="CellMouseDown"
+                                    MouseEnter="CellMouseEnter"
+                                    dp:Measure.Tool="{Binding ElementName=This}"
+                                    Initialized="CellInitialized">
+                                <Border.Background>
+                                    <MultiBinding Converter="{StaticResource ICellToBackgroundConverter}">
                                         <Binding/>
                                         <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
                                         <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
                                         <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
                                     </MultiBinding>
-                                </TextBlock.Foreground>
-                            </TextBlock>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                </Border.Background>
+                                <FrameworkElement.Width>
+                                    <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
+                                        <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
+                                        <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </FrameworkElement.Width>
+                                <FrameworkElement.Height>
+                                    <MultiBinding Converter="{StaticResource IsCorrectSize}" ConverterParameter="2">
+                                        <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
+                                        <Binding Path="(dp:Size.CellSize)" ElementName="This" Mode="OneWay"/>
+                                    </MultiBinding>
+                                </FrameworkElement.Height>
+                                <TextBlock Text="X" TextAlignment="Center" Background="Transparent">
+                                    <TextBlock.Foreground>
+                                        <MultiBinding Converter="{StaticResource ICellToForegroundConverter}">
+                                            <Binding/>
+                                            <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
+                                            <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
+                                            <Binding Path="Nonogram.IsCorrect" ElementName="This" Mode="OneWay"/>
+                                        </MultiBinding>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
         </Grid>
     </Grid>
 </Window>
