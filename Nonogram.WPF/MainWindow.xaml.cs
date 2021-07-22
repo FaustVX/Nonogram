@@ -40,7 +40,7 @@ namespace Nonogram.WPF
         }
 
         public Brush CurrentColor
-            => Nonogram.PossibleColors[CurrentColorIndex];
+            => Nonogram.PossibleColors[CurrentColorIndex].Value;
 
         public int CurrentColorIndex
             => CanBeSelected.GetSelectedColor(this);

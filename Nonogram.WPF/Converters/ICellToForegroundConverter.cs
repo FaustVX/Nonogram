@@ -10,7 +10,7 @@ namespace Nonogram.WPF.Converters
             => (values.Item1, values.Item2[values.Item3], values.Item4) switch
             {
                 (_, _, true) => Brushes.Transparent,
-                (SealedCell<Brush> { Seals: var seals }, Brush currentColor, false) when seals.Contains(currentColor) => currentColor,
+                (SealedCell<Brush> { Seals: var seals }, Game<Brush>.Color { Value: Brush currentColor }, false) when seals.Contains(currentColor) => currentColor,
                 (AllColoredSealCell, _, _) => IgnoredBrush,
                 (_, _, _) => Brushes.Transparent
             };

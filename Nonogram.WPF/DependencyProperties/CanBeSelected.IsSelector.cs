@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -26,23 +28,24 @@ namespace Nonogram.WPF.DependencyProperties
             {
                 case (ListBox list, null, IList colors):
                     _window = GetRoot(d)!;
-                    _colors = colors;
                     _window.MouseWheel += MouseWheel;
                     _window.KeyUp += KeyUp;
-                    list.SetBinding(ListBox.SelectedIndexProperty, new Binding($"(dp:{nameof(CanBeSelected)}.{SelectedColorProperty.Name})")
-                    {
-                        RelativeSource = new(RelativeSourceMode.FindAncestor, typeof(Window), 1),
-                    });
-                    list.ItemsSource = _colors;
+                    _colors = SetValues(list, colors);
                     break;
                 case (ListBox list, _, IList colors):
-                    _colors = colors;
-                    list.SetBinding(ListBox.SelectedIndexProperty, new Binding($"(dp:{nameof(CanBeSelected)}.{SelectedColorProperty.Name})")
-                    {
-                        RelativeSource = new(RelativeSourceMode.FindAncestor, typeof(Window), 1),
-                    });
-                    list.ItemsSource = _colors;
+                    _colors = SetValues(list, colors);
                     break;
+            }
+
+            static IList SetValues(ListBox list, IList colors)
+            {
+                list.SetBinding(ListBox.SelectedIndexProperty, new Binding($"(dp:{nameof(CanBeSelected)}.{SelectedColorProperty.Name})")
+                {
+                    RelativeSource = new(RelativeSourceMode.FindAncestor, typeof(Window), 1),
+                    Mode = BindingMode.TwoWay,
+                });
+                list.ItemsSource = colors;
+                return colors;
             }
 
             static Window? GetRoot(DependencyObject obj)

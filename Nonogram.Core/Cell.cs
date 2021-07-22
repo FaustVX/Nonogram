@@ -30,7 +30,7 @@ namespace Nonogram
 
     public sealed class AllColoredSealCell : ICell
     {
-        public static SealedCell<T> Without<T>(T seal, T[] possibleColors)
+        public static SealedCell<T> Without<T>(T seal, IEnumerable<T> possibleColors)
             where T : notnull
             => new(possibleColors.Where(s => !s.Equals(seal)));
 

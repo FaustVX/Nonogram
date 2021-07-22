@@ -60,10 +60,10 @@ namespace Nonogram
                 foreach (var (x, y) in pattern.GenerateCoord())
                     (game._grid[y, x], game._coloredCellCount) = (patternSave.ReadByte(), game._coloredCellCount) switch
                     {
-                        (0, var count) => ((ICell)new EmptyCell(), count),
+                        (0, var count) => (new EmptyCell(), count),
                         (1, var count) => (new AllColoredSealCell(), count),
                         (2, var count) => (new SealedCell<T>(Enumerable.Range(0, patternSave.ReadByte()).Select(_ => colors[patternSave.ReadByte()])), count),
-                        (3, var count) => (new ColoredCell<T>(colors[patternSave.ReadByte()]), count + 1),
+                        (3, var count) => CreateColoredCell(game, colors[patternSave.ReadByte()], count),
                     };
 
                 for (var x = 0; x < width; x++)
@@ -72,12 +72,64 @@ namespace Nonogram
                     game.ValidateRow(y);
             }
             return game;
+
+            static (ICell, int) CreateColoredCell(Game<T> game, T color, int count)
+            {
+                game.PossibleColors.First(c => Game<T>.ColorEqualizer(color, c.Value)).Current++;
+                return (new ColoredCell<T>(color), count + 1);
+            }
         }
     }
 
     public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged, IUndoRedo
     where T : notnull
     {
+        public class Color : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            public T Value { get; }
+
+            private int _current;
+            public int Current
+            {
+                get => _current;
+                set
+                {
+                    OnPropertyChanged(ref _current, in value);
+                    Validated = Current == Total;
+                }
+            }
+
+            public int Total { get; }
+
+            private bool _validated;
+            public bool Validated
+            {
+                get => _validated;
+                private set => OnPropertyChanged(ref _validated, in value);
+            }
+
+            public Color(T value, int total)
+                => (Value, Total) = (value, total);
+
+
+            protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
+            {
+                if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
+                {
+                    storage = value;
+                    PropertyChanged?.Invoke(this, new(propertyName));
+                }
+            }
+
+            public override int GetHashCode()
+                => Value.GetHashCode();
+
+            public override bool Equals(object? obj)
+                => obj is Color c && ColorEqualizer(c.Value, Value);
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public static Func<T, T, bool> ColorEqualizer { get; set; } = typeof(T) == typeof(IEquatable<T>) ? (a, b) => ((IEquatable<T>)a).Equals(b) : EqualityComparer<T>.Default.Equals;
@@ -90,7 +142,7 @@ namespace Nonogram
         public int Height { get; }
         public ObservableCollection<(T color, int qty, bool validated)>[] ColHints { get; }
         public ObservableCollection<(T color, int qty, bool validated)>[] RowHints { get; }
-        public T[] PossibleColors { get; }
+        public Color[] PossibleColors { get; }
         public T IgnoredColor { get; }
         private bool _isComplete;
         public bool IsComplete
@@ -174,12 +226,24 @@ namespace Nonogram
         {
             switch (this[x, y], value)
             {
-                case ({ IsColored: true }, { IsColored: false }):
+                case ( ColoredCell<T> { Color: var current }, { IsColored: false }):
+                {
                     ColoredCellCount--;
+                    PossibleColors.First(t => ColorEqualizer(t.Value, current)).Current--;
                     break;
-                case ({ IsColored: false }, { IsColored: true }):
+                }
+                case ({ IsColored: false }, ColoredCell<T> { Color: var next }):
+                {
                     ColoredCellCount++;
+                    PossibleColors.First(t => ColorEqualizer(t.Value, next)).Current++;
                     break;
+                }
+                case (ColoredCell<T> { Color: var current }, ColoredCell<T> { Color: var next }):
+                {
+                    PossibleColors.First(t => ColorEqualizer(t.Value, current)).Current--;
+                    PossibleColors.First(t => ColorEqualizer(t.Value, next)).Current++;
+                    break;
+                }
             };
         }
 
@@ -202,18 +266,19 @@ namespace Nonogram
                 .ToHashSet()
                 .Where(c => !ColorEqualizer(c, IgnoredColor))
                 .OrderBy(_ => rng.Next())
+                .Select(c => new Color(c, _pattern.Cast<T>().Count(p => ColorEqualizer(p, c))))
                 .ToArray();
 
-            TotalColoredCell = this.GenerateCoord().Count(pos => !ColorEqualizer(_pattern[pos.y, pos.x], ignoredColor));
+            TotalColoredCell = PossibleColors.Sum(c => c.Total);
 
             for (var y = 0; y < RowHints.Length; y++)
                 RowHints[y] = new(CalculateHints(_pattern.GetRow(y))
-                    .Where(g => PossibleColors.Contains(g.color))
+                    .Where(g => PossibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
                     .Select(g => (g.color, g.qty, validated: false)));
 
             for (var x = 0; x < ColHints.Length; x++)
                 ColHints[x] = new(CalculateHints(_pattern.GetCol(x))
-                    .Where(g => PossibleColors.Contains(g.color))
+                    .Where(g => PossibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
                     .Select(g => (g.color, g.qty, validated: false)));
         }
 
@@ -225,12 +290,12 @@ namespace Nonogram
 
             foreach (var (x, y) in this.GenerateCoord())
             {
-                pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors, possibleColors, ignoredColor);
+                pattern[y, x] = _pattern[y, x].ConvertTo(PossibleColors.Select(c => c.Value).ToArray(), possibleColors, ignoredColor);
                 grid[y, x] = _grid[x, y] switch
                 {
-                    ColoredCell<T> { Color: var color } => new ColoredCell<TOther>(color.ConvertTo(PossibleColors, possibleColors, ignoredColor)),
+                    ColoredCell<T> { Color: var color } => new ColoredCell<TOther>(color.ConvertTo(PossibleColors.Select(c => c.Value).ToArray(), possibleColors, ignoredColor)),
                     AllColoredSealCell => new AllColoredSealCell(),
-                    SealedCell<T> seals => seals.ConvertTo(PossibleColors, possibleColors),
+                    SealedCell<T> seals => seals.ConvertTo(PossibleColors.Select(c => c.Value).ToArray(), possibleColors),
                     _ => new EmptyCell()
                 };
             }
@@ -282,13 +347,13 @@ namespace Nonogram
                 foreach (var color in PossibleColors)
                 {
                     for (var x = 0; x < Width; x++)
-                        if (!ColHints[x].Any(hint => ColorEqualizer(hint.color, color)))
+                        if (!ColHints[x].Any(hint => ColorEqualizer(hint.color, color.Value)))
                             for (var y = 0; y < Height; y++)
-                                Seal(x, y, color);
+                                Seal(x, y, color.Value);
                     for (var y = 0; y < Height; y++)
-                        if (!RowHints[y].Any(hint => ColorEqualizer(hint.color, color)))
+                        if (!RowHints[y].Any(hint => ColorEqualizer(hint.color, color.Value)))
                             for (var x = 0; x < Width; x++)
-                                Seal(x, y, color);
+                                Seal(x, y, color.Value);
                 }
         }
 
@@ -315,7 +380,7 @@ namespace Nonogram
         {
             if (IsCorrect && !ColorEqualizer(color, IgnoredColor))
                 return;
-            if (!PossibleColors.Contains(color) && !(ColorEqualizer(IgnoredColor, color)))
+            if (!PossibleColors.Any(c => ColorEqualizer(color, c.Value)) && !ColorEqualizer(IgnoredColor, color))
                 return;
 
             this[x, y] = (seal, cell: this[x, y], isIgnored: ColorEqualizer(color, IgnoredColor)) switch
@@ -335,7 +400,7 @@ namespace Nonogram
                 (false, SealedCell<T>, false)
                     => new ColoredCell<T>(color),
                 (false, AllColoredSealCell, false)
-                    => AllColoredSealCell.Without(color, PossibleColors),
+                    => AllColoredSealCell.Without(color, PossibleColors.Select(c => c.Value)),
                 (false, { IsEmpty: true }, false)
                     => new ColoredCell<T>(color),
                 (false, { IsSealed: true }, true)
@@ -404,10 +469,10 @@ namespace Nonogram
             }
         }
 
-        private static bool Validate((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, T[] possibleColors)
+        private static bool Validate((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, IEnumerable<Color> possibleColors)
         {
             line = line
-                .Where(g => possibleColors.Contains(g.color))
+                .Where(g => possibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
                 .ToArray();
 
             if (line.Zip(hints).TakeWhile(hs => (hs.First.qty, hs.First.color).Equals((hs.Second.qty, hs.Second.color))).Count() == hints.Count)
@@ -431,11 +496,11 @@ namespace Nonogram
             foreach (var color in possibleColors)
             {
                 var lineArray = line
-                    .Where(g => ColorEqualizer(g.color, color))
+                    .Where(g => ColorEqualizer(g.color, color.Value))
                     .ToArray();
                 var hintsArray = hints
                     .Select((g, i) => (g, i))
-                    .Where(g => ColorEqualizer(g.g.color, color))
+                    .Where(g => ColorEqualizer(g.g.color, color.Value))
                     .ToArray();
 
                 for (var i = 0; i < Math.Min(lineArray.Length, hintsArray.Length); i++)
@@ -564,10 +629,10 @@ namespace Nonogram
 
         public byte[] SavePattern()
         {
-            var colors = PossibleColors.Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
+            var colors = PossibleColors.Select(c => c.Value).Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
             return new[]{ (byte)1, (byte)Width, (byte)Height, (byte)colors.Length }
                 .Concat(ColorSerializer(IgnoredColor))
-                .Concat(PossibleColors.SelectMany(ColorSerializer))
+                .Concat(PossibleColors.Select(c => c.Value).SelectMany(ColorSerializer))
                 .Concat(this.GenerateCoord()
                     .Select(pos => _pattern[pos.y, pos.x])
                     .Select(c => colors.First(col => ColorEqualizer(col.c, c)).i))
@@ -576,7 +641,7 @@ namespace Nonogram
 
         public byte[] SaveGame()
         {
-            var colors = PossibleColors.Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
+            var colors = PossibleColors.Select(c => c.Value).Prepend(IgnoredColor).Select((c, i) => (c, i: (byte)i)).ToArray();
             return SavePattern()
             .Concat(this.GenerateCoord()
                 .Select(pos => this[pos.x, pos.y])

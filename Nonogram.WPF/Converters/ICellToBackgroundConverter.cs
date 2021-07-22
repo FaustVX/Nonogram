@@ -13,7 +13,7 @@ namespace Nonogram.WPF.Converters
             {
                 (EmptyCell, _, _) => IgnoredBrush,
                 (ColoredCell<Brush> c, _, _) => c.Color,
-                (SealedCell<Brush> { Seals: var seals }, Brush brush, false) when !seals.Contains(brush) => IgnoredBrush,
+                (SealedCell<Brush> { Seals: var seals }, Game<Brush>.Color { Value: Brush brush }, false) when !seals.Contains(brush) => IgnoredBrush,
                 (_, _, false) => SealedBrush,
                 (_, _, true) => IgnoredBrush,
             };
