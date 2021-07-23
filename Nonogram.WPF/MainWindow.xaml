@@ -16,7 +16,7 @@
         dp:UndoRedo.UndoRedo="{Binding}"
         dp:Size.CellSize="17.5"
         SizeToContent="WidthAndHeight"
-        Background="Gray"
+        Background="#202020"
         Title="Nonogram"
         StateChanged="This_StateChanged"
         Closing="This_Closing">
@@ -26,7 +26,7 @@
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
-        <conv:HoveredToBrushConverter HoveredBrush="Black" x:Key="HoveredToBrushConverter"/>
+        <conv:HoveredToBrushConverter HoveredBrush="DarkGray" x:Key="HoveredToBrushConverter"/>
         <conv:ChainConverter x:Key="BoolToBrushConverter">
             <StaticResource ResourceKey="TupleConverter"/>
             <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
@@ -263,7 +263,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Border Grid.Column="1" Grid.Row="1" BorderBrush="Black" BorderThickness="1" CornerRadius="2">
+            <Border Grid.Column="1" Grid.Row="1" BorderBrush="{Binding Nonogram.IgnoredColor, ElementName=This}" BorderThickness="2" CornerRadius="2" Padding="1">
                 <ItemsControl ItemsSource="{Binding}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
