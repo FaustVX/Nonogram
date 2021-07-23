@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Nonogram.WPF": {
+      "commandName": "Project",
+      "commandLineArgs": "webpbn -W30 -H30"
+    }
+  }
+}
