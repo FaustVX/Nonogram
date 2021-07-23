@@ -164,7 +164,7 @@ namespace Nonogram
             set => OnPropertyChanged(ref _coloredCellCount, in value);
         }
 
-        private bool _autoSeal;
+        private bool _autoSeal = true;
         public bool AutoSeal
         {
             get => _autoSeal;
