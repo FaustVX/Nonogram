@@ -39,11 +39,11 @@ namespace Nonogram.CLI
                 bool seal, ok;
                 do
                 {
-                    Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor);
+                    Console.BackgroundColor = GetAtOrDefault(color, nonogram.PossibleColors.Select(c => c.Value).ToArray(), nonogram.IgnoredColor);
                     if (color is not null)
                         Console.ForegroundColor = nonogram.IgnoredColor;
                     Console.WriteLine($"X:{x}, Y:{y} ({nonogram.ColoredCellCount} / {nonogram.TotalColoredCell} cells)");
-                    Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), (x, y));
+                    Print(nonogram, validatedBackgroundColor, GetAtOrDefault(color, nonogram.PossibleColors.Select(c => c.Value).ToArray(), nonogram.IgnoredColor), (x, y));
                     Console.ResetColor();
                     ok = seal = false;
                     switch (ReadKey(nonogram, (color, x, y)))
@@ -74,7 +74,7 @@ namespace Nonogram.CLI
                     Console.Clear();
                 } while (!ok);
 
-                nonogram.ValidateHints(x - 1, y - 1, GetAtOrDefault(color, nonogram.PossibleColors, nonogram.IgnoredColor), seal);
+                nonogram.ValidateHints(x - 1, y - 1, GetAtOrDefault(color, nonogram.PossibleColors.Select(c => c.Value).ToArray(), nonogram.IgnoredColor), seal);
             } while (!nonogram.IsCorrect);
             Console.ResetColor();
             Console.SetCursorPosition(0, 0);
