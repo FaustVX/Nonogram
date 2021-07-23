@@ -77,14 +77,18 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-        <ProgressBar Grid.Row="0"
+        <ProgressBar Grid.Row="0" Grid.ColumnSpan="2"
                      Value="{Binding ColoredCellCount}"
                      Maximum="{Binding TotalColoredCell}"
                      IsIndeterminate="{Binding IsComplete}"
                      Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
 
-        <TextBlock Grid.Row="0" TextAlignment="Center"
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" TextAlignment="Center"
                      Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
             <TextBlock.Text>
                 <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells)" Mode="OneWay">
@@ -96,12 +100,12 @@
             </TextBlock.Text>
         </TextBlock>
 
-        <ListBox BorderThickness="0" Grid.Row="1" HorizontalAlignment="Left" Background="Transparent" x:Name="colors"
+        <ListBox BorderThickness="0" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" x:Name="colors"
                  dp:CanBeSelected.IsSelector="{Binding PossibleColors}"
                  Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
+                    <StackPanel Orientation="Vertical" VerticalAlignment="Top"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
@@ -165,8 +169,8 @@
                 </Style>
             </FrameworkElement.Resources>
         </ListBox>
-
-        <ItemsControl Grid.Row="1" HorizontalAlignment="Right">
+        
+        <ItemsControl Grid.Column="1" Grid.Row="1">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>
@@ -191,7 +195,7 @@
             <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>
         </ItemsControl>
 
-        <Grid Grid.Row="2" Margin="5">
+        <Grid Grid.Row="3" Grid.Column="1" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
