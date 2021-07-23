@@ -161,8 +161,14 @@ namespace Nonogram
         public int ColoredCellCount
         {
             get => _coloredCellCount;
-            set => OnPropertyChanged(ref _coloredCellCount, in value);
+            set
+            {
+                OnPropertyChanged(ref _coloredCellCount, in value);
+                PropertyChanged?.Invoke(this, new(nameof(Percent)));
+            }
         }
+
+        public double Percent => ColoredCellCount / (double)TotalColoredCell;
 
         private bool _autoSeal = true;
         public bool AutoSeal
