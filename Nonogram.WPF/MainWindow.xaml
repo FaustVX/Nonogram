@@ -265,7 +265,8 @@
                         <ItemsPanelTemplate>
                             <ctrl:UniformGrid Orientation="Horizontal"
                                               Columns="{Binding Width, Mode=OneWay}"
-                                              Rows="{Binding Height, Mode=OneWay}" SnapsToDevicePixels="True"/>
+                                              Rows="{Binding Height, Mode=OneWay}"
+                                              SnapsToDevicePixels="{Binding Nonogram.IsCorrect, ElementName=This}"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
