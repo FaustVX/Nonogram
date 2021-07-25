@@ -14,7 +14,14 @@ namespace Nonogram.WPF
             Options.ParseArgs(args);
             var application = new App();
             application.InitializeComponent();
-            application.Run();
+            try
+            {
+                application.Run();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.StackTrace, ex.Message, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

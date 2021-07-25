@@ -25,14 +25,13 @@
             "type": "process",
             "args": [
                 "publish",
+                "--output",
+                "publish/Nonogram",
                 "${workspaceFolder}/Nonogram.WPF/Nonogram.WPF.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
-                "/property:PublishSingleFile=true",
-                // "/property:PublishTrimmed=true",
                 "--configuration=Release",
                 "--runtime=${input:runtime}",
-                "--self-contained=true",
             ],
             "problemMatcher": "$msCompile",
             "presentation": {
