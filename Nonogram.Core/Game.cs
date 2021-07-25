@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
@@ -130,6 +129,41 @@ namespace Nonogram
                 => obj is Color c && ColorEqualizer(c.Value, Value);
         }
 
+        public class Hint : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            public T Value { get; }
+
+            public int Total { get; }
+
+            private bool _validated;
+            public bool Validated
+            {
+                get => _validated;
+                set => OnPropertyChanged(ref _validated, in value);
+            }
+
+            public Hint(T value, int total)
+                => (Value, Total) = (value, total);
+
+
+            protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
+            {
+                if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
+                {
+                    storage = value;
+                    PropertyChanged?.Invoke(this, new(propertyName));
+                }
+            }
+
+            public override int GetHashCode()
+                => (Value, Total).GetHashCode();
+
+            public override bool Equals(object? obj)
+                => obj is Hint c && c.Total == Total && ColorEqualizer(c.Value, Value);
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public static Func<T, T, bool> ColorEqualizer { get; set; } = typeof(T) == typeof(IEquatable<T>) ? (a, b) => ((IEquatable<T>)a).Equals(b) : EqualityComparer<T>.Default.Equals;
@@ -140,8 +174,8 @@ namespace Nonogram
 
         public int Width { get; }
         public int Height { get; }
-        public ObservableCollection<(T color, int qty, bool validated)>[] ColHints { get; }
-        public ObservableCollection<(T color, int qty, bool validated)>[] RowHints { get; }
+        public Hint[][] ColHints { get; }
+        public Hint[][] RowHints { get; }
         public Color[] PossibleColors { get; }
         public T IgnoredColor { get; }
         private bool _isComplete;
@@ -264,8 +298,8 @@ namespace Nonogram
             foreach (var (x, y) in this.GenerateCoord())
                 _grid[y, x] = new EmptyCell();
 
-            ColHints = new ObservableCollection<(T, int, bool)>[Width];
-            RowHints = new ObservableCollection<(T, int, bool)>[Height];
+            ColHints = new Hint[Width][];
+            RowHints = new Hint[Height][];
 
             var rng = new Random(0);
             PossibleColors = pattern.Cast<T>()
@@ -278,14 +312,16 @@ namespace Nonogram
             TotalColoredCell = PossibleColors.Sum(c => c.Total);
 
             for (var y = 0; y < RowHints.Length; y++)
-                RowHints[y] = new(CalculateHints(_pattern.GetRow(y))
+                RowHints[y] = CalculateHints(_pattern.GetRow(y))
                     .Where(g => PossibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
-                    .Select(g => (g.color, g.qty, validated: false)));
+                    .Select(g => new Hint(g.color, g.qty))
+                    .ToArray();
 
             for (var x = 0; x < ColHints.Length; x++)
-                ColHints[x] = new(CalculateHints(_pattern.GetCol(x))
+                ColHints[x] = CalculateHints(_pattern.GetCol(x))
                     .Where(g => PossibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
-                    .Select(g => (g.color, g.qty, validated: false)));
+                    .Select(g => new Hint(g.color, g.qty))
+                    .ToArray();
         }
 
         public Game<TOther> ConvertTo<TOther>(TOther ignoredColor, params TOther[] possibleColors)
@@ -313,18 +349,10 @@ namespace Nonogram
                 .SetValue(result, grid);
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-            {
-                var hint = result.RowHints[x][y];
-                hint.validated = RowHints[x][y].validated;
-                result.RowHints[x][y] = hint;
-            }
+                result.RowHints[x][y].Validated = RowHints[x][y].Validated;
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-            {
-                var hint = result.ColHints[x][y];
-                hint.validated = ColHints[x][y].validated;
-                result.ColHints[x][y] = hint;
-            }
+                result.ColHints[x][y].Validated = ColHints[x][y].Validated;
 
             return result;
         }
@@ -335,29 +363,29 @@ namespace Nonogram
                 return;
 
             for (var x = 0; x < Width; x++)
-                if (ColHints[x].Count == 0)
+                if (ColHints[x].Length == 0)
                     for (var y = 0; y < Height; y++)
                         ValidateHints(x, y, IgnoredColor, true);
-                else if (ColHints[x][0].qty == Height)
+                else if (ColHints[x][0].Total == Height)
                     for (var y = 0; y < Height; y++)
-                        ValidateHints(x, y, ColHints[x][0].color, false);
+                        ValidateHints(x, y, ColHints[x][0].Value, false);
             for (var y = 0; y < Height; y++)
-                if (RowHints[y].Count == 0)
+                if (RowHints[y].Length == 0)
                     for (var x = 0; x < Width; x++)
                         ValidateHints(x, y, IgnoredColor, true);
-                else if (RowHints[y][0].qty == Width)
+                else if (RowHints[y][0].Total == Width)
                     for (var x = 0; x < Width; x++)
-                        ValidateHints(x, y, RowHints[y][0].color, false);
+                        ValidateHints(x, y, RowHints[y][0].Value, false);
 
             if (PossibleColors.Length > 1)
                 foreach (var color in PossibleColors)
                 {
                     for (var x = 0; x < Width; x++)
-                        if (!ColHints[x].Any(hint => ColorEqualizer(hint.color, color.Value)))
+                        if (!ColHints[x].Any(hint => ColorEqualizer(hint.Value, color.Value)))
                             for (var y = 0; y < Height; y++)
                                 Seal(x, y, color.Value);
                     for (var y = 0; y < Height; y++)
-                        if (!RowHints[y].Any(hint => ColorEqualizer(hint.color, color.Value)))
+                        if (!RowHints[y].Any(hint => ColorEqualizer(hint.Value, color.Value)))
                             for (var x = 0; x < Width; x++)
                                 Seal(x, y, color.Value);
                 }
@@ -443,26 +471,26 @@ namespace Nonogram
             if (AutoSeal && this[x, y].GetColor() is T color)
             {
                 var any = false;
-                if (RowHints[y].Where(h => ColorEqualizer(color, h.color)).All(All) && any)
+                if (RowHints[y].Where(h => ColorEqualizer(color, h.Value)).All(All) && any)
                     for (var i = 0; i < Width; i++)
                         if (!this[i, y].IsColored)
                             Seal(i, y, color);
                 any = false;
-                if (ColHints[x].Where(h => ColorEqualizer(color, h.color)).All(All) && any)
+                if (ColHints[x].Where(h => ColorEqualizer(color, h.Value)).All(All) && any)
                     for (var i = 0; i < Height; i++)
                         if (!this[x, i].IsColored)
                             Seal(x, i, color);
 
-                bool All((T color, int qty, bool validated) h)
+                bool All(Hint h)
                 {
-                    any |= h.validated;
-                    return h.validated;
+                    any |= h.Validated;
+                    return h.Validated;
                 }
             }
 
             IsComplete = ColoredCellCount == TotalColoredCell
-                && Array.TrueForAll(ColHints, ch => ch.All(h => h.validated))
-                && Array.TrueForAll(RowHints, rh => rh.All(h => h.validated));
+                && Array.TrueForAll(ColHints, ch => ch.All(h => h.Validated))
+                && Array.TrueForAll(RowHints, rh => rh.All(h => h.Validated));
 
             if (IsComplete)
             {
@@ -475,18 +503,18 @@ namespace Nonogram
             }
         }
 
-        private static bool Validate((T color, int qty)[] line, IList<(T color, int qty, bool validated)> hints, IEnumerable<Color> possibleColors)
+        private static bool Validate((T color, int qty)[] line, IList<Hint> hints, IEnumerable<Color> possibleColors)
         {
             line = line
                 .Where(g => possibleColors.Any(c => ColorEqualizer(g.color, c.Value)))
                 .ToArray();
 
-            if (line.Zip(hints).TakeWhile(hs => (hs.First.qty, hs.First.color).Equals((hs.Second.qty, hs.Second.color))).Count() == hints.Count)
+            if (line.Zip(hints).TakeWhile(hs => (hs.First.qty, hs.First.color).Equals((hs.Second.Total, hs.Second.Value))).Count() == hints.Count)
             {
                 for (var i = 0; i < hints.Count; i++)
                 {
                     var hint = hints[i];
-                    hint.validated = true;
+                    hint.Validated = true;
                     hints[i] = hint;
                 }
                 return true;
@@ -495,7 +523,7 @@ namespace Nonogram
             for (var i = 0; i < hints.Count; i++)
             {
                 var hint = hints[i];
-                hint.validated = false;
+                hint.Validated = false;
                 hints[i] = hint;
             }
 
@@ -506,7 +534,7 @@ namespace Nonogram
                     .ToArray();
                 var hintsArray = hints
                     .Select((g, i) => (g, i))
-                    .Where(g => ColorEqualizer(g.g.color, color.Value))
+                    .Where(g => ColorEqualizer(g.g.Value, color.Value))
                     .ToArray();
 
                 for (var i = 0; i < Math.Min(lineArray.Length, hintsArray.Length); i++)
@@ -517,13 +545,13 @@ namespace Nonogram
             return false;
 
 
-            static bool ValidateCell((T color, int qty)[] line, IList<((T color, int qty, bool validated), int i)> array, IList<(T color, int qty, bool validated)> hints, Index i)
+            static bool ValidateCell((T color, int qty)[] line, IList<(Hint, int i)> array, IList<Hint> hints, Index i)
             {
                 var (hint, pos) = array[i];
                 var (color, qty) = line[i];
-                if (hint.qty != qty || !ColorEqualizer(hint.color, color))
+                if (hint.Total != qty || !ColorEqualizer(hint.Value, color))
                     return false;
-                hint.validated = true;
+                hint.Validated = true;
                 hints[pos] = hint;
                 return true;
             }
@@ -613,18 +641,10 @@ namespace Nonogram
             OnCollectionReset();
 
             foreach (var (x, y) in RowHints.GenerateCoord())
-            {
-                var hint = RowHints[x][y];
-                hint.validated = false;
-                RowHints[x][y] = hint;
-            }
+                RowHints[x][y].Validated = false;
 
             foreach (var (x, y) in ColHints.GenerateCoord())
-            {
-                var hint = ColHints[x][y];
-                hint.validated = false;
-                ColHints[x][y] = hint;
-            }
+                ColHints[x][y].Validated = false;
 
             _previous.Clear();
             _nexts.Clear();

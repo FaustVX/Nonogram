@@ -120,19 +120,19 @@ namespace Nonogram.CLI
         {
             var yOffset = Console.CursorTop;
             Console.ResetColor();
-            var maxRow = nonogram.ColHints.Max(h => h.Count) + 1 + yOffset;
-            var maxCol = nonogram.RowHints.Max(h => h.Count) + 1;
+            var maxRow = nonogram.ColHints.Max(h => h.Length) + 1 + yOffset;
+            var maxCol = nonogram.RowHints.Max(h => h.Length) + 1;
 
             for (var x = 0; x < nonogram.ColHints.Length; x++)
             {
-                for (var i = nonogram.ColHints[x].Count - 1; i >= 0; i--)
+                for (var i = nonogram.ColHints[x].Length - 1; i >= 0; i--)
                 {
-                    var (color, qty, validated) = nonogram.ColHints[x][i];
+                    var hint = nonogram.ColHints[x][i];
                     Console.SetCursorPosition(maxCol + x + 1, i + yOffset);
-                    Console.ForegroundColor = color;
-                    if (validated)
+                    Console.ForegroundColor = hint.Value;
+                    if (hint.Validated)
                         Console.BackgroundColor = validatedBackgroundColor;
-                    Console.Write(qty);
+                    Console.Write(hint.Total);
                     Console.ResetColor();
                 }
                 WriteAt('─', maxCol + x + 1, maxRow);
@@ -141,14 +141,14 @@ namespace Nonogram.CLI
 
             for (var y = 0; y < nonogram.RowHints.Length; y++)
             {
-                for (var i = nonogram.RowHints[y].Count - 1; i >= 0; i--)
+                for (var i = nonogram.RowHints[y].Length - 1; i >= 0; i--)
                 {
-                    var (color, qty, validated) = nonogram.RowHints[y][i];
+                    var hint = nonogram.RowHints[y][i];
                     Console.SetCursorPosition(i, maxRow + y + 1);
-                    Console.ForegroundColor = color;
-                    if (validated)
+                    Console.ForegroundColor = hint.Value;
+                    if (hint.Validated)
                         Console.BackgroundColor = validatedBackgroundColor;
-                    Console.Write(qty);
+                    Console.Write(hint.Total);
                     Console.ResetColor();
                 }
                 WriteAt('│', maxCol, maxRow + y + 1);

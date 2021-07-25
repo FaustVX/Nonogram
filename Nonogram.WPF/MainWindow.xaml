@@ -22,44 +22,35 @@
         Closing="This_Closing">
     <Window.Resources>
         <conv:DebugConverter x:Key="DebugConverter"/>
-        <conv:TupleConverter x:Key="TupleConverter"/>
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
         <conv:HoveredToBrushConverter HoveredBrush="DarkGray" x:Key="HoveredToBrushConverter"/>
-        <conv:ChainConverter x:Key="BoolToBrushConverter">
-            <StaticResource ResourceKey="TupleConverter"/>
-            <conv:BoolConverter Type="{x:Type Brush}" True="{x:Static Brushes.LightGray}" False="{x:Static Brushes.Black}"/>
-        </conv:ChainConverter>
-        <conv:ChainConverter x:Key="BrushToColorConverter">
-            <StaticResource ResourceKey="TupleConverter"/>
-            <conv:BrushToColorConverter NullColor="Transparent"/>
-        </conv:ChainConverter>
         <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">
             <Border BorderThickness="0" CornerRadius="3"
-                    ToolTip="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}"
+                    ToolTip="{Binding Total}"
                     Width="{Binding (dp:Size.CellSize), ElementName=This}"
                     Height="{Binding (dp:Size.CellSize), ElementName=This}">
                 <Border.Background>
                     <LinearGradientBrush>
-                        <GradientStop Color="{Binding Converter={StaticResource BrushToColorConverter}, ConverterParameter=0}" Offset="0.75"/>
+                        <GradientStop Color="{Binding Value.Color}" Offset="0.75"/>
                         <GradientStop Color="Gray" Offset="0"/>
                     </LinearGradientBrush>
                 </Border.Background>
-                <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center"
+                <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center" StrokeThickness="1.25"
                        FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.75, ElementName=This}"
-                       Text="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=1}">
+                       Text="{Binding Total}">
                     <FrameworkElement.Resources>
                         <Style TargetType="ctrl:OutlinedTextBlock">
                             <Setter Property="Fill" Value="White"/>
                             <Setter Property="Stroke" Value="Black"/>
-                            <Setter Property="StrokeThickness" Value="1"/>
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Converter={StaticResource TupleConverter}, ConverterParameter=2}" Value="True">
-                                    <Setter Property="Fill" Value="Black"/>
-                                    <Setter Property="Stroke" Value="Red"/>
-                                    <Setter Property="StrokeThickness" Value="1"/>
+                                <DataTrigger Binding="{Binding Validated}" Value="True">
+                                    <Setter Property="Fill" Value="DimGray"/>
+                                    <Setter Property="Stroke" Value="White"/>
+                                    <Setter Property="FontStyle" Value="Italic"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -67,7 +58,8 @@
                 </ctrl:OutlinedTextBlock>
             </Border>
         </DataTemplate>
-        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="IsCorrectVisibility"/>
+        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
+        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Hidden}" x:Key="VisibilityHidden"/>
         <conv:HintsSumConverter x:Key="HintSumConverter" StringFormat="The Total is: {0}"/>
     </Window.Resources>
 
@@ -77,19 +69,15 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
 
         <ProgressBar Grid.Row="0" Grid.ColumnSpan="2"
                      Value="{Binding ColoredCellCount}"
                      Maximum="{Binding TotalColoredCell}"
                      IsIndeterminate="{Binding IsComplete}"
-                     Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
+                     Visibility="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}"/>
 
         <TextBlock Grid.Row="0" Grid.ColumnSpan="2" TextAlignment="Center"
-                     Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
+                     Visibility="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}">
             <TextBlock.Text>
                 <MultiBinding StringFormat="W:{0} * H:{1} ({2} / {3} cells {4:p1})" Mode="OneWay">
                     <Binding Path="Width" Mode="OneWay"/>
@@ -100,88 +88,23 @@
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
-
-        <ListBox BorderThickness="0" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" x:Name="colors"
-                 dp:CanBeSelected.IsSelector="{Binding PossibleColors}"
-                 Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Top"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border CornerRadius="2" dp:CanBeSelected.IsLocked="{Binding Validated, Mode=OneWay}"
-                            dp:CanBeSelected.IsColor="{Binding}"
-                            Width="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=2, ElementName=This}"
-                            Height="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=2, ElementName=This}"
-                            Background="{Binding Value}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="BorderBrush" Value="Black"/>
-                                <Setter Property="BorderThickness" Value="2"/>
-                                <Style.Triggers>
-                                    <Trigger Property="dp:CanBeSelected.IsLocked" Value="True">
-                                        <Setter Property="BorderBrush" Value="White"/>
-                                        <Setter Property="BorderThickness" Value="5"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <FrameworkElement.ToolTip>
-                            <TextBlock>
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="Cells: {0} / {1}">
-                                        <Binding Path="Current"/>
-                                        <Binding Path="Total"/>
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
-                        </FrameworkElement.ToolTip>
-                        <StackPanel Orientation="Vertical">
-                            <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center" Fill="Black" Stroke="White" StrokeThickness="1"
-                                                    FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.7, ElementName=This}"
-                                                    Text="{Binding Current}"/>
-                            <ctrl:OutlinedTextBlock StrokePosition="Outside" TextAlignment="Center" Fill="Black" Stroke="White" StrokeThickness="1"
-                                                    FontSize="{Binding (dp:Size.CellSize), Converter={StaticResource IsCorrectSize}, ConverterParameter=0.7, ElementName=This}"
-                                                    Text="{Binding Total}"/>
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <FrameworkElement.Resources>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Opacity" Value="0.3333"/>
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="2"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Trigger.Setters>
-                                <Setter Property="Opacity" Value="1.0"/>
-                            </Trigger.Setters>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Trigger.Setters>
-                                <Setter Property="Opacity" Value="0.75"/>
-                            </Trigger.Setters>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </FrameworkElement.Resources>
-        </ListBox>
         
-        <ItemsControl Grid.Column="1" Grid.Row="1">
+        <ItemsControl Grid.Row="1">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
+                    <UniformGrid Rows="1"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <FrameworkElement.Resources>
                 <Style TargetType="ButtonBase" x:Key="Style">
                     <Setter Property="Margin" Value="1.5"/>
                     <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Visibility" Value="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}"/>
+                    <Setter Property="Visibility" Value="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}"/>
+                    <Setter Property="BorderBrush" Value="DarkGray"/>
+                    <Setter Property="BorderThickness" Value="3"/>
+                    <Setter Property="Foreground" Value="DarkGray"/>
+                    <Setter Property="Background" Value="#303030"/>
+                    <Setter Property="Height" Value="30"/>
                 </Style>
                 <Style TargetType="Button" BasedOn="{StaticResource Style}"/>
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
@@ -206,7 +129,88 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
+            <ListBox Grid.Row="0" Grid.Column="0" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Background="Transparent" x:Name="colors"
+                 dp:CanBeSelected.IsSelector="{Binding PossibleColors}"
+                 Visibility="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="1"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border CornerRadius="3"
+                                dp:CanBeSelected.IsLocked="{Binding Validated, Mode=OneWay}"
+                                dp:CanBeSelected.IsColor="{Binding}"
+                                Background="{Binding Value}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Black"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="dp:CanBeSelected.IsLocked" Value="True">
+                                            <Setter Property="BorderBrush" Value="White"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <FrameworkElement.ToolTip>
+                                <TextBlock>
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="Cells: {0} / {1}">
+                                            <Binding Path="Current"/>
+                                            <Binding Path="Total"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </FrameworkElement.ToolTip>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <ctrl:OutlinedTextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" TextAlignment="Center" Fill="Black"
+                                                        StrokePosition="Outside" Stroke="White" StrokeThickness="2" FontWeight="Bold" FontSize="15"
+                                                        Text="{Binding Current}"/>
+                                <ctrl:OutlinedTextBlock Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" TextAlignment="Center" Fill="Black"
+                                                        StrokePosition="Outside" Stroke="White" StrokeThickness="2" FontWeight="Bold" FontSize="15"
+                                                        Text="{Binding Total}"/>
+                                <ProgressBar Grid.ColumnSpan="2" Grid.Row="1" Height="2"
+                                             Value="{Binding Current}"
+                                             Maximum="{Binding Total}"
+                                             Visibility="{Binding Validated, Converter={StaticResource VisibilityHidden}}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <FrameworkElement.Resources>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Opacity" Value="0.3333"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="2"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Trigger.Setters>
+                                    <Setter Property="Opacity" Value="1.0"/>
+                                </Trigger.Setters>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.Setters>
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger.Setters>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </FrameworkElement.Resources>
+            </ListBox>
+
+            <ItemsControl Grid.Column="0" Grid.Row="1" ItemsSource="{Binding RowHints}" Visibility="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}" Margin="0,3">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Vertical"/>
@@ -214,7 +218,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="0,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
+                        <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="1,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
                                 dp:ColRow.Source="{Binding ElementName=This}"
                                 ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>
@@ -235,7 +239,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={StaticResource IsCorrectVisibility}}">
+            <ItemsControl Grid.Column="1" Grid.Row="0" ItemsSource="{Binding ColHints}" Visibility="{Binding IsCorrect, Converter={StaticResource VisibilityCollapsed}}" Margin="3,0">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
@@ -243,7 +247,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness=".5,3,.5,3" CornerRadius="2" dp:ColRow.Col="0" Padding="0,0,0,2" Margin="0,0,0,2" VerticalAlignment="Bottom"
+                        <Border BorderThickness=".5,3,.5,3" CornerRadius="2" dp:ColRow.Col="0" Padding="0,1,0,2" Margin="0,0,0,2" VerticalAlignment="Bottom"
                                 dp:ColRow.Source="{Binding ElementName=This}"
                                 ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>

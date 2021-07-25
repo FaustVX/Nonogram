@@ -1,11 +1,12 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Media;
 
 namespace Nonogram.WPF.Converters
 {
-    public class EmptyCollectionConverter : IValueConverter<ICollection?, IEnumerable>
+    public class EmptyCollectionConverter : IValueConverter<ICollection<Game<Brush>.Hint>?, IEnumerable<Game<Brush>.Hint>>
     {
-        public IEnumerable Convert(ICollection? value)
-            => value is not { Count: > 0 } ? Enumerable.Repeat(((object?)null, 0, true), 1) : value;
+        public IEnumerable<Game<Brush>.Hint> Convert(ICollection<Game<Brush>.Hint>? value)
+            => value is not { Count: > 0 } ? Enumerable.Repeat(new Game<Brush>.Hint(null!, 0) { Validated = true }, 1) : value;
     }
 }
