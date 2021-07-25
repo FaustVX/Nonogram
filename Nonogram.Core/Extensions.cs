@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -90,10 +91,10 @@ namespace Nonogram
                 .SelectMany(x => Enumerable.Range(0, @this.Height)
                     .Select(y => (x, y)));
 
-        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this ICollection<T>[] @this)
+        public static IEnumerable<(int x, int y)> GenerateCoord<T>(this IList<T> @this, Func<T, ICollection> selectMany)
             where T : notnull
-            => Enumerable.Range(0, @this.Length)
-                .SelectMany(x => Enumerable.Range(0, @this[x].Count)
+            => Enumerable.Range(0, @this.Count)
+                .SelectMany(x => Enumerable.Range(0, selectMany(@this[x]).Count)
                     .Select(y => (x, y)));
 
         public static IEnumerable<(int x, int y)> GenerateCoord<T>(this T[,] @this)

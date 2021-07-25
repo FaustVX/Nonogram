@@ -223,6 +223,7 @@
                     <DataTemplate>
                         <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="1,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
                                 dp:ColRow.Source="{Binding ElementName=This}"
+                                Background="{Binding IsGroupInvalid, Converter={conv:BoolConverter Type=SolidColorBrush, True={x:Static Brushes.Red}, False={x:Static Brushes.Transparent}}}"
                                 ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
