@@ -164,6 +164,40 @@ namespace Nonogram
                 => obj is Hint c && c.Total == Total && ColorEqualizer(c.Value, Value);
         }
 
+        private abstract class HistoryFrame
+        {
+            public class SingleCell : HistoryFrame
+            {
+                public int X { get; }
+                public int Y { get; }
+                public ICell Cell { get; }
+
+                public SingleCell(int x, int y, Game<T> game)
+                    => (X, Y, Cell) = (x, y, game[x, y]);
+
+                public override Game<T>.HistoryFrame.SingleCell Rebuild(Game<T> game)
+                    => new(X, Y, game);
+
+                public override void Apply(Game<T> game, LinkedList<HistoryFrame> first, LinkedList<HistoryFrame> last)
+                {
+                    base.Apply(game, first, last);
+                    game.CalculateColoredCells(X, Y, Cell);
+                    game.OnCollectionChanged(X, Y, Cell);
+                    var autoSeal = game.AutoSeal;
+                    game._autoSeal = false;
+                    game.ValidateHints(X, Y);
+                    game._autoSeal = autoSeal;
+                }
+            }
+
+            public abstract HistoryFrame Rebuild(Game<T> game);
+            public virtual void Apply(Game<T> game, LinkedList<HistoryFrame> first, LinkedList<HistoryFrame> last)
+            {
+                first.RemoveLast();
+                last.AddLast(Rebuild(game));
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public static Func<T, T, bool> ColorEqualizer { get; set; } = typeof(T) == typeof(IEquatable<T>) ? (a, b) => ((IEquatable<T>)a).Equals(b) : EqualityComparer<T>.Default.Equals;
@@ -212,7 +246,7 @@ namespace Nonogram
         }
         public int TotalColoredCell { get; }
 
-        private readonly LinkedList<(int x, int y, ICell cell)> _previous = new(), _nexts = new();
+        private readonly LinkedList<HistoryFrame> _previous = new(), _nexts = new();
         public ICell this[int x, int y]
         {
             get => _grid[y, x];
@@ -232,7 +266,7 @@ namespace Nonogram
 
                 if (value.Equals(_grid[y, x]))
                     return;
-                _previous.AddLast((x, y, _grid[y, x]));
+                _previous.AddLast(new HistoryFrame.SingleCell(x, y, this));
                 _nexts.Clear();
                 CalculateColoredCells(x, y, value);
 
@@ -592,46 +626,18 @@ namespace Nonogram
             return (x, y);
         }
 
-        void IUndoRedo.Undo()
-            => Undo();
-
-        public (int x, int y)? Undo()
+        public void Undo()
         {
             var last = _previous.Last;
-            if (last is { Value: var (x, y, cell) })
-            {
-                _previous.RemoveLast();
-                _nexts.AddLast((x, y, _grid[y, x]));
-                CalculateColoredCells(x, y, cell);
-                OnCollectionChanged(x, y, in cell);
-                var autoSeal = AutoSeal;
-                _autoSeal = false;
-                ValidateHints(x, y);
-                _autoSeal = autoSeal;
-                return (x, y);
-            }
-            return null;
+            if (last is { Value: HistoryFrame.SingleCell frame })
+                frame.Apply(this, _previous, _nexts);
         }
 
-        void IUndoRedo.Redo()
-            => Redo();
-
-        public (int x, int y)? Redo()
+        public void Redo()
         {
             var last = _nexts.Last;
-            if (last is { Value: var (x, y, cell) })
-            {
-                _nexts.RemoveLast();
-                _previous.AddLast((x, y, _grid[y, x]));
-                CalculateColoredCells(x, y, cell);
-                OnCollectionChanged(x, y, in cell);
-                var autoSeal = AutoSeal;
-                _autoSeal = false;
-                ValidateHints(x, y);
-                _autoSeal = autoSeal;
-                return (x, y);
-            }
-            return null;
+            if (last is { Value: HistoryFrame.SingleCell frame })
+                frame.Apply(this, _nexts, _previous);
         }
 
         public void Restart()
