@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Nonogram
 {
@@ -95,7 +94,7 @@ namespace Nonogram
                 get => _current;
                 set
                 {
-                    OnPropertyChanged(ref _current, in value);
+                    this.OnPropertyChanged(ref _current, in value, PropertyChanged);
                     Validated = Current == Total;
                 }
             }
@@ -106,21 +105,11 @@ namespace Nonogram
             public bool Validated
             {
                 get => _validated;
-                private set => OnPropertyChanged(ref _validated, in value);
+                private set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
             }
 
             public Color(T value, int total)
                 => (Value, Total) = (value, total);
-
-
-            protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
-            {
-                if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
-                {
-                    storage = value;
-                    PropertyChanged?.Invoke(this, new(propertyName));
-                }
-            }
 
             public override int GetHashCode()
                 => Value.GetHashCode();
@@ -141,21 +130,11 @@ namespace Nonogram
             public bool Validated
             {
                 get => _validated;
-                set => OnPropertyChanged(ref _validated, in value);
+                set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
             }
 
             public Hint(T value, int total)
                 => (Value, Total) = (value, total);
-
-
-            protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
-            {
-                if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
-                {
-                    storage = value;
-                    PropertyChanged?.Invoke(this, new(propertyName));
-                }
-            }
 
             public override int GetHashCode()
                 => (Value, Total).GetHashCode();
@@ -216,13 +195,13 @@ namespace Nonogram
         public bool IsComplete
         {
             get => _isComplete;
-            private set => OnPropertyChanged(ref _isComplete, in value);
+            private set => this.OnPropertyChanged(ref _isComplete, in value, PropertyChanged);
         }
         private bool _isCorrect;
         public bool IsCorrect
         {
             get => _isCorrect;
-            private set => OnPropertyChanged(ref _isCorrect, in value);
+            private set => this.OnPropertyChanged(ref _isCorrect, in value, PropertyChanged);
         }
         internal int _coloredCellCount;
 
@@ -231,7 +210,7 @@ namespace Nonogram
             get => _coloredCellCount;
             set
             {
-                OnPropertyChanged(ref _coloredCellCount, in value);
+                this.OnPropertyChanged(ref _coloredCellCount, in value, PropertyChanged);
                 PropertyChanged?.Invoke(this, new(nameof(Percent)));
             }
         }
@@ -242,7 +221,7 @@ namespace Nonogram
         public bool AutoSeal
         {
             get => _autoSeal;
-            set => OnPropertyChanged(ref _autoSeal, value);
+            set => this.OnPropertyChanged(ref _autoSeal, value, PropertyChanged);
         }
         public int TotalColoredCell { get; }
 
@@ -271,15 +250,6 @@ namespace Nonogram
                 CalculateColoredCells(x, y, value);
 
                 OnCollectionChanged(x, y, in value);
-            }
-        }
-
-        protected void OnPropertyChanged<U>(ref U storage, in U value, [CallerMemberName] string propertyName = default!)
-        {
-            if ((storage is IEquatable<U> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? false))
-            {
-                storage = value;
-                PropertyChanged?.Invoke(this, new(propertyName));
             }
         }
 

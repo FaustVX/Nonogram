@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -30,7 +29,7 @@ namespace Nonogram.WPF
                 var autoSeal = Nonogram?.AutoSeal;
                 ColRow.Helper.Reset(this);
                 CanBeSelected.SetSelectedColor(this, 0);
-                OnPropertyChanged(ref _nonogram, in value);
+                this.OnPropertyChanged(ref _nonogram, in value, PropertyChanged);
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
@@ -47,20 +46,6 @@ namespace Nonogram.WPF
 
         public bool IsMeasureStarted
             => DependencyProperties.Measure.GetIsStarted(this);
-
-        protected void OnPropertyChanged<T>(ref T storage, in T value, Func<T, bool> validator = default!, [CallerMemberName] string propertyName = default!, params string[] otherPropertyNames)
-        {
-            if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
-            {
-                if (validator?.Invoke(value) ?? true)
-                {
-                    storage = value;
-                    PropertyChanged?.Invoke(this, new(propertyName));
-                    foreach (var name in otherPropertyNames)
-                        PropertyChanged?.Invoke(this, new(name));
-                }
-            }
-        }
 
         private ICellToForegroundConverter ICellToForegroundConverter
             => (ICellToForegroundConverter)Resources["ICellToForegroundConverter"];

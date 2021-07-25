@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Nonogram
 {
@@ -115,6 +117,15 @@ namespace Nonogram
             if (TryGetNext(enumerator, out var value))
                 return value;
             return default;
+        }
+
+        public static void OnPropertyChanged<T>(this INotifyPropertyChanged @this, ref T storage, in T value, PropertyChangedEventHandler? @event, [CallerMemberName] string propertyName = default!)
+        {
+            if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
+            {
+                storage = value;
+                @event?.Invoke(@this, new(propertyName));
+            }
         }
     }
 }
