@@ -25,6 +25,7 @@
         <conv:EmptyCollectionConverter x:Key="EmptyCollectionConverter"/>
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
+        <conv:SelectedColorConverter x:Key="SelectedColorConverter"/>
         <conv:HoveredToBrushConverter HoveredBrush="DarkGray" x:Key="HoveredToBrushConverter"/>
         <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">
@@ -268,7 +269,13 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Border Grid.Column="1" Grid.Row="1" BorderBrush="{Binding Nonogram.IgnoredColor, ElementName=This}" BorderThickness="2" CornerRadius="2" Padding="1">
+            <Border Grid.Column="1" Grid.Row="1" BorderThickness="2" CornerRadius="2" Padding="1">
+                <Border.BorderBrush>
+                    <MultiBinding Converter="{StaticResource SelectedColorConverter}">
+                        <Binding Path="(dp:CanBeSelected.IsSelector)" ElementName="colors" Mode="OneWay"/>
+                        <Binding Path="(dp:CanBeSelected.SelectedColor)" ElementName="This" Mode="OneWay"/>
+                    </MultiBinding>
+                </Border.BorderBrush>
                 <ItemsControl ItemsSource="{Binding}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
