@@ -20,7 +20,7 @@ namespace Nonogram.CLI
             var nonogram = Options.Generate((name, _) => Enum.Parse<ConsoleColor>(name, ignoreCase: true),
             span =>
             {
-                var ratio = ((Options.Resize)Options.Option).FactorReduction;
+                var ratio = ((Options.Resize)Options.Option!).FactorReduction;
                 var count = (ulong)span.Width * (ulong)span.Height;
                 var (r, g, b) = span.Aggregate((r: 0UL, g: 0UL, b: 0UL),
                     (acc, col) => (acc.r + col.R, acc.g + col.G, acc.b + col.B),

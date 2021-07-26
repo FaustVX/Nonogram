@@ -120,13 +120,15 @@ namespace Nonogram
             return default;
         }
 
-        public static void OnPropertyChanged<T>(this INotifyPropertyChanged @this, ref T storage, in T value, PropertyChangedEventHandler? @event, [CallerMemberName] string propertyName = default!)
+        public static bool OnPropertyChanged<T>(this INotifyPropertyChanged @this, ref T storage, in T value, PropertyChangedEventHandler? @event, [CallerMemberName] string propertyName = default!)
         {
             if ((storage is IEquatable<T> comp && !comp.Equals(value)) || (!storage?.Equals(value) ?? (value is not null)))
             {
                 storage = value;
                 @event?.Invoke(@this, new(propertyName));
+                return true;
             }
+            return false;
         }
     }
 }
