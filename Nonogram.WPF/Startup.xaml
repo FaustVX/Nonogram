@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Nonogram.WPF"
         xmlns:conv="clr-namespace:Nonogram.WPF.Converters"
+        xmlns:ctrl="clr-namespace:Nonogram.WPF.Controls"
         xmlns:dp="clr-namespace:Nonogram.WPF.DependencyProperties"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
@@ -12,12 +13,16 @@
         ResizeMode="NoResize"
         x:Name="This"
         DataContext="{Binding ElementName=This}"
-        Title="Nonogram">
+        Title="Nonogram"
+        Background="#333">
     <StackPanel Orientation="Vertical" Margin="5">
         <FrameworkElement.Resources>
             <conv:DebugConverter x:Key="DebugConv"/>
             <conv:CastConverter x:Key="CastConv"/>
             <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="#BBB"/>
+            </Style>
             <Style TargetType="{x:Type Border}" x:Key="Separator">
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Margin" Value="0,5"/>
@@ -29,7 +34,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type RadioButton}">
-                            <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Content}"/>
+                            <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Content}" Foreground="#BBB"/>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -80,7 +85,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.RowSpan="2" Grid.Column="0" Padding="0,0,2,0"
-                                           Foreground="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Foreground}"
+                                           Foreground="#BBB"
                                            Text="{Binding (dp:Header.Header), RelativeSource={RelativeSource Mode=TemplatedParent}, StringFormat={}{0} :}"/>
 
                                 <TextBox Grid.RowSpan="2" Grid.Column="1" Height="Auto" Margin="0" Padding="0,0,2,0"
@@ -125,6 +130,21 @@
             </Style>
         </FrameworkElement.Resources>
 
+        <ctrl:OutlinedTextBlock HorizontalAlignment="Center" Text="nonogram" FontSize="35" FontWeight="ExtraBlack" StrokeThickness="3" StrokePosition="Outside" Margin="3">
+            <ctrl:OutlinedTextBlock.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#CCC" Offset="0.5"/>
+                    <GradientStop Color="#888" Offset="1"/>
+                </RadialGradientBrush>
+            </ctrl:OutlinedTextBlock.Fill>
+            <ctrl:OutlinedTextBlock.Stroke>
+                <LinearGradientBrush>
+                    <GradientStop Color="#333" Offset="0"/>
+                    <GradientStop Color="#888" Offset="1"/>
+                </LinearGradientBrush>
+            </ctrl:OutlinedTextBlock.Stroke>
+        </ctrl:OutlinedTextBlock>
+        <Border Style="{StaticResource Separator}"/>
         <TextBlock HorizontalAlignment="Center">
             <Run Text="Info / Issues :"/>
             <Hyperlink NavigateUri="https://github.com/FaustVX/Nonogram/issues" dp:HyperLinkExtension.IsExternal="True">
@@ -176,7 +196,7 @@
         <Expander IsExpanded="{Binding Load}" dp:Header.Header="Load save file">
             <StackPanel Orientation="Vertical">
                 <TextBox Style="{StaticResource OpenFile}" Text="{Binding LoadOption.File, UpdateSourceTrigger=PropertyChanged}" dp:FileExtension.Extension="Picross File|*.picross"/>
-                <CheckBox Content="Load Saved Data" IsChecked="{Binding LoadOption.LoadGame}"/>
+                <CheckBox Content="Load Saved Data" IsChecked="{Binding LoadOption.LoadGame}" Foreground="#BBB"/>
             </StackPanel>
         </Expander>
         <Expander IsExpanded="{Binding Resize}" dp:Header.Header="Load and resize image">
