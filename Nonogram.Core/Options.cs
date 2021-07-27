@@ -51,7 +51,7 @@ namespace Nonogram
             public int? WebPbnIndex
             {
                 get => _webPbnIndex;
-                init => this.OnPropertyChanged(ref _webPbnIndex, in value, PropertyChanged);
+                set => this.OnPropertyChanged(ref _webPbnIndex, in value, PropertyChanged);
             }
 
             private int _minWidth = 0;

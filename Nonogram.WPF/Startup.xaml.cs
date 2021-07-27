@@ -16,6 +16,17 @@ namespace Nonogram.WPF
         {
             App.StartupWindow = this;
             InitializeComponent();
+            WebPbnScopeOption.PropertyChanged += IndexChanged;
+        }
+
+        private void IndexChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is Options.WebPbn { WebPbnIndex: int index and > 0 and < int.MaxValue } webPbn && e.PropertyName is nameof(webPbn.WebPbnIndex))
+            {
+                webPbn.WebPbnIndex = null;
+                WebPbnIndexOption.WebPbnIndex = index;
+                WebPbnIndex = true;
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -24,7 +35,7 @@ namespace Nonogram.WPF
         public bool WebPbnScope
         {
             get => _webPbnScope;
-            set => OnPropertyChanged(ref _webPbnScope, in value, WebPbnOption);
+            set => OnPropertyChanged(ref _webPbnScope, in value, WebPbnScopeOption);
         }
 
         private bool _webPbnIndex;
@@ -49,14 +60,13 @@ namespace Nonogram.WPF
         }
 
         public bool CanStart
-            => (WebPbnScope && WebPbnOption.IsValidState)
-               || (WebPbnIndex && (WebPbnRandomOption.IsValidState || WebPbnIndexOption.IsValidState))
-               || (Load && LoadOption.IsValidState)
-               || (Resize && ResizeOption.IsValidState);
+            => (WebPbnScope && WebPbnScopeOption.IsValidState)
+            || (WebPbnIndex && WebPbnIndexOption.IsValidState)
+            || (Load && LoadOption.IsValidState)
+            || (Resize && ResizeOption.IsValidState);
 
-        public Options.WebPbn WebPbnOption { get; } = new();
-        public Options.WebPbn WebPbnIndexOption { get; } = new() { WebPbnIndex = 0 };
-        public Options.WebPbn WebPbnRandomOption { get; } = new() { WebPbnIndex = 0 };
+        public Options.WebPbn WebPbnScopeOption { get; } = new();
+        public Options.WebPbn WebPbnIndexOption { get; } = new() { WebPbnIndex = 2 };
 
         public Options.Resize ResizeOption { get; } = new();
 
@@ -74,9 +84,6 @@ namespace Nonogram.WPF
                 Options.Option = option;
             PropertyChanged?.Invoke(this, new(nameof(CanStart)));
         }
-
-        private void IsRandom_Checked(object sender, RoutedEventArgs e)
-            => Options.Option = ((CheckBox)sender).IsChecked is true ? WebPbnRandomOption : WebPbnIndexOption;
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {

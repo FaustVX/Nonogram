@@ -29,7 +29,7 @@
         <conv:HoveredToBrushConverter HoveredBrush="DarkGray" x:Key="HoveredToBrushConverter"/>
         <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">
-            <Border BorderThickness="0" CornerRadius="3"
+            <Border BorderThickness="0" CornerRadius="3" Focusable="False"
                     ToolTip="{Binding Total}"
                     Width="{Binding (dp:Size.CellSize), ElementName=This}"
                     Height="{Binding (dp:Size.CellSize), ElementName=This}">

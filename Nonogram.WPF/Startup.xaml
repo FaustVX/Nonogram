@@ -17,8 +17,12 @@
         <FrameworkElement.Resources>
             <conv:DebugConverter x:Key="DebugConv"/>
             <conv:CastConverter x:Key="CastConv"/>
-            <conv:NullConverter x:Key="NullConv"/>
             <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
+            <Style TargetType="{x:Type Border}" x:Key="Separator">
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Margin" Value="0,5"/>
+                <Setter Property="BorderBrush" Value="Gray"/>
+            </Style>
             <Style TargetType="{x:Type RadioButton}">
                 <Setter Property="GroupName" Value="option"/>
                 <Setter Property="IsChecked" Value="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Expander}}, Path=IsExpanded}"/>
@@ -110,76 +114,72 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style TargetType="{x:Type Expander}">
+                <Setter Property="HeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <RadioButton Content="{Binding (dp:Header.Header), RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Expander}}}"/>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </FrameworkElement.Resources>
 
-        <Expander IsExpanded="{Binding WebPbnScope}">
-            <Expander.Header>
-                <RadioButton Content="Scoped WebPbn"/>
-            </Expander.Header>
-
+        <TextBlock HorizontalAlignment="Center">
+            <Run Text="Info / Issues :"/>
+            <Hyperlink NavigateUri="https://github.com/FaustVX/Nonogram/issues" dp:HyperLinkExtension.IsExternal="True">
+                github.com
+            </Hyperlink>
+        </TextBlock>
+        <Border Style="{StaticResource Separator}"/>
+        <Expander IsExpanded="{Binding WebPbnScope}" dp:Header.Header="Scoped WebPbn">
             <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
                 <Slider dp:Header.Header="Minimum Width"
                     Style="{StaticResource NumericUpDown}"
-                    Minimum="{Binding WebPbnOption.MinWidth, Converter={StaticResource CastConv}, Mode=OneTime}"
-                    Value="{Binding WebPbnOption.MinWidth, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxWidth, Converter={StaticResource CastConv}, Mode=OneWay}"/>
+                    Minimum="{Binding WebPbnScopeOption.MinWidth, Converter={StaticResource CastConv}, Mode=OneTime}"
+                    Value="{Binding WebPbnScopeOption.MinWidth, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxWidth, Converter={StaticResource CastConv}, Mode=OneWay}"/>
                 <Slider dp:Header.Header="Maximum Width"
-                    Minimum="{Binding WebPbnOption.MinWidth, Mode=OneWay, Converter={StaticResource CastConv}}"
+                    Minimum="{Binding WebPbnScopeOption.MinWidth, Mode=OneWay, Converter={StaticResource CastConv}}"
                     Style="{StaticResource NumericUpDown}"
-                    Value="{Binding WebPbnOption.MaxWidth, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxWidth, Converter={StaticResource CastConv}, Mode=OneTime}"/>
+                    Value="{Binding WebPbnScopeOption.MaxWidth, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxWidth, Converter={StaticResource CastConv}, Mode=OneTime}"/>
                 <Slider dp:Header.Header="Minimum Height"
                     Style="{StaticResource NumericUpDown}"
-                    Minimum="{Binding WebPbnOption.MinHeight, Converter={StaticResource CastConv}, Mode=OneTime}"
-                    Value="{Binding WebPbnOption.MinHeight, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxHeight, Converter={StaticResource CastConv}, Mode=OneWay}"/>
+                    Minimum="{Binding WebPbnScopeOption.MinHeight, Converter={StaticResource CastConv}, Mode=OneTime}"
+                    Value="{Binding WebPbnScopeOption.MinHeight, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxHeight, Converter={StaticResource CastConv}, Mode=OneWay}"/>
                 <Slider dp:Header.Header="Maximum Height"
-                    Minimum="{Binding WebPbnOption.MinHeight, Mode=OneWay, Converter={StaticResource CastConv}}"
+                    Minimum="{Binding WebPbnScopeOption.MinHeight, Mode=OneWay, Converter={StaticResource CastConv}}"
                     Style="{StaticResource NumericUpDown}"
-                    Value="{Binding WebPbnOption.MaxHeight, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxHeight, Converter={StaticResource CastConv}, Mode=OneTime}"/>
+                    Value="{Binding WebPbnScopeOption.MaxHeight, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxHeight, Converter={StaticResource CastConv}, Mode=OneTime}"/>
                 <Slider dp:Header.Header="Minimum Colors"
-                    Minimum="{Binding WebPbnOption.MinColors, Converter={StaticResource CastConv}, Mode=OneTime}"
+                    Minimum="{Binding WebPbnScopeOption.MinColors, Converter={StaticResource CastConv}, Mode=OneTime}"
                     Style="{StaticResource NumericUpDown}"
-                    Value="{Binding WebPbnOption.MinColors, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxColors, Converter={StaticResource CastConv}, Mode=OneWay}"/>
+                    Value="{Binding WebPbnScopeOption.MinColors, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxColors, Converter={StaticResource CastConv}, Mode=OneWay}"/>
                 <Slider dp:Header.Header="Maximum Colors"
-                    Minimum="{Binding WebPbnOption.MinColors, Mode=OneWay, Converter={StaticResource CastConv}}"
+                    Minimum="{Binding WebPbnScopeOption.MinColors, Mode=OneWay, Converter={StaticResource CastConv}}"
                     Style="{StaticResource NumericUpDown}"
-                    Value="{Binding WebPbnOption.MaxColors, Mode=TwoWay, Converter={StaticResource CastConv}}"
-                    Maximum="{Binding WebPbnOption.MaxColors, Converter={StaticResource CastConv}, Mode=OneTime}"/>
+                    Value="{Binding WebPbnScopeOption.MaxColors, Mode=TwoWay, Converter={StaticResource CastConv}}"
+                    Maximum="{Binding WebPbnScopeOption.MaxColors, Converter={StaticResource CastConv}, Mode=OneTime}"/>
             </StackPanel>
         </Expander>
-        <Expander IsExpanded="{Binding WebPbnIndex}">
-            <Expander.Header>
-                <RadioButton Content="Index WebPbn"/>
-            </Expander.Header>
-            <StackPanel Orientation="Vertical">
-                <CheckBox Content="Random Index" x:Name="isRandom" Checked="IsRandom_Checked" Unchecked="IsRandom_Checked"
-                          IsChecked="{Binding WebPbnRandomOption.WebPbnIndex, Mode=TwoWay, Converter={StaticResource NullConv}, ConverterParameter={x:Static sys:Int32.MaxValue}, TargetNullValue=True, FallbackValue=True}"/>
-
-                <Slider dp:Header.Header="Index" Minimum="1"
-                        Visibility="{Binding ElementName=isRandom, Path=IsChecked, Converter={StaticResource VisibilityCollapsed}}"
-                        Style="{StaticResource NumericUpDown}"
-                        Value="{Binding WebPbnIndexOption.WebPbnIndex, Mode=TwoWay, Converter={StaticResource CastConv}, ConverterParameter=index, TargetNullValue=0, FallbackValue=0}"
-                        Maximum="10000"/>
-            </StackPanel>
+        <Expander IsExpanded="{Binding WebPbnIndex}" dp:Header.Header="Index WebPbn">
+            <Slider dp:Header.Header="Index"
+                    Style="{StaticResource NumericUpDown}"
+                    Minimum="{Binding WebPbnIndexOption.WebPbnIndex, Mode=OneTime, Converter={StaticResource CastConv}}"
+                    Value="{Binding WebPbnIndexOption.WebPbnIndex, Mode=TwoWay, Converter={StaticResource CastConv}, TargetNullValue=0, FallbackValue=0}"
+                    Maximum="10000"/>
         </Expander>
-        <Expander IsExpanded="{Binding Load}">
-            <Expander.Header>
-                <RadioButton Content="Load"/>
-            </Expander.Header>
-
+        <Expander IsExpanded="{Binding Load}" dp:Header.Header="Load save file">
             <StackPanel Orientation="Vertical">
                 <TextBox Style="{StaticResource OpenFile}" Text="{Binding LoadOption.File, UpdateSourceTrigger=PropertyChanged}" dp:FileExtension.Extension="Picross File|*.picross"/>
                 <CheckBox Content="Load Saved Data" IsChecked="{Binding LoadOption.LoadGame}"/>
             </StackPanel>
         </Expander>
-        <Expander IsExpanded="{Binding Resize}">
-            <Expander.Header>
-                <RadioButton Content="Resize"/>
-            </Expander.Header>
-
+        <Expander IsExpanded="{Binding Resize}" dp:Header.Header="Load and resize image">
             <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
                 <TextBox Style="{StaticResource OpenFile}" Text="{Binding ResizeOption.File, UpdateSourceTrigger=PropertyChanged}"/>
                 <Slider Style="{StaticResource NumericUpDown}" Value="{Binding ResizeOption.Width}" Minimum="1" Maximum="1000" dp:Header.Header="Width"/>
@@ -187,7 +187,7 @@
                 <Slider Style="{StaticResource NumericUpDown}" Value="{Binding ResizeOption.FactorReduction}" Minimum="1" Maximum="128" dp:Header.Header="Color Factor Reduction"/>
             </StackPanel>
         </Expander>
-        <Border BorderBrush="Gray" BorderThickness="1" Margin="0,5"/>
+        <Border Style="{StaticResource Separator}"/>
         <Button Content="Start" Click="Start_Click" IsEnabled="{Binding CanStart}"/>
     </StackPanel>
 </Window>

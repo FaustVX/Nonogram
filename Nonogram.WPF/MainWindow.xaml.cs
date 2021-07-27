@@ -161,10 +161,7 @@ namespace Nonogram.WPF
         }
 
         private void NewClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-            App.StartupWindow?.Show();
-        }
+            => Close();
 
         private static Game<Brush> Generate()
         {
@@ -200,6 +197,9 @@ namespace Nonogram.WPF
             => SizeToContent = SizeToContent.WidthAndHeight;
 
         private void This_Closing(object sender, CancelEventArgs e)
-            => SaveClick(default!, default!);
+        {
+            SaveClick(default!, default!);
+            App.StartupWindow?.Show();
+        }
     }
 }

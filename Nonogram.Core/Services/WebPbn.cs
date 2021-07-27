@@ -18,11 +18,16 @@ namespace Nonogram.Services
         {
             try
             {
-                var game = Get(rng.Next(10_000), converter);
+                var id = rng.Next(10_000);
+                var game = Get(id, converter);
                 if (game.Width >= width.min && game.Width <= width.max
                     && game.Height >= height.min && game.Height <= height.max
                     && game.PossibleColors.Length >= colors.min && game.PossibleColors.Length <= colors.max)
+                {
+                    if (Options.Option is Options.WebPbn webpbn)
+                        webpbn.WebPbnIndex = id;
                     return game;
+                }
                 return TryGetRandomId(rng, width, height, colors, converter);
             }
             catch (XmlException)
