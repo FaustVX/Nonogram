@@ -238,7 +238,7 @@ namespace Nonogram
             set
             {
                 this.OnPropertyChanged(ref _coloredCellCount, in value, PropertyChanged);
-                PropertyChanged?.Invoke(this, new(nameof(Percent)));
+                this.NotifyProperty(PropertyChanged, nameof(Percent));
             }
         }
 

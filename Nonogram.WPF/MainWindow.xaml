@@ -89,13 +89,8 @@
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
-        
+
         <ItemsControl Grid.Row="1">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Rows="1"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
             <FrameworkElement.Resources>
                 <Style TargetType="ButtonBase" x:Key="Style">
                     <Setter Property="Margin" Value="1.5"/>
@@ -109,12 +104,20 @@
                 </Style>
                 <Style TargetType="Button" BasedOn="{StaticResource Style}"/>
                 <Style TargetType="ToggleButton" BasedOn="{StaticResource Style}"/>
+                <sys:Int32 x:Key="True">3</sys:Int32>
+                <sys:Int32 x:Key="False">4</sys:Int32>
             </FrameworkElement.Resources>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="{Binding ElementName=This, Path=Nonogram.IsCorrect, Converter={conv:BoolConverter Type={x:Type sys:Int32}, True={StaticResource True}, False={StaticResource False}}}"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
 
-            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, ElementName=This}"/>
+            <Button Content="New" Click="NewClick" Visibility="Visible"/>
+            <Button Content="Save Image" Click="SaveImage" Visibility="Visible"/>
             <Button Content="Save" Click="SaveClick"/>
             <Button Content="Load" Click="LoadClick" Visibility="Visible"/>
-            <Button Content="New" Click="NewClick" Visibility="Visible"/>
+            <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, ElementName=This}"/>
             <Button Content="Box" Click="BoxClick"/>
             <Button Content="Tips" Click="TipsButtonClick"/>
             <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>

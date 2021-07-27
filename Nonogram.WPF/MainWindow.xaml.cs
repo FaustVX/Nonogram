@@ -4,6 +4,7 @@ using Nonogram.WPF.DependencyProperties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -115,6 +116,30 @@ namespace Nonogram.WPF
                     LoadClick(default!, default!);
                     break;
             }
+        }
+
+        private void SaveImage(object sender, RoutedEventArgs e)
+        {
+            var saveDialog = new SaveFileDialog()
+            {
+                AddExtension = true,
+                Filter = "png Image|*.png",
+                DefaultExt = "*.png",
+            };
+            if (saveDialog.ShowDialog(this) is not true)
+                return;
+            var saveFile = new FileInfo(saveDialog.FileName);
+            using var stream = saveFile.OpenWrite();
+            var bitmap = new System.Drawing.Bitmap(Nonogram.Width, Nonogram.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            foreach (var (x, y) in Nonogram.GenerateCoord())
+                if (GetColor(Nonogram, x, y) is { A: var a, R: var r, G: var g, B: var b })
+                    bitmap.SetPixel(x, y, System.Drawing.Color.FromArgb(a, r, g, b));
+            bitmap.Save(stream, ImageFormat.Png);
+
+            static Color GetColor(Game<Brush> nonogram, int x, int y)
+                => nonogram[x, y] is ColoredCell<Brush> { Color: SolidColorBrush { Color: var color } }
+                    ? color
+                    : ((SolidColorBrush)nonogram.IgnoredColor).Color;
         }
 
         private void SaveClick(object sender, RoutedEventArgs e)

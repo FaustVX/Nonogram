@@ -115,8 +115,22 @@ namespace Nonogram
         {
             public override bool IsValidState => !string.IsNullOrWhiteSpace(File) && (FileInfo.Exists || URI.Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase));
 
+            private string _file = default!;
             [Option("file", Required = true)]
-            public string File { get; init; } = default!;
+            public string File
+            {
+                get => _file;
+                init
+                {
+                    if (this.OnPropertyChanged(ref _file, in value, PropertyChanged) && IsValidState && FileInfo.Exists)
+                    {
+                        var bitmap = new Bitmap(FileInfo.OpenRead());
+                        (Width, Height) = (bitmap.Width, bitmap.Height);
+                        this.NotifyProperty(PropertyChanged, nameof(Width));
+                        this.NotifyProperty(PropertyChanged, nameof(Height));
+                    }
+                }
+            }
             public FileInfo FileInfo => new(File);
             public Uri URI => new(File);
 

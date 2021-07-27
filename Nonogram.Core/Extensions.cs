@@ -130,5 +130,8 @@ namespace Nonogram
             }
             return false;
         }
+
+        public static void NotifyProperty(this INotifyPropertyChanged @this, PropertyChangedEventHandler? @event, string otherPropertyName)
+            => @event?.Invoke(@this, new(otherPropertyName));
     }
 }

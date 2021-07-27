@@ -82,7 +82,7 @@ namespace Nonogram.WPF
         {
             if (this.OnPropertyChanged(ref storage, in value, PropertyChanged, propertyName) && storage)
                 Options.Option = option;
-            PropertyChanged?.Invoke(this, new(nameof(CanStart)));
+            this.NotifyProperty(PropertyChanged, nameof(CanStart));
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
