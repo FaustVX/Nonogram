@@ -80,7 +80,7 @@
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="NumericUpDown_Header" />
-                                    <ColumnDefinition SharedSizeGroup="NumericUpDown_Value" />
+                                    <ColumnDefinition />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
@@ -89,7 +89,7 @@
                                            Text="{Binding (dp:Header.Header), RelativeSource={RelativeSource Mode=TemplatedParent}, StringFormat={}{0} :}"/>
 
                                 <TextBox Grid.RowSpan="2" Grid.Column="1" Height="Auto" Margin="0" Padding="0,0,2,0"
-                                         VerticalAlignment="Stretch" VerticalContentAlignment="Center"
+                                         VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch"
                                          Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Value, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBox.InputBindings>
                                         <KeyBinding Gesture="Up" Command="{x:Static Slider.IncreaseSmall}" />
@@ -120,6 +120,7 @@
                 </Setter>
             </Style>
             <Style TargetType="{x:Type Expander}">
+                <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
                 <Setter Property="HeaderTemplate">
                     <Setter.Value>
                         <DataTemplate>
@@ -153,7 +154,7 @@
         </TextBlock>
         <Border Style="{StaticResource Separator}"/>
         <Expander IsExpanded="{Binding WebPbnScope}" dp:Header.Header="Scoped WebPbn">
-            <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
+            <StackPanel Orientation="Vertical">
                 <Slider dp:Header.Header="Minimum Width"
                     Style="{StaticResource NumericUpDown}"
                     Minimum="{Binding WebPbnScopeOption.MinWidth, Converter={StaticResource CastConv}, Mode=OneTime}"
@@ -200,7 +201,7 @@
             </StackPanel>
         </Expander>
         <Expander IsExpanded="{Binding Resize}" dp:Header.Header="Load and resize image">
-            <StackPanel Orientation="Vertical" Grid.IsSharedSizeScope="True">
+            <StackPanel Orientation="Vertical">
                 <TextBox Style="{StaticResource OpenFile}" Text="{Binding ResizeOption.File, UpdateSourceTrigger=PropertyChanged}"/>
                 <Slider Style="{StaticResource NumericUpDown}" Value="{Binding ResizeOption.Width}" Minimum="1" Maximum="1000" dp:Header.Header="Width"/>
                 <Slider Style="{StaticResource NumericUpDown}" Value="{Binding ResizeOption.Height}" Minimum="1" Maximum="1000" dp:Header.Header="Height"/>
