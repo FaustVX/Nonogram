@@ -28,5 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nonogram.Core\Nonogram.Core.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 </Project>

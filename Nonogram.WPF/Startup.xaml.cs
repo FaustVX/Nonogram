@@ -1,5 +1,8 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Nonogram.WPF.DependencyProperties;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -12,20 +15,67 @@ namespace Nonogram.WPF
     /// </summary>
     public partial class Startup : Window, INotifyPropertyChanged
     {
+        private sealed class WebPbnConverter : JsonConverter<Options.WebPbn>
+        {
+            private readonly Options.WebPbn _webPbn;
+
+            public WebPbnConverter(Options.WebPbn webPbn)
+                => _webPbn = webPbn;
+
+            public override Options.WebPbn? ReadJson(JsonReader reader, Type objectType, Options.WebPbn? existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                existingValue = _webPbn;
+                reader.Read();
+                while (reader.TokenType is JsonToken.PropertyName)
+                {
+                    existingValue.GetType().GetProperty((string)reader.Value!)?.SetValue(existingValue, reader.ReadAsInt32());
+                    if (reader.TokenType is not JsonToken.PropertyName)
+                        reader.Read();
+                }
+                return existingValue;
+            }
+
+            public override void WriteJson(JsonWriter writer, Options.WebPbn? value, JsonSerializer serializer)
+            {
+                if (value is null)
+                    return;
+                writer.WriteStartObject();
+                writer.WritePropertyName(nameof(value.MinWidth));
+                writer.WriteValue(value.MinWidth);
+                writer.WritePropertyName(nameof(value.MaxWidth));
+                writer.WriteValue(value.MaxWidth);
+                writer.WritePropertyName(nameof(value.MinHeight));
+                writer.WriteValue(value.MinHeight);
+                writer.WritePropertyName(nameof(value.MaxHeight));
+                writer.WriteValue(value.MaxHeight);
+                writer.WritePropertyName(nameof(value.MinColors));
+                writer.WriteValue(value.MinColors);
+                writer.WritePropertyName(nameof(value.MaxColors));
+                writer.WriteValue(value.MaxColors);
+                writer.WriteEndObject();
+            }
+        }
+
         public Startup()
         {
             App.StartupWindow = this;
             InitializeComponent();
+            if (Extensions.Load(nameof(Startup)) is JObject obj)
+                WebPbnScopeOption = obj.ToObject<Options.WebPbn>(JsonSerializer.CreateDefault(new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } })) ?? WebPbnScopeOption;
             WebPbnScopeOption.PropertyChanged += IndexChanged;
         }
 
         private void IndexChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is Options.WebPbn { WebPbnIndex: int index and > 0 and < int.MaxValue } webPbn && e.PropertyName is nameof(webPbn.WebPbnIndex))
+            if (sender is Options.WebPbn webPbn)
             {
-                webPbn.WebPbnIndex = null;
-                WebPbnIndexOption.WebPbnIndex = index;
-                WebPbnIndex = true;
+                if (webPbn is Options.WebPbn { WebPbnIndex: int index and > 0 and < int.MaxValue } && e.PropertyName is nameof(webPbn.WebPbnIndex))
+                {
+                    webPbn.WebPbnIndex = null;
+                    WebPbnIndexOption.WebPbnIndex = index;
+                    WebPbnIndex = true;
+                }
+                Extensions.Save(nameof(Startup), JObject.FromObject(webPbn, new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } }));
             }
         }
 
