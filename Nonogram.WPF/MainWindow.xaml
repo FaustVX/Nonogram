@@ -120,7 +120,7 @@
             <ToggleButton Content="Measure" IsChecked="{Binding (dp:Measure.IsStarted), Mode=TwoWay, ElementName=This}"/>
             <Button Content="Box" Click="BoxClick"/>
             <Button Content="Tips" Click="TipsButtonClick"/>
-            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay}"/>
+            <ToggleButton Content="Auto-Seal" IsChecked="{Binding AutoSeal, Mode=TwoWay, ElementName=This}"/>
         </ItemsControl>
 
         <Grid Grid.Row="3" Grid.Column="1" Margin="5">

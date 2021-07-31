@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
 using Nonogram.WPF.Converters;
 using Nonogram.WPF.DependencyProperties;
 using System;
@@ -20,6 +21,7 @@ namespace Nonogram.WPF
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
+        private readonly JObject _settings;
 
         private Game<Brush> _nonogram = default!;
         public Game<Brush> Nonogram
@@ -37,6 +39,12 @@ namespace Nonogram.WPF
                 if (WindowState is WindowState.Normal)
                     SizeToContent = SizeToContent.WidthAndHeight;
             }
+        }
+
+        public bool AutoSeal
+        {
+            get => Nonogram?.AutoSeal ?? _settings.Value<bool>(nameof(AutoSeal));
+            set => _settings[nameof(AutoSeal)] = Nonogram.AutoSeal = value;
         }
 
         public Brush CurrentColor
@@ -60,8 +68,10 @@ namespace Nonogram.WPF
         }
         public MainWindow()
         {
+            _settings = Extensions.Load<JObject>(nameof(MainWindow), autosave: true);
             InitializeComponent();
             Nonogram = Generate();
+            AutoSeal = _settings.Value<bool>(nameof(AutoSeal));
         }
 
         private (ICell cell, int x, int y)? _selectedColor;

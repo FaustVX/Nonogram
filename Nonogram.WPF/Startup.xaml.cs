@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nonogram.WPF.DependencyProperties;
@@ -56,12 +56,16 @@ namespace Nonogram.WPF
             }
         }
 
+        private readonly JObject _settings;
+
         public Startup()
         {
             App.StartupWindow = this;
             InitializeComponent();
-            if (Extensions.Load(nameof(Startup)) is JObject obj)
-                WebPbnScopeOption = obj.ToObject<Options.WebPbn>(JsonSerializer.CreateDefault(new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } })) ?? WebPbnScopeOption;
+            _settings = Extensions.Load<JObject>(nameof(Startup), autosave: true);
+            WebPbnScopeOption = _settings[nameof(WebPbnScope)]?.ToObject<Options.WebPbn>(JsonSerializer.CreateDefault(new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } })) ?? WebPbnScopeOption;
+            if (_settings[nameof(Expander)] is JValue { Type: JTokenType.String, Value: string str })
+                GetType().GetProperty(str)?.SetValue(this, true);
             WebPbnScopeOption.PropertyChanged += IndexChanged;
         }
 
@@ -75,7 +79,7 @@ namespace Nonogram.WPF
                     WebPbnIndexOption.WebPbnIndex = index;
                     WebPbnIndex = true;
                 }
-                Extensions.Save(nameof(Startup), JObject.FromObject(webPbn, new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } }));
+                _settings[nameof(WebPbnScope)] = JObject.FromObject(webPbn, new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } });
             }
         }
 
@@ -131,7 +135,10 @@ namespace Nonogram.WPF
         private void OnPropertyChanged(ref bool storage, in bool value, Options option, [CallerMemberName]string propertyName = default!)
         {
             if (this.OnPropertyChanged(ref storage, in value, PropertyChanged, propertyName) && storage)
+            {
                 Options.Option = option;
+                _settings[nameof(Expander)] = propertyName;
+            }
             this.NotifyProperty(PropertyChanged, nameof(CanStart));
         }
 

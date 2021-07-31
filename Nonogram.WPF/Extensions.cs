@@ -35,8 +35,18 @@ namespace Nonogram.WPF
 
         private static readonly FileInfo _save;
 
-        public static JToken? Load(string group)
-            => JObject.Parse(File.ReadAllText(_save.FullName))[group];
+        public static T? Load<T>(string group)
+            where T : JToken
+            => (T?)JObject.Parse(File.ReadAllText(_save.FullName))[group];
+
+        public static T Load<T>(string group, bool autosave)
+            where T : JToken, new()
+        {
+            var save = Load<T>(group) ?? new();
+            if (autosave && save is JContainer container)
+                container.CollectionChanged += (s, e) => Save(group, (JToken)s!);
+            return save;
+        }
 
         public static void Save(string group, JToken data)
         {
