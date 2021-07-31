@@ -9,6 +9,7 @@
         xmlns:dp="clr-namespace:Nonogram.WPF.DependencyProperties"
         xmlns:core="clr-namespace:Nonogram;assembly=Nonogram.Core"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:mx="clr-namespace:Nonogram.WPF.MarkupExtensions"
         x:Name="This"
         DataContext="{Binding Nonogram, Mode=OneWay, RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
@@ -59,8 +60,8 @@
                 </ctrl:OutlinedTextBlock>
             </Border>
         </DataTemplate>
-        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
-        <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Hidden}" x:Key="VisibilityHidden"/>
+        <mx:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
+        <mx:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Hidden}" x:Key="VisibilityHidden"/>
         <conv:HintsSumConverter x:Key="HintSumConverter" StringFormat="The Total is: {0}"/>
     </Window.Resources>
 
@@ -109,7 +110,7 @@
             </FrameworkElement.Resources>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Columns="{Binding ElementName=This, Path=Nonogram.IsCorrect, Converter={conv:BoolConverter Type={x:Type sys:Int32}, True={StaticResource True}, False={StaticResource False}}}"/>
+                    <UniformGrid Columns="{Binding ElementName=This, Path=Nonogram.IsCorrect, Converter={mx:BoolConverter Type={x:Type sys:Int32}, True={StaticResource True}, False={StaticResource False}}}"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
@@ -226,7 +227,7 @@
                     <DataTemplate>
                         <Border BorderThickness="3,.5,3,.5" CornerRadius="2" dp:ColRow.Row="0" Padding="1,0,2,0" Margin="0,0,2,0" HorizontalAlignment="Right"
                                 dp:ColRow.Source="{Binding ElementName=This}"
-                                Background="{Binding IsGroupInvalid, Converter={conv:BoolConverter Type=SolidColorBrush, True={x:Static Brushes.Red}, False={x:Static Brushes.Transparent}}}"
+                                Background="{Binding IsGroupInvalid, Converter={mx:BoolConverter Type=SolidColorBrush, True={x:Static Brushes.Red}, False={x:Static Brushes.Transparent}}}"
                                 ToolTip="{Binding Converter={StaticResource HintSumConverter}, ConverterParameter=1}">
                             <Border.BorderBrush>
                                 <MultiBinding Converter="{StaticResource HoveredToBrushConverter}">
@@ -294,7 +295,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type core:ICell}">
                             <Border BorderBrush="Gray" BorderThickness="0"
-                                    CornerRadius="{Binding Nonogram.IsCorrect, Converter={conv:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, ElementName=This}"
+                                    CornerRadius="{Binding Nonogram.IsCorrect, Converter={mx:BoolConverter sys:Double, False=2, True=0}, Mode=OneWay, ElementName=This}"
                                     MouseDown="CellMouseDown"
                                     MouseEnter="CellMouseEnter"
                                     dp:Measure.Tool="{Binding ElementName=This}"

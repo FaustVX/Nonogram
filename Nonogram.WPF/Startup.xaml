@@ -8,18 +8,21 @@
         xmlns:ctrl="clr-namespace:Nonogram.WPF.Controls"
         xmlns:dp="clr-namespace:Nonogram.WPF.DependencyProperties"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        xmlns:mx="clr-namespace:Nonogram.WPF.MarkupExtensions"
         mc:Ignorable="d"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         x:Name="This"
         DataContext="{Binding ElementName=This}"
-        Title="Nonogram"
-        Background="#333">
+        Title="Nonogram">
+    <Control.Background>
+        <SolidColorBrush Color="{mx:Load StartupBackground, Default=#333}"/>
+    </Control.Background>
     <StackPanel Orientation="Vertical" Margin="5">
         <FrameworkElement.Resources>
             <conv:DebugConverter x:Key="DebugConv"/>
             <conv:CastConverter x:Key="CastConv"/>
-            <conv:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
+            <mx:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
             <Style TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="#BBB"/>
             </Style>
@@ -134,14 +137,14 @@
         <ctrl:OutlinedTextBlock HorizontalAlignment="Center" Text="nonogram" FontSize="35" FontWeight="ExtraBlack" StrokeThickness="3" StrokePosition="Outside" Margin="3">
             <ctrl:OutlinedTextBlock.Fill>
                 <RadialGradientBrush>
-                    <GradientStop Color="#CCC" Offset="0.5"/>
-                    <GradientStop Color="#888" Offset="1"/>
+                    <GradientStop Color="{mx:Load StartupTitleFillInner, Default=#CCC}" Offset="0.5"/>
+                    <GradientStop Color="{mx:Load StartupTitleFillOuter, Default=#888}" Offset="1"/>
                 </RadialGradientBrush>
             </ctrl:OutlinedTextBlock.Fill>
             <ctrl:OutlinedTextBlock.Stroke>
                 <LinearGradientBrush>
-                    <GradientStop Color="#333" Offset="0"/>
-                    <GradientStop Color="#888" Offset="1"/>
+                    <GradientStop Color="{mx:Load StartupTitleStrokeLeft, Default=#333}" Offset="0"/>
+                    <GradientStop Color="{mx:Load StartupTitleStrokeRight, Default=#888}" Offset="1"/>
                 </LinearGradientBrush>
             </ctrl:OutlinedTextBlock.Stroke>
         </ctrl:OutlinedTextBlock>

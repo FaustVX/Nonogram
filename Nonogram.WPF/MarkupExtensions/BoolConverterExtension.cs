@@ -2,7 +2,7 @@
 using System.Windows.Data;
 using System.Windows.Markup;
 
-namespace Nonogram.WPF.Converters
+namespace Nonogram.WPF.MarkupExtensions
 {
     [MarkupExtensionReturnType(typeof(IValueConverter))]
     public class BoolConverterExtension : MarkupExtension
@@ -19,7 +19,7 @@ namespace Nonogram.WPF.Converters
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            var type = typeof(BoolToTConverter<>).MakeGenericType(Type);
+            var type = typeof(Converters.BoolToTConverter<>).MakeGenericType(Type);
             return type.GetConstructor(new[] { True.GetType(), False.GetType() })!.Invoke(new[] { True, False })!;
         }
     }

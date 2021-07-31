@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using static Nonogram.Extensions;
 
 namespace Nonogram.WPF
 {
@@ -62,7 +63,7 @@ namespace Nonogram.WPF
         {
             App.StartupWindow = this;
             InitializeComponent();
-            _settings = Extensions.Load<JObject>(nameof(Startup), autosave: true);
+            _settings = Load<JObject>(nameof(Startup), autosave: true);
             WebPbnScopeOption = _settings[nameof(WebPbnScope)]?.ToObject<Options.WebPbn>(JsonSerializer.CreateDefault(new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } })) ?? WebPbnScopeOption;
             if (_settings[nameof(Expander)] is JValue { Type: JTokenType.String, Value: string str })
                 GetType().GetProperty(str)?.SetValue(this, true);

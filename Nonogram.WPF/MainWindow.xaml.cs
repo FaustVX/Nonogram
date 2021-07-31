@@ -11,6 +11,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using static Nonogram.Extensions;
 using static Nonogram.WPF.Extensions;
 
 namespace Nonogram.WPF
@@ -68,7 +69,7 @@ namespace Nonogram.WPF
         }
         public MainWindow()
         {
-            _settings = Extensions.Load<JObject>(nameof(MainWindow), autosave: true);
+            _settings = Load<JObject>(nameof(MainWindow), autosave: true);
             InitializeComponent();
             Nonogram = Generate();
             AutoSeal = _settings.Value<bool>(nameof(AutoSeal));
