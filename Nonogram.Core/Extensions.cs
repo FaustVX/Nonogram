@@ -162,7 +162,7 @@ namespace Nonogram
             return false;
         }
 
-        public static void NotifyProperty(this INotifyPropertyChanged @this, PropertyChangedEventHandler? @event, string otherPropertyName)
+        public static void NotifyProperty(this INotifyPropertyChanged @this, PropertyChangedEventHandler? @event, [CallerMemberName]string otherPropertyName = default!)
             => @event?.Invoke(@this, new(otherPropertyName));
     }
 }

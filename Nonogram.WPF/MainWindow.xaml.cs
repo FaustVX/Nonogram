@@ -45,7 +45,11 @@ namespace Nonogram.WPF
         public bool AutoSeal
         {
             get => Nonogram?.AutoSeal ?? _settings.Value<bool>(nameof(AutoSeal));
-            set => _settings[nameof(AutoSeal)] = Nonogram.AutoSeal = value;
+            set
+            {
+                _settings[nameof(AutoSeal)] = Nonogram.AutoSeal = value;
+                this.NotifyProperty(PropertyChanged);
+            }
         }
 
         public Brush CurrentColor
@@ -72,7 +76,7 @@ namespace Nonogram.WPF
             _settings = Load<JObject>(nameof(MainWindow), autosave: true);
             InitializeComponent();
             Nonogram = Generate();
-            AutoSeal = _settings.Value<bool>(nameof(AutoSeal));
+            AutoSeal = _settings.Value<bool?>(nameof(AutoSeal)) ?? true;
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
