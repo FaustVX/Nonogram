@@ -11,15 +11,17 @@ namespace Nonogram.WPF.MarkupExtensions
     public class LoadExtension : MarkupExtension
     {
         public LoadExtension(string property)
-            => Property = property;
+            => Properties = property.Split('/');
 
-        public string Property { get; }
+        public string[] Properties { get; }
         public string? Default { get; init; }
 
         public override object? ProvideValue(IServiceProvider serviceProvider)
             => (serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget) switch
             {
                 { TargetProperty: DependencyProperty { PropertyType: var type, DefaultMetadata: { DefaultValue: var def } } }
+                    => GetValue(type, def),
+                { TargetObject: Setter { Property: { PropertyType: var type, DefaultMetadata: { DefaultValue: var def } } } }
                     => GetValue(type, def),
                 { TargetProperty: PropertyInfo { PropertyType: var type } }
                     => GetValue(type, null),
@@ -29,16 +31,26 @@ namespace Nonogram.WPF.MarkupExtensions
         private object? GetValue(Type type, object? def)
         {
             var settings = Load<JObject>("XAML") ?? new();
-            var result = Convert(settings[Property], type);
+            var result = Convert(GetToken(settings), type);
             if (result is null)
             {
-                settings[Property] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
+                GetToken(settings).Parent!.Parent![Properties[^1]] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
                 Save("XAML", settings);
             }
             return result;
         }
 
-        private object? Convert(JToken? settings, Type type)
+        private JToken GetToken(JObject obj)
+        {
+            JToken? token = obj;
+            foreach (var property in Properties)
+            {
+                token = (token[property] ??= new JObject());
+            }
+            return token;
+        }
+
+        private static object? Convert(JToken? settings, Type type)
         {
             try
             {
