@@ -14,10 +14,8 @@
         ResizeMode="NoResize"
         x:Name="This"
         DataContext="{Binding ElementName=This}"
-        Title="Nonogram">
-    <Control.Background>
-        <SolidColorBrush Color="{mx:Load StartupBackground, Default=#333}"/>
-    </Control.Background>
+        Title="Nonogram"
+        Background="{mx:Load StartupBackground, Default=#333}">
     <StackPanel Orientation="Vertical" Margin="5">
         <FrameworkElement.Resources>
             <conv:DebugConverter x:Key="DebugConv"/>

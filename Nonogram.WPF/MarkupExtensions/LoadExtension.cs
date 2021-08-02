@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
@@ -28,13 +29,30 @@ namespace Nonogram.WPF.MarkupExtensions
         private object? GetValue(Type type, object? def)
         {
             var settings = Load<JObject>("XAML") ?? new();
-            var result = settings[Property]?.ToObject(type);
+            var result = Convert(settings[Property], type);
             if (result is null)
             {
                 settings[Property] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
                 Save("XAML", settings);
             }
             return result;
+        }
+
+        private object? Convert(JToken? settings, Type type)
+        {
+            try
+            {
+                if (settings is JValue { Type: JTokenType.String, Value: string value }
+                    && type.GetCustomAttribute<TypeConverterAttribute>()?.ConverterTypeName is string converterName
+                    && Type.GetType(converterName) is Type converter
+                    && Activator.CreateInstance(converter) is TypeConverter typeConverter)
+                    return typeConverter.ConvertFromString(value);
+                return settings?.ToObject(type);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
