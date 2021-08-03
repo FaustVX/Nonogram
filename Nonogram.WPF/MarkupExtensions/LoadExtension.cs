@@ -58,6 +58,8 @@ namespace Nonogram.WPF.MarkupExtensions
         {
             try
             {
+                if (settings is JValue { Type: JTokenType.String, Value: string reference } && reference.StartsWith("@`") && reference.EndsWith('`'))
+                    return Convert(new LoadExtension(reference[2..^1]).GetToken((JObject)settings.Root), type);
                 if (settings is JValue { Type: JTokenType.String, Value: string value }
                     && type.GetCustomAttribute<TypeConverterAttribute>()?.ConverterTypeName is string converterName
                     && Type.GetType(converterName) is Type converter
