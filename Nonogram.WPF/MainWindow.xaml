@@ -17,7 +17,7 @@
         dp:UndoRedo.UndoRedo="{Binding}"
         dp:Size.CellSize="17.5"
         SizeToContent="WidthAndHeight"
-        Background="#202020"
+        Background="{mx:Load Startup/Background, AddRoot=False, Default=#202020}"
         Title="Nonogram"
         StateChanged="This_StateChanged"
         Closing="This_Closing">
@@ -27,7 +27,7 @@
         <conv:ICellToForegroundConverter x:Key="ICellToForegroundConverter"/>
         <conv:ICellToBackgroundConverter SealedBrush="Gray" x:Key="ICellToBackgroundConverter"/>
         <conv:SelectedColorConverter x:Key="SelectedColorConverter"/>
-        <conv:HoveredToBrushConverter HoveredBrush="DarkGray" x:Key="HoveredToBrushConverter"/>
+        <conv:HoveredToBrushConverter HoveredBrush="{mx:Load Hints/Hover, Default=DarkGray}" x:Key="HoveredToBrushConverter"/>
         <conv:MultiplyConverter x:Key="IsCorrectSize"/>
         <DataTemplate x:Key="Hints">
             <Border BorderThickness="0" CornerRadius="3" Focusable="False"
@@ -100,7 +100,7 @@
                     <Setter Property="BorderBrush" Value="DarkGray"/>
                     <Setter Property="BorderThickness" Value="3"/>
                     <Setter Property="Foreground" Value="DarkGray"/>
-                    <Setter Property="Background" Value="#303030"/>
+                    <Setter Property="Background" Value="{mx:Load Button/Background, Default=#303030}"/>
                     <Setter Property="Height" Value="30"/>
                 </Style>
                 <Style TargetType="Button" BasedOn="{StaticResource Style}"/>

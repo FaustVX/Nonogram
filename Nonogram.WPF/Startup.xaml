@@ -15,14 +15,14 @@
         x:Name="This"
         DataContext="{Binding ElementName=This}"
         Title="Nonogram"
-        Background="{mx:Load Startup/Background, Default=#333}">
+        Background="{mx:Load Background, Default=#222}">
     <StackPanel Orientation="Vertical" Margin="5">
         <FrameworkElement.Resources>
             <conv:DebugConverter x:Key="DebugConv"/>
             <conv:CastConverter x:Key="CastConv"/>
             <mx:BoolConverter Type="{x:Type Visibility}" False="{x:Static Visibility.Visible}" True="{x:Static Visibility.Collapsed}" x:Key="VisibilityCollapsed"/>
             <Style TargetType="{x:Type TextBlock}">
-                <Setter Property="Foreground" Value="{mx:Load Startup/TextBlock/Foreground, Default=#BBB}"/>
+                <Setter Property="Foreground" Value="{mx:Load TextBlock/Foreground, Default=#BBB}"/>
             </Style>
             <Style TargetType="{x:Type Border}" x:Key="Separator">
                 <Setter Property="BorderThickness" Value="1"/>
@@ -35,7 +35,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type RadioButton}">
-                            <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Content}" Foreground="{mx:Load Startup/TextBlock/Foreground}"/>
+                            <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=Content}" Foreground="{mx:Load TextBlock/Foreground}"/>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -69,7 +69,7 @@
 
                 <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false" />
                 <Setter Property="SmallChange" Value="1" />
-                <Setter Property="Foreground" Value="{mx:Load Startup/TextBlock/Foreground}"/>
+                <Setter Property="Foreground" Value="{mx:Load TextBlock/Foreground}"/>
                 <Setter Property="Margin" Value="0,2"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -134,14 +134,14 @@
         <ctrl:OutlinedTextBlock HorizontalAlignment="Center" Text="nonogram" FontSize="35" FontWeight="ExtraBlack" StrokeThickness="3" StrokePosition="Outside" Margin="3">
             <ctrl:OutlinedTextBlock.Fill>
                 <RadialGradientBrush>
-                    <GradientStop Color="{mx:Load Startup/Title/Fill/Inner, Default=#CCC}" Offset="0.5"/>
-                    <GradientStop Color="{mx:Load Startup/Title/Fill/Outer, Default=#888}" Offset="1"/>
+                    <GradientStop Color="{mx:Load Title/Fill/Inner, Default=#CCC}" Offset="0.5"/>
+                    <GradientStop Color="{mx:Load Title/Fill/Outer, Default=#888}" Offset="1"/>
                 </RadialGradientBrush>
             </ctrl:OutlinedTextBlock.Fill>
             <ctrl:OutlinedTextBlock.Stroke>
                 <LinearGradientBrush>
-                    <GradientStop Color="{mx:Load Startup/Title/Stroke/Left, Default=#333}" Offset="0"/>
-                    <GradientStop Color="{mx:Load Startup/Title/Stroke/Right, Default=#888}" Offset="1"/>
+                    <GradientStop Color="{mx:Load Title/Stroke/Left, Default=#222}" Offset="0"/>
+                    <GradientStop Color="{mx:Load Title/Stroke/Right, Default=#888}" Offset="1"/>
                 </LinearGradientBrush>
             </ctrl:OutlinedTextBlock.Stroke>
         </ctrl:OutlinedTextBlock>
@@ -197,7 +197,7 @@
         <Expander IsExpanded="{Binding Load}" dp:Header.Header="Load save file">
             <StackPanel Orientation="Vertical">
                 <TextBox Style="{StaticResource OpenFile}" Text="{Binding LoadOption.File, UpdateSourceTrigger=PropertyChanged}" dp:FileExtension.Extension="Picross File|*.picross"/>
-                <CheckBox Content="Load Saved Data" IsChecked="{Binding LoadOption.LoadGame}" Foreground="{mx:Load Startup/TextBlock/Foreground}"/>
+                <CheckBox Content="Load Saved Data" IsChecked="{Binding LoadOption.LoadGame}" Foreground="{mx:Load TextBlock/Foreground}"/>
             </StackPanel>
         </Expander>
         <Expander IsExpanded="{Binding Resize}" dp:Header.Header="Load and resize image">

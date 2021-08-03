@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
+using System.Xaml;
 using static Nonogram.Extensions;
 
 namespace Nonogram.WPF.MarkupExtensions
@@ -15,22 +16,25 @@ namespace Nonogram.WPF.MarkupExtensions
 
         public string[] Properties { get; }
         public string? Default { get; init; }
+        public bool AddRoot { get; init; } = true;
 
         public override object? ProvideValue(IServiceProvider serviceProvider)
             => (serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget) switch
             {
                 { TargetProperty: DependencyProperty { PropertyType: var type, DefaultMetadata: { DefaultValue: var def } } }
-                    => GetValue(type, def),
+                    => GetValue(type, def, (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider))!),
                 { TargetObject: Setter { Property: { PropertyType: var type, DefaultMetadata: { DefaultValue: var def } } } }
-                    => GetValue(type, def),
+                    => GetValue(type, def, (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider))!),
                 { TargetProperty: PropertyInfo { PropertyType: var type } }
-                    => GetValue(type, null),
+                    => GetValue(type, null, (IRootObjectProvider)serviceProvider.GetService(typeof(IRootObjectProvider))!),
                 _ => null,
             };
 
-        private object? GetValue(Type type, object? def)
+        private object? GetValue(Type type, object? def, IRootObjectProvider root)
         {
             var settings = Load<JObject>("XAML") ?? new();
+            if (AddRoot)
+                settings = (JObject)(settings[root.RootObject.GetType().Name] ??= new JObject());
             var result = Convert(GetToken(settings), type);
             if (result is null)
             {
