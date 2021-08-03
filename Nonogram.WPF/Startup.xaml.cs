@@ -68,6 +68,8 @@ namespace Nonogram.WPF
             if (_settings[nameof(Expander)] is JValue { Type: JTokenType.String, Value: string str })
                 GetType().GetProperty(str)?.SetValue(this, true);
             WebPbnScopeOption.PropertyChanged += IndexChanged;
+            LoadOption.PropertyChanged += PathChanged;
+            ResizeOption.PropertyChanged += PathChanged;
         }
 
         private void IndexChanged(object? sender, PropertyChangedEventArgs e)
@@ -82,6 +84,12 @@ namespace Nonogram.WPF
                 }
                 _settings[nameof(WebPbnScope)] = JObject.FromObject(webPbn, new() { Converters = { new WebPbnConverter(WebPbnScopeOption) } });
             }
+        }
+
+        private void PathChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is Options.FileOption options && e.PropertyName is nameof(options.IsValidState))
+                this.NotifyProperty(PropertyChanged, nameof(CanStart));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

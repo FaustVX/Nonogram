@@ -110,47 +110,65 @@ namespace Nonogram
                 };
         }
 
-        [Verb("resize", false)]
-        public class Resize : Options
+        public abstract class FileOption : Options
         {
             public override bool IsValidState => !string.IsNullOrWhiteSpace(File) && (FileInfo.Exists || URI.Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase));
 
-            private string _file = default!;
+            private string _file = "";
             [Option("file", Required = true)]
             public string File
             {
                 get => _file;
                 init
                 {
-                    if (this.OnPropertyChanged(ref _file, in value, PropertyChanged) && IsValidState && FileInfo.Exists)
+                    if (this.OnPropertyChanged(ref _file, in value, PropertyChanged))
                     {
-                        var bitmap = new Bitmap(FileInfo.OpenRead());
-                        (Width, Height) = (bitmap.Width, bitmap.Height);
-                        this.NotifyProperty(PropertyChanged, nameof(Width));
-                        this.NotifyProperty(PropertyChanged, nameof(Height));
+                        this.NotifyProperty(PropertyChanged, nameof(IsValidState));
+                        if (IsValidState)
+                            OnFileInit();
                     }
                 }
             }
             public FileInfo FileInfo => new(File);
             public Uri URI => new(File);
 
-            [Option('w', "width", Required = true)]
-            public int Width { get; init; } = 10;
+            protected Stream GetStream()
+                => this switch
+                {
+                    { FileInfo: { Exists: true } file } => file.OpenRead(),
+                    { URI: { Scheme: "http" or "https" } uri } => new HttpClient().GetStreamAsync(uri).GetAwaiter().GetResult(),
+                    _ => throw new Exception(),
+                };
 
+            protected virtual void OnFileInit()
+            { }
+        }
+
+        [Verb("resize", false)]
+        public class Resize : FileOption
+        {
+            private int _width = 10;
+            [Option('w', "width", Required = true)]
+            public int Width
+            {
+                get => _width;
+                init => _width = value;
+            }
+
+            private int _height = 10;
             [Option('h', "height", Required = true)]
-            public int Height { get; init; } = 10;
+            public int Height
+            {
+                get => _height;
+                init => _height = value;
+            }
 
             [Option('f', "factor", Default = 100)]
             public int FactorReduction { get; init; } = 100;
 
             protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
             {
-                using var stream = this switch
-                {
-                    { FileInfo: { Exists: true } file } => file.OpenRead(),
-                    { URI: { Scheme: "http" or "https" } uri } => new HttpClient().GetStreamAsync(uri).GetAwaiter().GetResult(),
-                    _ => throw new Exception(),
-                };
+                using var stream = GetStream();
                 var bitmap = new Bitmap(Image.FromStream(stream));
                 var array = new Color[bitmap.Height, bitmap.Width];
                 for (var x = 0; x < bitmap.Width; x++)
@@ -160,13 +178,24 @@ namespace Nonogram
                 var pattern = Extensions.ReduceArray(array, Width, Height, converterColor);
                 return Game.Create(pattern, ignoredColor);
             }
+
+            protected override void OnFileInit()
+            {
+                try
+                {
+                    var bitmap = new Bitmap(FileInfo.OpenRead());
+                    (_width, _height) = (bitmap.Width, bitmap.Height);
+                    this.NotifyProperty(PropertyChanged, nameof(Width));
+                    this.NotifyProperty(PropertyChanged, nameof(Height));
+                }
+                catch
+                { }
+            }
         }
 
         [Verb("load", false)]
-        public class Load : Options
+        public class Load : FileOption
         {
-            public override bool IsValidState => !string.IsNullOrWhiteSpace(File) && FileInfo.Exists;
-
             private bool _loadGame;
             [Option('l', "all", Default = false)]
             public bool LoadGame
@@ -175,18 +204,9 @@ namespace Nonogram
                 init => this.OnPropertyChanged(ref _loadGame, in value, PropertyChanged);
             }
 
-            private string _file = "";
-            [Option("file", Required = true)]
-            public string File
-            {
-                get => _file;
-                init => this.OnPropertyChanged(ref _file, in value, PropertyChanged);
-            }
-            public FileInfo FileInfo => new(File);
-
             protected override Game<T> Execute<T>(Func<string, int, T> converterRGB, Func<ROSpan2D<Color>, T> converterColor, Func<IEnumerator<byte>, T> loader, T ignoredColor = default!)
             {
-                using var stream = FileInfo.OpenRead();
+                using var stream = GetStream();
                 return Game.Load(stream, loader, LoadGame);
             }
         }
