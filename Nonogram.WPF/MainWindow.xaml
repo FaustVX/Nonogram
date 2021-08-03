@@ -15,7 +15,7 @@
         mc:Ignorable="d"
         KeyUp="This_KeyUp"
         dp:UndoRedo.UndoRedo="{Binding}"
-        dp:Size.CellSize="17.5"
+        dp:Size.CellSize="{mx:Load {x:Static dp:Size.PropertyName}, NameSpace={x:Null}, Default=17.5}"
         SizeToContent="WidthAndHeight"
         Background="{mx:Load Startup/Background, AddRoot=False, Default=#202020}"
         Title="Nonogram"

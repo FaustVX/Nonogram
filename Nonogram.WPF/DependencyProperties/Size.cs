@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -6,6 +7,8 @@ namespace Nonogram.WPF.DependencyProperties
 {
     public static class Size
     {
+        public static readonly string PropertyName = "CellSize";
+        private static readonly JObject _settings = Nonogram.Extensions.Load<JObject>("MainWindow") ?? new();
         public static double GetCellSize(DependencyObject obj)
             => (double)obj.GetValue(CellSizeProperty);
 
@@ -14,7 +17,7 @@ namespace Nonogram.WPF.DependencyProperties
 
         // Using a DependencyProperty as the backing store for CellSize.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CellSizeProperty =
-            DependencyProperty.RegisterAttached("CellSize", typeof(double), typeof(Size), new PropertyMetadata(0d, CellSizeChanged, CoerceCellSize));
+            DependencyProperty.RegisterAttached(PropertyName, typeof(double), typeof(Size), new PropertyMetadata(0d, CellSizeChanged, CoerceCellSize));
 
         private static object CoerceCellSize(DependencyObject d, object baseValue)
             => Math.Round((double)baseValue, 1, MidpointRounding.AwayFromZero);
@@ -25,6 +28,10 @@ namespace Nonogram.WPF.DependencyProperties
             {
                 case (FrameworkElement o, 0d, double):
                     o.KeyUp += This_KeyUp;
+                    break;
+                case (_, _, double value):
+                    _settings[PropertyName] = value;
+                    Nonogram.Extensions.Save(_settings.Path, _settings);
                     break;
             }
         }

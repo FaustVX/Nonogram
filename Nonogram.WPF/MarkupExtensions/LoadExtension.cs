@@ -17,6 +17,7 @@ namespace Nonogram.WPF.MarkupExtensions
         public string[] Properties { get; }
         public string? Default { get; init; }
         public bool AddRoot { get; init; } = true;
+        public string? NameSpace { get; init; } = "XAML";
 
         public override object? ProvideValue(IServiceProvider serviceProvider)
             => (serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget) switch
@@ -32,14 +33,17 @@ namespace Nonogram.WPF.MarkupExtensions
 
         private object? GetValue(Type type, object? def, IRootObjectProvider root)
         {
-            var settings = Load<JObject>("XAML") ?? new();
-            if (AddRoot)
-                settings = (JObject)(settings[root.RootObject.GetType().Name] ??= new JObject());
+            if (!AddRoot && NameSpace is null)
+                throw new Exception("Can't find a root property. Consider Adding a Namespace or set AddRoot to True");
+            var rootName = root.RootObject.GetType().Name;
+            var settings = Load<JObject>(NameSpace ?? rootName) ?? new();
+            if (AddRoot && NameSpace is not null)
+                settings = (JObject)(settings[rootName] ??= new JObject());
             var result = Convert(GetToken(settings), type);
             if (result is null)
             {
                 GetToken(settings).Parent!.Parent![Properties[^1]] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
-                Save("XAML", settings);
+                Save(NameSpace ?? rootName, settings);
             }
             return result;
         }
