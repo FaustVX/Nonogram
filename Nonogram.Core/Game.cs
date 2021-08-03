@@ -9,31 +9,8 @@ using System.Reflection;
 
 namespace Nonogram
 {
-    public static class Game
+    public static partial class Game
     {
-        private struct StreamEnumerator : IEnumerator<byte>
-        {
-            public StreamEnumerator(Stream stream)
-                => (Stream, Current) = (stream, 0);
-
-            public Stream Stream { get; }
-
-            public byte Current { get; set; }
-
-            object System.Collections.IEnumerator.Current => Current;
-
-            public void Dispose()
-            { }
-            public bool MoveNext()
-            {
-                var i = Stream.ReadByte();
-                Current = (byte)i;
-                return i >= 0;
-            }
-            public void Reset()
-            { }
-        }
-
         public static Game<T> Create<T>(T[,] pattern, T ignoredColor = default!)
             where T : notnull
             => new(pattern, ignoredColor);
@@ -79,131 +56,9 @@ namespace Nonogram
         }
     }
 
-    public class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged, IUndoRedo
+    public partial class Game<T> : IEnumerable<ICell>, INotifyPropertyChanged, INotifyCollectionChanged, IUndoRedo
     where T : notnull
     {
-        public class Color : INotifyPropertyChanged
-        {
-            public event PropertyChangedEventHandler? PropertyChanged;
-
-            public T Value { get; }
-
-            private int _current;
-            public int Current
-            {
-                get => _current;
-                set
-                {
-                    this.OnPropertyChanged(ref _current, in value, PropertyChanged);
-                    Validated = Current == Total;
-                }
-            }
-
-            public int Total { get; }
-
-            private bool _validated;
-            public bool Validated
-            {
-                get => _validated;
-                set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
-            }
-
-            public Color(T value, int total)
-                => (Value, Total) = (value, total);
-
-            public override int GetHashCode()
-                => Value.GetHashCode();
-
-            public override bool Equals(object? obj)
-                => obj is Color c && ColorEqualizer(c.Value, Value);
-        }
-
-        public class HintGroup : INotifyPropertyChanged, IEnumerable<Hint>
-        {
-            public event PropertyChangedEventHandler? PropertyChanged;
-
-            public Hint[] Hints { get; init; }
-
-            public int Length => Hints.Length;
-
-            public Hint this[Index index]
-                => Hints[index];
-
-            public HintGroup(Game<T>.Hint[] hints)
-                => Hints = hints;
-
-            private bool _isGroupInvalid;
-            public bool IsGroupInvalid
-            {
-                get => _isGroupInvalid;
-                set => this.OnPropertyChanged(ref _isGroupInvalid, in value, PropertyChanged);
-            }
-
-            public IEnumerator<Game<T>.Hint> GetEnumerator()
-                => ((IEnumerable<Game<T>.Hint>)Hints).GetEnumerator();
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-                => GetEnumerator();
-        }
-
-        public class Hint : INotifyPropertyChanged
-        {
-            public event PropertyChangedEventHandler? PropertyChanged;
-
-            public T Value { get; }
-
-            public int Total { get; }
-
-            private bool _validated;
-            public bool Validated
-            {
-                get => _validated;
-                set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
-            }
-
-            public Hint(T value, int total)
-                => (Value, Total) = (value, total);
-
-            public override int GetHashCode()
-                => (Value, Total).GetHashCode();
-
-            public override bool Equals(object? obj)
-                => obj is Hint c && c.Total == Total && ColorEqualizer(c.Value, Value);
-        }
-
-        private abstract class HistoryFrame
-        {
-            public class SingleCell : HistoryFrame
-            {
-                public int X { get; }
-                public int Y { get; }
-                public ICell Cell { get; }
-
-                public SingleCell(int x, int y, Game<T> game)
-                    => (X, Y, Cell) = (x, y, game[x, y]);
-
-                public override Game<T>.HistoryFrame.SingleCell Rebuild(Game<T> game)
-                    => new(X, Y, game);
-
-                public override void Apply(Game<T> game, LinkedList<HistoryFrame> first, LinkedList<HistoryFrame> last)
-                {
-                    base.Apply(game, first, last);
-                    game.CalculateColoredCells(X, Y, Cell);
-                    game.OnCollectionChanged(X, Y, Cell);
-                    var autoSeal = game.AutoSeal;
-                    game._autoSeal = false;
-                    game.ValidateHints(X, Y);
-                    game._autoSeal = autoSeal;
-                }
-            }
-
-            public abstract HistoryFrame Rebuild(Game<T> game);
-            public virtual void Apply(Game<T> game, LinkedList<HistoryFrame> first, LinkedList<HistoryFrame> last)
-            {
-                first.RemoveLast();
-                last.AddLast(Rebuild(game));
-            }
-        }
-
         public event PropertyChangedEventHandler? PropertyChanged;
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
         public static Func<T, T, bool> ColorEqualizer { get; set; } = typeof(T) == typeof(IEquatable<T>) ? (a, b) => ((IEquatable<T>)a).Equals(b) : EqualityComparer<T>.Default.Equals;
