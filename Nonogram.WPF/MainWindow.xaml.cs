@@ -37,6 +37,8 @@ namespace Nonogram.WPF
                 ICellToForegroundConverter.IgnoredBrush = ICellToBackgroundConverter.IgnoredBrush = Nonogram!.IgnoredColor;
                 if (autoSeal is bool seal)
                     Nonogram.AutoSeal = seal;
+                if (AutoBox)
+                    Nonogram.BoxSeal();
                 if (WindowState is WindowState.Normal)
                     SizeToContent = SizeToContent.WidthAndHeight;
             }
@@ -51,6 +53,9 @@ namespace Nonogram.WPF
                 this.NotifyProperty(PropertyChanged);
             }
         }
+
+        public bool AutoBox
+            => _settings.Value<bool>(nameof(AutoBox));
 
         public Brush CurrentColor
             => Nonogram.PossibleColors[CurrentColorIndex].Value;
@@ -77,6 +82,7 @@ namespace Nonogram.WPF
             InitializeComponent();
             Nonogram = Generate();
             AutoSeal = _settings.Value<bool?>(nameof(AutoSeal)) ?? true;
+            _settings[nameof(AutoBox)] ??= new JValue(true);
         }
 
         private (ICell cell, int x, int y)? _selectedColor;
