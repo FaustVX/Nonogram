@@ -58,6 +58,9 @@ namespace Nonogram.WPF
         public bool AutoBox
             => _settings.Value<bool>(nameof(AutoBox));
 
+        public int DragOffset
+            => _settings.Value<int>(nameof(DragOffset));
+
         public Brush CurrentColor
             => Nonogram.PossibleColors[CurrentColorIndex].Value;
 
@@ -84,16 +87,17 @@ namespace Nonogram.WPF
             Nonogram = Generate();
             AutoSeal = _settings.Value<bool?>(nameof(AutoSeal)) ?? true;
             _settings[nameof(AutoBox)] ??= new JValue(true);
+            _settings[nameof(DragOffset)] ??= new JValue(1);
         }
 
         private (ICell cell, int x, int y, Orientation? orientation)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
-            if (_selectedColor is not (ICell, int, int, Orientation or null) sel)
-                return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             ColRow.SetHoverX(this, x);
             ColRow.SetHoverY(this, y);
+            if (_selectedColor is not (ICell, int, int, Orientation or null) sel)
+                return;
             if (IsMeasureStarted)
                 return;
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
@@ -109,12 +113,26 @@ namespace Nonogram.WPF
                         _selectedColor = (sel.cell, sel.x, sel.y, Orientation.Vertical);
                     Execute(sel.cell, x, y);
                 }
+                else if (sel.orientation is Orientation.Vertical && Math.Abs(x - sel.x) <= DragOffset)
+                {
+                    x = sel.x;
+                    ColRow.SetHoverX(this, x);
+                    Execute(sel.cell, x, y);
+                }
+                else if (sel.orientation is Orientation.Horizontal && Math.Abs(y - sel.y) <= DragOffset)
+                {
+                    y = sel.y;
+                    ColRow.SetHoverY(this, y);
+                    Execute(sel.cell, x, y);
+                }
+                else
+                    _selectedColor = null;
 
             void Execute(ICell cell, int x, int y)
             {
                 if (cell.Equals(Nonogram[x, y]) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
                 {
-                    Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
+                    Change(x, y, e.RightButton is MouseButtonState.Pressed);
                     e.Handled = true;
                 }
             }
@@ -126,16 +144,14 @@ namespace Nonogram.WPF
                 return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             _selectedColor = (Nonogram[x, y], x, y, null);
-            Change((FrameworkElement)sender, e.ChangedButton is MouseButton.Right);
+            Change(x, y, e.ChangedButton is MouseButton.Right);
             e.Handled = true;
         }
 
-        private void Change(FrameworkElement element, bool isSealed)
+        private void Change(int x, int y, bool isSealed)
         {
             if (Nonogram.IsCorrect)
                 return;
-
-            var (x, y) = GetXYFromTag(element);
 
             Nonogram.ValidateHints(x, y, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? Nonogram.IgnoredColor : CurrentColor, seal: isSealed);
         }
