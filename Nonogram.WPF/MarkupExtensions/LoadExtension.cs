@@ -37,12 +37,10 @@ namespace Nonogram.WPF.MarkupExtensions
                 throw new Exception("Can't find a root property. Consider Adding a Namespace or set AddRoot to True");
             var rootName = root.RootObject.GetType().Name;
             var settings = Load<JObject>(NameSpace ?? rootName) ?? new();
-            if (AddRoot && NameSpace is not null)
-                settings = (JObject)(settings[rootName] ??= new JObject());
-            var result = Convert(GetToken(settings), type);
+            var result = Convert(GetToken((AddRoot && NameSpace is not null) ? (JObject)(settings[rootName] ??= new JObject()) : settings), type);
             if (result is null)
             {
-                GetToken(settings).Parent!.Parent![Properties[^1]] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
+                GetToken((AddRoot && NameSpace is not null) ? (JObject)(settings[rootName] ??= new JObject()) : settings).Parent!.Parent![Properties[^1]] = JToken.FromObject(result = JToken.Parse('"' + (Default ?? def?.ToString()!) + '"').ToObject(type)!);
                 Save(NameSpace ?? rootName, settings);
             }
             return result;
@@ -52,9 +50,7 @@ namespace Nonogram.WPF.MarkupExtensions
         {
             JToken? token = obj;
             foreach (var property in Properties)
-            {
                 token = (token[property] ??= new JObject());
-            }
             return token;
         }
 

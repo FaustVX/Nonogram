@@ -47,7 +47,7 @@ namespace Nonogram.WPF
 
         public bool AutoSeal
         {
-            get => Nonogram?.AutoSeal ?? _settings.Value<bool>(nameof(AutoSeal));
+            get => Nonogram?.AutoSeal ?? _settings?.Value<bool>(nameof(AutoSeal)) ?? true;
             set
             {
                 _settings[nameof(AutoSeal)] = Nonogram.AutoSeal = value;
@@ -82,12 +82,12 @@ namespace Nonogram.WPF
         }
         public MainWindow()
         {
-            _settings = Load<JObject>(nameof(MainWindow), autosave: true);
             InitializeComponent();
+            _settings = Load<JObject>(nameof(MainWindow), autosave: true);
+            _settings[nameof(DragOffset)] ??= new JValue(1);
+            _settings[nameof(AutoBox)] ??= new JValue(true);
             Nonogram = Generate();
             AutoSeal = _settings.Value<bool?>(nameof(AutoSeal)) ?? true;
-            _settings[nameof(AutoBox)] ??= new JValue(true);
-            _settings[nameof(DragOffset)] ??= new JValue(1);
         }
 
         private (ICell cell, int x, int y, Orientation? orientation)? _selectedColor;

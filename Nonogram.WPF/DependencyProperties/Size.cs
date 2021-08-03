@@ -8,7 +8,6 @@ namespace Nonogram.WPF.DependencyProperties
     public static class Size
     {
         public static readonly string PropertyName = "CellSize";
-        private static readonly JObject _settings = Nonogram.Extensions.Load<JObject>("MainWindow") ?? new();
         public static double GetCellSize(DependencyObject obj)
             => (double)obj.GetValue(CellSizeProperty);
 
@@ -30,8 +29,9 @@ namespace Nonogram.WPF.DependencyProperties
                     o.KeyUp += This_KeyUp;
                     break;
                 case (_, _, double value):
-                    _settings[PropertyName] = value;
-                    Nonogram.Extensions.Save(_settings.Path, _settings);
+                    var settings = Nonogram.Extensions.Load<JObject>("MainWindow") ?? new();
+                    settings[PropertyName] = value;
+                    Nonogram.Extensions.Save(settings.Path, settings);
                     break;
             }
         }
