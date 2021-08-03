@@ -105,7 +105,7 @@ namespace Nonogram
             public bool Validated
             {
                 get => _validated;
-                private set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
+                set => this.OnPropertyChanged(ref _validated, in value, PropertyChanged);
             }
 
             public Color(T value, int total)

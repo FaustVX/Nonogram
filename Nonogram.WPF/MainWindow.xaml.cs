@@ -150,7 +150,7 @@ namespace Nonogram.WPF
 
         private void Change(int x, int y, bool isSealed)
         {
-            if (Nonogram.IsCorrect)
+            if (Nonogram.IsCorrect || Nonogram.PossibleColors[CurrentColorIndex].Validated)
                 return;
 
             Nonogram.ValidateHints(x, y, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? Nonogram.IgnoredColor : CurrentColor, seal: isSealed);

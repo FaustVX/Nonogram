@@ -145,7 +145,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border CornerRadius="3"
-                                dp:CanBeSelected.IsLocked="{Binding Validated, Mode=OneWay}"
+                                dp:CanBeSelected.IsLocked="{Binding Validated, Mode=TwoWay}"
                                 dp:CanBeSelected.IsColor="{Binding}"
                                 Background="{Binding Value}">
                             <Border.Style>
