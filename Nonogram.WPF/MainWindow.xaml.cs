@@ -9,6 +9,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using static Nonogram.Extensions;
@@ -85,21 +86,38 @@ namespace Nonogram.WPF
             _settings[nameof(AutoBox)] ??= new JValue(true);
         }
 
-        private (ICell cell, int x, int y)? _selectedColor;
+        private (ICell cell, int x, int y, Orientation? orientation)? _selectedColor;
         private void CellMouseEnter(object sender, MouseEventArgs e)
         {
+            if (_selectedColor is not (ICell, int, int, Orientation or null) sel)
+                return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
             ColRow.SetHoverX(this, x);
             ColRow.SetHoverY(this, y);
             if (IsMeasureStarted)
                 return;
             if (e.LeftButton is MouseButtonState.Pressed || e.RightButton is MouseButtonState.Pressed)
-                if (((_selectedColor?.x ?? -1) == x) || ((_selectedColor?.y ?? 1) == y))
-                    if ((_selectedColor?.cell?.Equals(Nonogram[x, y]) ?? false) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
-                    {
-                        Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
-                        e.Handled = true;
-                    }
+                if (sel.orientation is not Orientation.Vertical && sel.y == y)
+                {
+                    if (sel.orientation is null)
+                        _selectedColor = (sel.cell, sel.x, sel.y, Orientation.Horizontal);
+                    Execute(sel.cell, x, y);
+                }
+                else if (sel.orientation is not Orientation.Horizontal && sel.x == x)
+                {
+                    if (sel.orientation is null)
+                        _selectedColor = (sel.cell, sel.x, sel.y, Orientation.Vertical);
+                    Execute(sel.cell, x, y);
+                }
+
+            void Execute(ICell cell, int x, int y)
+            {
+                if (cell.Equals(Nonogram[x, y]) || Nonogram[x, y] is EmptyCell || (Nonogram[x, y] is SealedCell<Brush> { Seals: var seals } && !seals.Contains(CurrentColor)))
+                {
+                    Change((FrameworkElement)sender, e.RightButton is MouseButtonState.Pressed);
+                    e.Handled = true;
+                }
+            }
         }
 
         private void CellMouseDown(object sender, MouseButtonEventArgs e)
@@ -107,7 +125,7 @@ namespace Nonogram.WPF
             if (IsMeasureStarted || e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
                 return;
             var (x, y) = GetXYFromTag((FrameworkElement)sender);
-            _selectedColor = (Nonogram[x, y], x, y);
+            _selectedColor = (Nonogram[x, y], x, y, null);
             Change((FrameworkElement)sender, e.ChangedButton is MouseButton.Right);
             e.Handled = true;
         }
