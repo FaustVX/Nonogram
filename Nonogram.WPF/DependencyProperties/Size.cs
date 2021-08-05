@@ -26,27 +26,15 @@ namespace Nonogram.WPF.DependencyProperties
             switch (d, e.OldValue, e.NewValue)
             {
                 case (FrameworkElement o, 0d, double):
-                    o.KeyUp += This_KeyUp;
+                    o.InputBindings.Add(new(new RelayCommand(() => SetCellSize(o, GetCellSize(o) + 0.1)), new KeyGesture(Key.Add, ModifierKeys.Control)));
+                    o.InputBindings.Add(new(new RelayCommand(() => SetCellSize(o, GetCellSize(o) + 0.1)), new KeyGesture(Key.OemPlus, ModifierKeys.Control)));
+                    o.InputBindings.Add(new(new RelayCommand(() => SetCellSize(o, GetCellSize(o) - 0.1)), new KeyGesture(Key.Subtract, ModifierKeys.Control)));
+                    o.InputBindings.Add(new(new RelayCommand(() => SetCellSize(o, GetCellSize(o) - 0.1)), new KeyGesture(Key.OemMinus, ModifierKeys.Control)));
                     break;
                 case (_, _, double value):
                     var settings = Nonogram.Extensions.Load<JObject>("MainWindow") ?? new();
                     settings[PropertyName] = value;
                     Nonogram.Extensions.Save(settings.Path, settings);
-                    break;
-            }
-        }
-
-        private static void This_KeyUp(object sender, KeyEventArgs e)
-        {
-            switch (sender, e.KeyboardDevice.Modifiers, e.Key)
-            {
-                case (DependencyObject d, ModifierKeys.Control, Key.Add or Key.OemPlus):
-                    SetCellSize(d, GetCellSize(d) + 0.1);
-                    e.Handled = true;
-                    break;
-                case (DependencyObject d, ModifierKeys.Control, Key.Subtract or Key.OemMinus):
-                    SetCellSize(d, GetCellSize(d) - 0.1);
-                    e.Handled = true;
                     break;
             }
         }

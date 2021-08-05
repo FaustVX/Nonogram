@@ -21,21 +21,15 @@ namespace Nonogram.WPF.DependencyProperties
             switch ((d, e.OldValue, e.NewValue))
             {
                 case (FrameworkElement elem, null, bool):
-                    elem.MouseRightButtonUp += SetSelected;
-                    break;
-                case (FrameworkElement elem, bool, null):
-                    elem.MouseRightButtonUp -= SetSelected;
+                    elem.InputBindings.Add(new(new RelayCommand(() => SetSelected(elem)), new MouseGesture(MouseAction.RightClick)));
                     break;
             }
         }
 
-        private static void SetSelected(object sender, MouseButtonEventArgs e)
+        private static void SetSelected(DependencyObject sender)
         {
-            if (GetIsLocked((DependencyObject)sender) || _cache.Values.Count(e => GetIsLocked(e)) < _colors.Count - 1)
-            {
-                SetIsLocked((DependencyObject)sender, !GetIsLocked((DependencyObject)sender));
-                e.Handled = true;
-            }
+            if (GetIsLocked(sender) || _cache.Values.Count(e => GetIsLocked(e)) < _colors.Count - 1)
+                SetIsLocked(sender, !GetIsLocked(sender));
         }
     }
 }

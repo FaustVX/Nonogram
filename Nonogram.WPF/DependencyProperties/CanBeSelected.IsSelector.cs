@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -28,8 +26,17 @@ namespace Nonogram.WPF.DependencyProperties
             {
                 case (ListBox list, null, IList colors):
                     _window = GetRoot(d)!;
-                    _window.MouseWheel += MouseWheel;
-                    _window.KeyUp += KeyUp;
+                    _window.InputBindings.Add(new(new RelayCommand(() => MouseWheel(-1)), MouseWheelGesture.Down));
+                    _window.InputBindings.Add(new(new RelayCommand(() => MouseWheel(+1)), MouseWheelGesture.Up));
+                    _window.InputBindings.Add(new(new RelayCommand(SwitchColor), new KeyGesture(Key.Tab)));
+                    for (var i = 0; i < colors.Count; i++)
+                        if (i < 10)
+                        {
+                            var idx = i;
+                            _window.InputBindings.Add(new(new RelayCommand(() => SelectColorIndex(idx)), new KeyGesture(Key.F1 + idx)));
+                        }
+                        else
+                            break;
                     _colors = SetValues(list, colors);
                     break;
                 case (ListBox list, _, IList colors):
@@ -64,16 +71,15 @@ namespace Nonogram.WPF.DependencyProperties
         private static IList _colors = default!;
         private static int _lastColorIndex = 0;
 
-        private static void MouseWheel(object sender, MouseWheelEventArgs e)
+        private static void MouseWheel(int dir)
         {
-            var offset = e.Delta switch
+            var offset = dir switch
             {
                 > 0 => GetOffset(_colors.Count - 1),
                 0 => 0,
                 < 0 => GetOffset(+1),
             };
             SetSelectedColor(_window, (GetSelectedColor(_window) + offset) % _colors.Count);
-            e.Handled = true;
 
             static int GetOffset(int offset)
             {
@@ -83,25 +89,21 @@ namespace Nonogram.WPF.DependencyProperties
             }
         }
 
-        private static void KeyUp(object sender, KeyEventArgs e)
+        private static void SwitchColor()
         {
-            switch (e.Key)
-            {
-                case Key.Tab:
-                    var temp = _lastColorIndex;
+            var temp = _lastColorIndex;
+            _lastColorIndex = GetSelectedColor(_window);
+            SetSelectedColor(_window, temp);
+        }
+
+        private static void SelectColorIndex(int colorIndex)
+        {
+            if (colorIndex < _colors.Count && ValidateSelectedColor(colorIndex))
+                if (GetSelectedColor(_window) != colorIndex)
+                {
                     _lastColorIndex = GetSelectedColor(_window);
-                    SetSelectedColor(_window, temp);
-                    e.Handled = true;
-                    break;
-                case >= Key.D1 and <= Key.D9 and var key when (key - Key.D1) is var pos && pos < _colors.Count && ValidateSelectedColor(pos):
-                    if (GetSelectedColor(_window) != key - Key.D1)
-                    {
-                        _lastColorIndex = GetSelectedColor(_window);
-                        SetSelectedColor(_window, key - Key.D1);
-                        e.Handled = true;
-                    }
-                    break;
-            }
+                    SetSelectedColor(_window, colorIndex);
+                }
         }
 
         private static bool ValidateSelectedColor(int i)

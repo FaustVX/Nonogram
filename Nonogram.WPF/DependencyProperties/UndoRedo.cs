@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 
 namespace Nonogram.WPF.DependencyProperties
@@ -20,45 +19,11 @@ namespace Nonogram.WPF.DependencyProperties
         {
             switch (d, e.OldValue, e.NewValue)
             {
-                case (FrameworkElement elem, null, IUndoRedo):
-                    elem.KeyUp += This_KeyUp;
-                    elem.MouseUp += This_MouseUp;
-                    break;
-                case (FrameworkElement elem, _, null):
-                    elem.KeyUp -= This_KeyUp;
-                    elem.MouseUp -= This_MouseUp;
-                    break;
-            }
-        }
-
-        private static void This_KeyUp(object sender, KeyEventArgs e)
-        {
-            var game = GetUndoRedo((DependencyObject)sender)!;
-            switch ((e.KeyboardDevice.Modifiers, e.Key))
-            {
-                case (ModifierKeys.Control, Key.Z) when !game.IsCorrect:
-                    game.Undo();
-                    e.Handled = true;
-                    break;
-                case (ModifierKeys.Control, Key.Y):
-                    game.Redo();
-                    e.Handled = true;
-                    break;
-            }
-        }
-
-        private static void This_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            var game = GetUndoRedo((DependencyObject)sender)!;
-            switch (e.ChangedButton)
-            {
-                case MouseButton.XButton1 when !game.IsCorrect:
-                    e.Handled = true;
-                    game.Undo();
-                    break;
-                case MouseButton.XButton2:
-                    e.Handled = true;
-                    game.Redo();
+                case (FrameworkElement elem, null, IUndoRedo g):
+                    elem.InputBindings.Add(new(new RelayCommand(g.Undo), new KeyGesture(Key.Z, ModifierKeys.Control)));
+                    elem.InputBindings.Add(new(new RelayCommand(g.Undo), new MouseExtraButtonGesture(MouseButton.XButton1)));
+                    elem.InputBindings.Add(new(new RelayCommand(g.Redo), new KeyGesture(Key.Y, ModifierKeys.Control)));
+                    elem.InputBindings.Add(new(new RelayCommand(g.Redo), new MouseExtraButtonGesture(MouseButton.XButton2)));
                     break;
             }
         }
