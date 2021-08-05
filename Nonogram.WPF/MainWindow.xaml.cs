@@ -156,6 +156,15 @@ namespace Nonogram.WPF
             Nonogram.ValidateHints(x, y, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? Nonogram.IgnoredColor : CurrentColor, seal: isSealed);
         }
 
+        private void CompleteSealCell(object? parameter)
+        {
+            if (Nonogram.IsCorrect || Nonogram.PossibleColors[CurrentColorIndex].Validated)
+                return;
+
+            var (x, y) = GetXYFromTag((FrameworkElement)parameter!);
+            Nonogram.ValidateHints(x, y, Nonogram.IgnoredColor, seal: true);
+        }
+
         private void This_KeyUp(object sender, KeyEventArgs e)
         {
             switch ((e.KeyboardDevice.Modifiers, e.Key))
@@ -236,6 +245,7 @@ namespace Nonogram.WPF
         private void CellInitialized(object sender, EventArgs e)
         {
             var border = (FrameworkElement)sender;
+            border.InputBindings.Add(new(new ParameteredRelayCommand(CompleteSealCell), new MouseGesture(MouseAction.RightDoubleClick)) { CommandParameter = border });
             var (x, y) = Nonogram.GetCoord((ICell)border.DataContext);
             border.Tag = (x, y);
         }
